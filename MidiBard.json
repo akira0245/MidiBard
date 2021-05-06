@@ -1,0 +1,11 @@
+﻿{
+  "Author": "Akira0245",
+  "Name": "MidiBard",
+  "InternalName": "MidiBard",
+  "Description": "Bard Performance using midi files.",
+  "Tags": [ "Bard", "Midi", "akira0245" ],
+  "RepoUrl": "",
+  "AssemblyVersion": "1.0.1.0",
+  "ApplicableVersion": "any",
+  "DalamudApiLevel": 3
+}
