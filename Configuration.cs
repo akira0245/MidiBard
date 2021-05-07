@@ -48,7 +48,7 @@ namespace MidiBard
 		public bool showSettingsPanel;
 		public int playlistSizeY = 10;
 		public bool miniPlayer;
-		public float timeBetweenSongs = 0;
+		//public float timeBetweenSongs = 0;
 
 		// Add any other properties or methods here.
 		[JsonIgnore] private DalamudPluginInterface pluginInterface;

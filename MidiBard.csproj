@@ -25,6 +25,12 @@
     <Reference Include="ImGuiScene">
       <HintPath>..\..\..\AppData\Roaming\XIVLauncher\addon\Hooks\5.2.5.8\ImGuiScene.dll</HintPath>
     </Reference>
+    <Reference Include="Lumina">
+      <HintPath>..\..\..\Downloads\Compressed\Dalamud_v5.2.3.3_beta1\dalamudnew\Lumina.dll</HintPath>
+    </Reference>
+    <Reference Include="Lumina.Excel">
+      <HintPath>..\..\..\Downloads\Compressed\Dalamud_v5.2.3.3_beta1\dalamudnew\Lumina.Excel.dll</HintPath>
+    </Reference>
     <Reference Include="Melanchall.DryWetMidi">
       <HintPath>..\..\..\Downloads\CHINESESERVER\Melanchall.DryWetMidi.dll</HintPath>
     </Reference>

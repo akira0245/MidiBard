@@ -6,6 +6,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Dalamud.Game.Internal.Network;
 using Dalamud.Plugin;
+using Lumina.Excel;
+using Lumina.Excel.GeneratedSheets;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Interaction;
@@ -31,10 +33,22 @@ namespace MidiBard
 
 		internal static AgentInterface MetronomeAgent;
 		internal static AgentInterface PerformanceAgent;
+		private static bool wasEnsembleModeRunning = false;
+
+		internal static ExcelSheet<Perform> InstrumentSheet;
+		internal static IntPtr PerformInfos;
+
+		internal delegate void DoPerformActionDelegate(IntPtr performInfoPtr, uint instrumentId, int a3 = 0);
+		internal static DoPerformActionDelegate DoPerformAction;
+
+		internal static byte CurrentInstrument => Marshal.ReadByte(PerformInfos + 3 + 9);
+		internal static byte UnkByte1 => Marshal.ReadByte(PerformInfos + 3 + 8);
+		internal static float UnkFloat => Marshal.PtrToStructure<float>(PerformInfos + 3);
+
 		internal static bool InPerformanceMode => Marshal.ReadByte(PerformanceAgent.Pointer + 0x20) != 0;
 		internal static bool MetronomeRunning => Marshal.ReadByte(MetronomeAgent.Pointer + 0x73) == 1;
 		internal static bool EnsembleModeRunning => Marshal.ReadByte(MetronomeAgent.Pointer + 0x80) == 1;
-		private static bool wasEnsembleModeRunning = false;
+
 		internal static byte MetronomeBeatsperBar => Marshal.ReadByte(MetronomeAgent.Pointer + 0x72);
 		internal static int MetronomeBeatsElapsed => Marshal.ReadInt32(MetronomeAgent.Pointer + 0x78);
 		internal static long MetronomeTickRate => Marshal.ReadInt64(MetronomeAgent.Pointer + 0x60);
@@ -68,7 +82,6 @@ namespace MidiBard
 
 		public void Initialize(DalamudPluginInterface pi)
 		{
-
 			pluginInterface = pi;
 			config = (Configuration)pluginInterface.GetPluginConfig() ?? new Configuration();
 			config.Initialize(pluginInterface);
@@ -87,6 +100,10 @@ namespace MidiBard
 			MetronomeAgent = AgentManager.FindAgentInterfaceByVtable(pi.TargetModuleScanner.GetStaticAddressFromSig("48 8D 05 ?? ?? ?? ?? 48 89 03 48 8D 4B 40"));
 			PerformanceAgent = AgentManager.FindAgentInterfaceByVtable(pi.TargetModuleScanner.GetStaticAddressFromSig("48 8D 05 ?? ?? ?? ?? 48 8B F9 48 89 01 48 8D 05 ?? ?? ?? ?? 48 89 41 28 48 8B 49 48"));
 
+			PerformInfos = pi.TargetModuleScanner.GetStaticAddressFromSig("48 8B 15 ?? ?? ?? ?? F6 C2 ??");
+			DoPerformAction = Marshal.GetDelegateForFunctionPointer<DoPerformActionDelegate>(pi.TargetModuleScanner.ScanText("48 89 ?? ?? ?? 48 89 ?? ?? ?? 57 48 83 EC ?? 48 83 3D 61 D0 BE 00"));
+
+			InstrumentSheet = pi.Data.Excel.GetSheet<Perform>();
 
 			foreach (var fileName in config.Playlist)
 			{
@@ -226,15 +243,60 @@ namespace MidiBard
 
 		void OnCommand(string command, string args)
 		{
-			PluginLog.Information($"{command},{args}");
+			PluginLog.Debug($"{command}, {args}");
 
 			var argStrings = args.Split(' ').Select(i => i.ToLower().Trim()).Where(i => !string.IsNullOrWhiteSpace(i)).ToList();
 			if (argStrings.Any())
 			{
-				if (argStrings[0].Contains("load"))
+				if (argStrings[0] == "perform")
 				{
-
+					try
+					{
+						DoPerformAction(PerformInfos, uint.Parse(argStrings[1]));
+					}
+					catch (Exception e)
+					{
+						try
+						{
+							var name = argStrings[1];
+							var possiblekey = InstrumentSheet.FirstOrDefault(i => i.Name.RawString.Contains(name));
+							var possiblekey2 = InstrumentSheet.FirstOrDefault(i => i.Instrument.RawString == name);
+							PluginLog.Debug($"{name} {possiblekey} {possiblekey2} {(possiblekey ?? possiblekey2)?.Instrument}");
+							DoPerformAction(PerformInfos, (possiblekey ?? possiblekey2).RowId);
+						}
+						catch (Exception exception)
+						{
+							//
+						}
+						//
+					}
 				}
+
+				else if (argStrings[0] == "play")
+				{
+					PlaybackManager.Play();
+				}
+
+				else if (argStrings[0] == "pause")
+				{
+					PlaybackManager.Pause();
+				}
+
+				else if (argStrings[0] == "stop")
+				{
+					PlaybackManager.Stop();
+				}
+
+				else if (argStrings[0] == "next")
+				{
+					PlaybackManager.Next();
+				}
+
+				else if (argStrings[0] == "last")
+				{
+					PlaybackManager.Last();
+				}
+
 			}
 			else
 			{

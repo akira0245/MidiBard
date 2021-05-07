@@ -51,6 +51,11 @@ namespace MidiBard
 			}
 		}
 
+		static void TextCenter(string text)
+		{
+
+		}
+
 		public unsafe void Draw()
 		{
 			if (!IsVisible)
@@ -297,96 +302,44 @@ namespace MidiBard
 
 					#endregion
 
-					//if (ImGui.Combo("PlayMode", ref config.PlayMode, Enum.GetNames(typeof(PlayMode)), 4))
-					//{
-
-					//}
-
 					ImGui.Spacing();
 				}
 
-				//ImGui.SetNextItemWidth(ImGui.GetWindowContentRegionWidth());
-				try
-				{
-					ImGui.TextColored(new Vector4(0.7f, 1f, 0.5f, 0.9f), $"{PlaylistManager.CurrentPlaying + 1:000} {PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].Item2}");
-				}
-				catch (Exception e)
-				{
-					var c = PlaylistManager.Filelist.Count;
-					ImGui.Text(c > 1
-						? $"{PlaylistManager.Filelist.Count} " +
-						  "tracks in playlist.".Localize()
-						: $"{PlaylistManager.Filelist.Count} " +
-						  "track in playlist.".Localize());
-				}
+				DrawCurrentPlaying();
 
 				ImGui.Spacing();
-				ImGui.PushStyleColor(ImGuiCol.PlotHistogram, 0x9C60FF8E);
-				//ImGui.PushStyleColor(ImGuiCol.FrameBg, 0x800000A0);
-				if (currentPlayback != null)
-				{
-					var currentTime = currentPlayback.GetCurrentTime<MetricTimeSpan>();
-					var duration = currentPlayback.GetDuration<MetricTimeSpan>();
-					float progress;
-					try
-					{
-						progress = (float)currentTime.Divide(duration);
-					}
-					catch (Exception e)
-					{
-						progress = 0;
-					}
 
-					ImGui.PushStyleColor(ImGuiCol.FrameBg, 0xAC104020);
-					ImGui.ProgressBar(progress, new Vector2(-1, 3));
-					ImGui.PopStyleColor();
+				DrawProgressBar();
 
-					ImGui.Text($"{currentTime.Hours}:{currentTime.Minutes:00}:{currentTime.Seconds:00}");
-					var fmt = $"{duration.Hours}:{duration.Minutes:00}:{duration.Seconds:00}";
-					ImGui.SameLine(ImGui.GetWindowContentRegionWidth() - ImGui.CalcTextSize(fmt).X);
-					ImGui.Text(fmt);
-				}
-				else
-				{
-					ImGui.ProgressBar(0, new Vector2(-1, 3));
-					ImGui.Text("0:00:00");
-					ImGui.SameLine(ImGui.GetWindowContentRegionWidth() - ImGui.GetItemRectSize().X);
-					ImGui.Text("0:00:00");
-				}
-
-				ImGui.PopStyleColor();
 				ImGui.Spacing();
+
 				ImGui.PushFont(UiBuilder.IconFont);
 				ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(4, 4));
 				ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(15, 4));
 				{
-					PlayPauseButton();
-					StopButton();
-					FastForwardButton();
-					PlayModeButton();
-					ShowMusicControlPanelButton();
-					ShowSettingsPanelButton();
-					MiniPlayerButton();
+					DrawButtonPlayPause();
+					DrawButtonStop();
+					DrawButtonFastForward();
+					DrawButtonPlayMode();
+					DrawButtonShowMusicControlPanel();
+					DrawButtonShowSettingsPanel();
+					DrawButtonMiniPlayer();
 				}
 				ImGui.PopFont();
 				ImGui.PopStyleVar(2);
 
-				//if (!config.miniPlayer)
+				if (config.showMusicControlPanel)
 				{
-
-					if (config.showMusicControlPanel)
-					{
-						DrawTrackSelection();
-						ImGui.Separator();
-						DrawMusicControlPanel();
-					}
-					if (config.showSettingsPanel)
-					{
-						ImGui.Separator();
-						DrawGeneralSettingPanel();
-					}
-					if (Debug) DebugWindow();
+					DrawTrackTrunkSelectionWindow();
+					ImGui.Separator();
+					DrawMusicControlPanel();
 				}
+				if (config.showSettingsPanel)
+				{
+					ImGui.Separator();
+					DrawGeneralSettingPanel();
+				}
+				if (Debug) DrawDebugWindow();
 
 				ImGui.End();
 			}
@@ -394,7 +347,72 @@ namespace MidiBard
 			ImGui.PopStyleVar();
 		}
 
-		private static unsafe void MiniPlayerButton()
+		private static unsafe void DrawCurrentPlaying()
+		{
+			try
+			{
+				ImGui.TextColored(new Vector4(0.7f, 1f, 0.5f, 0.9f), $"{PlaylistManager.CurrentPlaying + 1:000} {PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].Item2}");
+			}
+			catch (Exception e)
+			{
+				var c = PlaylistManager.Filelist.Count;
+				ImGui.Text(c > 1
+					? $"{PlaylistManager.Filelist.Count} " +
+					  "tracks in playlist.".Localize()
+					: $"{PlaylistManager.Filelist.Count} " +
+					  "track in playlist.".Localize());
+			}
+		}
+
+		private static unsafe void DrawProgressBar()
+		{
+			ImGui.PushStyleColor(ImGuiCol.PlotHistogram, 0x9C60FF8E);
+			//ImGui.PushStyleColor(ImGuiCol.FrameBg, 0x800000A0);
+			if (currentPlayback != null)
+			{
+				var currentTime = currentPlayback.GetCurrentTime<MetricTimeSpan>();
+				var duration = currentPlayback.GetDuration<MetricTimeSpan>();
+				float progress;
+				try
+				{
+					progress = (float)currentTime.Divide(duration);
+				}
+				catch (Exception e)
+				{
+					progress = 0;
+				}
+
+				ImGui.PushStyleColor(ImGuiCol.FrameBg, 0xAC104020);
+				ImGui.ProgressBar(progress, new Vector2(-1, 3));
+				ImGui.PopStyleColor();
+
+				ImGui.Text($"{currentTime.Hours}:{currentTime.Minutes:00}:{currentTime.Seconds:00}");
+				var fmt = $"{duration.Hours}:{duration.Minutes:00}:{duration.Seconds:00}";
+				ImGui.SameLine(ImGui.GetWindowContentRegionWidth() - ImGui.CalcTextSize(fmt).X);
+				ImGui.Text(fmt);
+
+				var text = CurrentInstrument != 0 ? InstrumentSheet.GetRow(CurrentInstrument).Instrument : string.Empty;
+				var size = ImGui.CalcTextSize(text);
+				ImGui.SameLine((ImGui.GetWindowContentRegionWidth() - size.X) / 2);
+				ImGui.Text(text);
+			}
+			else
+			{
+				ImGui.ProgressBar(0, new Vector2(-1, 3));
+				ImGui.Text("0:00:00");
+				ImGui.SameLine(ImGui.GetWindowContentRegionWidth() - ImGui.GetItemRectSize().X);
+				ImGui.Text("0:00:00");
+
+				var text = CurrentInstrument != 0 ? InstrumentSheet.GetRow(CurrentInstrument).Instrument : string.Empty;
+				var size = ImGui.CalcTextSize(text);
+				ImGui.SameLine((ImGui.GetWindowContentRegionWidth() - size.X) / 2);
+				ImGui.Text(text);
+			}
+
+			ImGui.PopStyleColor();
+		}
+
+		private static unsafe void DrawButtonMiniPlayer()
 		{
 			//mini player
 
@@ -405,7 +423,7 @@ namespace MidiBard
 			ToolTip("Toggle mini player".Localize());
 		}
 
-		private static unsafe void ShowSettingsPanelButton()
+		private static unsafe void DrawButtonShowSettingsPanel()
 		{
 			var Textcolor = *ImGui.GetStyleColorVec4(ImGuiCol.Text);
 			ImGui.SameLine();
@@ -420,7 +438,7 @@ namespace MidiBard
 			ToolTip("Toggle settings panel".Localize());
 		}
 
-		private static unsafe void ShowMusicControlPanelButton()
+		private static unsafe void DrawButtonShowMusicControlPanel()
 		{
 			//showMusicControlPanel button
 
@@ -437,7 +455,7 @@ namespace MidiBard
 			ToolTip("Toggle player control panel".Localize());
 		}
 
-		private static unsafe void PlayPauseButton()
+		private static unsafe void DrawButtonPlayPause()
 		{
 			var PlayPauseIcon =
 				IsPlaying ? FontAwesomeIcon.Pause.ToIconString() : FontAwesomeIcon.Play.ToIconString();
@@ -446,184 +464,39 @@ namespace MidiBard
 				PluginLog.Debug($"PlayPause pressed. wasplaying: {IsPlaying}");
 				if (IsPlaying)
 				{
-					currentPlayback?.Stop();
+					PlaybackManager.Pause();
 				}
 				else
 				{
-					if (currentPlayback == null)
-					{
-						if (!PlaylistManager.Filelist.Any()) PluginLog.Information("empty playlist");
-						try
-						{
-							currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].Item1
-								.GetFilePlayback();
-						}
-						catch (Exception e)
-						{
-							try
-							{
-								currentPlayback = PlaylistManager.Filelist[0].Item1.GetFilePlayback();
-								PlaylistManager.CurrentPlaying = 0;
-							}
-							catch (Exception exception)
-							{
-								PluginLog.Error(exception, "error when getting playback.");
-							}
-						}
-					}
-
-					try
-					{
-						currentPlayback?.Start();
-					}
-					catch (Exception e)
-					{
-						PluginLog.Error(e,
-							"error when try to start playing, maybe the playback has been disopsed?");
-					}
+					PlaybackManager.Play();
 				}
 			}
 		}
 
-		private static unsafe void StopButton()
+		private static unsafe void DrawButtonStop()
 		{
 			ImGui.SameLine();
 			if (ImGui.Button(FontAwesomeIcon.Stop.ToIconString()))
 			{
-				try
-				{
-					currentPlayback?.Stop();
-					currentPlayback?.MoveToTime(new MidiTimeSpan(0));
-					//PlaylistManager.currentPlaying = -1;
-				}
-				catch (Exception e)
-				{
-					PluginLog.Information("Already stopped!");
-				}
-				finally
-				{
-					currentPlayback = null;
-				}
+				PlaybackManager.Stop();
 			}
 		}
 
-		private static unsafe void FastForwardButton()
+		private static unsafe void DrawButtonFastForward()
 		{
 			ImGui.SameLine();
 			if (ImGui.Button(FontAwesomeIcon.FastForward.ToIconString()))
 			{
-				if (currentPlayback != null)
-				{
-					try
-					{
-						var wasplaying = IsPlaying;
-						currentPlayback?.Dispose();
-						currentPlayback = null;
-
-						switch ((PlayMode)config.PlayMode)
-						{
-							case PlayMode.Single:
-							case PlayMode.ListOrdered:
-							case PlayMode.SingleRepeat:
-								currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying + 1].Item1
-									.GetFilePlayback();
-								PlaylistManager.CurrentPlaying += 1;
-								break;
-							case PlayMode.ListRepeat:
-								var next = PlaylistManager.CurrentPlaying + 1;
-								next %= PlaylistManager.Filelist.Count;
-								currentPlayback = PlaylistManager.Filelist[next].Item1.GetFilePlayback();
-								PlaylistManager.CurrentPlaying = next;
-								break;
-							case PlayMode.Random:
-								var r = new Random();
-								int nexttrack;
-								do
-								{
-									nexttrack = r.Next(0, PlaylistManager.Filelist.Count);
-								} while (nexttrack == PlaylistManager.CurrentPlaying);
-
-								currentPlayback = PlaylistManager.Filelist[nexttrack].Item1.GetFilePlayback();
-								PlaylistManager.CurrentPlaying = nexttrack;
-								break;
-						}
-
-						if (wasplaying)
-							try
-							{
-								currentPlayback.Start();
-							}
-							catch (Exception e)
-							{
-								PluginLog.Error(e, "error when try playing next song.");
-							}
-					}
-					catch (Exception e)
-					{
-						currentPlayback = null;
-						PlaylistManager.CurrentPlaying = -1;
-					}
-				}
-				else
-				{
-					PlaylistManager.CurrentPlaying += 1;
-				}
+				PlaybackManager.Next();
 			}
 
 			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
 			{
-				if (currentPlayback != null)
-				{
-					try
-					{
-						var wasplaying = IsPlaying;
-						currentPlayback?.Dispose();
-						currentPlayback = null;
-
-						switch ((PlayMode)config.PlayMode)
-						{
-							case PlayMode.Single:
-							case PlayMode.ListOrdered:
-							case PlayMode.SingleRepeat:
-								currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying - 1].Item1
-									.GetFilePlayback();
-								PlaylistManager.CurrentPlaying -= 1;
-								break;
-							case PlayMode.Random:
-							case PlayMode.ListRepeat:
-								var next = PlaylistManager.CurrentPlaying - 1;
-								if (next < 0) next = PlaylistManager.Filelist.Count - 1;
-								currentPlayback = PlaylistManager.Filelist[next].Item1.GetFilePlayback();
-								PlaylistManager.CurrentPlaying = next;
-								break;
-						}
-
-						if (wasplaying)
-						{
-							try
-							{
-								currentPlayback.Start();
-							}
-							catch (Exception e)
-							{
-								PluginLog.Error(e, "error when try playing next song.");
-							}
-						}
-					}
-					catch (Exception e)
-					{
-						currentPlayback = null;
-						PlaylistManager.CurrentPlaying = -1;
-					}
-				}
-				else
-				{
-					PlaylistManager.CurrentPlaying -= 1;
-				}
+				PlaybackManager.Last();
 			}
 		}
 
-		private static unsafe void PlayModeButton()
+		private static unsafe void DrawButtonPlayMode()
 		{
 
 			//playmode button
@@ -667,12 +540,12 @@ namespace MidiBard
 					$"{(PlayMode)config.PlayMode}".Localize());
 		}
 
-		private static void DrawTrackSelection()
+		private static void DrawTrackTrunkSelectionWindow()
 		{
 			if (CurrentTracks?.Any() == true)
 			{
 				ImGui.Separator();
-				if (ImGui.BeginChild("sss", new Vector2(-1, Math.Min(5, CurrentTracks.Count) * ImGui.GetFrameHeightWithSpacing()), false))
+				if (ImGui.BeginChild("TrackTrunkSelection", new Vector2(-1, Math.Min(5, CurrentTracks.Count) * ImGui.GetFrameHeightWithSpacing()), false))
 				{
 					for (var i = 0; i < CurrentTracks.Count; i++)
 					{
@@ -691,8 +564,7 @@ namespace MidiBard
 							}
 							catch (Exception e)
 							{
-								PluginLog.Error(e,
-									"error when disposing current playback while changing track selection");
+								PluginLog.Error(e, "error when disposing current playback while changing track selection");
 							}
 							finally
 							{
@@ -845,7 +717,7 @@ namespace MidiBard
 
 			//}
 		}
-		private static void DebugWindow()
+		private static void DrawDebugWindow()
 		{
 			ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(5, 0));
 			ImGui.Begin("MIDIBARD DEBUG", ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.AlwaysAutoResize);
@@ -913,6 +785,23 @@ namespace MidiBard
 			ImGui.Text($"currentSelected: {PlaylistManager.CurrentSelected}");
 			ImGui.Text($"FilelistCount: {PlaylistManager.Filelist.Count}");
 			ImGui.Text($"currentUILanguage: {pluginInterface.UiLanguage}");
+			ImGui.Separator();
+			try
+			{
+				ImGui.Text($"CurrentInstrumentKey: {CurrentInstrument}");
+				if (CurrentInstrument != 0)
+				{
+					ImGui.Text($"Instrument: {InstrumentSheet.GetRow(CurrentInstrument).Instrument}");
+					ImGui.Text($"Name: {InstrumentSheet.GetRow(CurrentInstrument).Name.RawString.Substring(3)}");
+				}
+				ImGui.Text($"unkFloat: {UnkFloat}");
+				ImGui.Text($"unkByte: {UnkByte1}");
+			}
+			catch (Exception e)
+			{
+				ImGui.Text(e.ToString());
+			}
+
 			ImGui.End();
 			ImGui.PopStyleVar();
 		}
