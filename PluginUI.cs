@@ -51,11 +51,6 @@ namespace MidiBard
 			}
 		}
 
-		static void TextCenter(string text)
-		{
-
-		}
-
 		public unsafe void Draw()
 		{
 			if (!IsVisible)
@@ -792,7 +787,7 @@ namespace MidiBard
 				if (CurrentInstrument != 0)
 				{
 					ImGui.Text($"Instrument: {InstrumentSheet.GetRow(CurrentInstrument).Instrument}");
-					ImGui.Text($"Name: {InstrumentSheet.GetRow(CurrentInstrument).Name.RawString.Substring(3)}");
+					ImGui.Text($"Name: {InstrumentSheet.GetRow(CurrentInstrument).Name.RawString}");
 				}
 				ImGui.Text($"unkFloat: {UnkFloat}");
 				ImGui.Text($"unkByte: {UnkByte1}");

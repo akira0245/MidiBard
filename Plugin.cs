@@ -227,15 +227,15 @@ namespace MidiBard
 			}
 		}
 
-		[Command("/midibard")]
-		[HelpMessage("open midibard window")]
-		public void Command1(string command, string args)
-		{
-			OnCommand(command, args);
-		}
+		//[Command("/midibard")]
+		//[HelpMessage("toggle config window.")]
+		//public void Command1(string command, string args)
+		//{
+		//	OnCommand(command, args);
+		//}
 
 		[Command("/mbard")]
-		[HelpMessage("open midibard window")]
+		[HelpMessage("Toggle config window.\n/mbard perform <instrument name/instrument ID>: Start playing with the specified instrument.\n/mbard quit: Quit performance mode.\n/mbard <play/pause/stop/next/last>: Playing status control.")]
 		public void Command2(string command, string args)
 		{
 			OnCommand(command, args);
@@ -248,11 +248,15 @@ namespace MidiBard
 			var argStrings = args.Split(' ').Select(i => i.ToLower().Trim()).Where(i => !string.IsNullOrWhiteSpace(i)).ToList();
 			if (argStrings.Any())
 			{
-				if (argStrings[0] == "perform")
+				if (argStrings[0] == "perform" && !InPerformanceMode)
 				{
 					try
 					{
 						DoPerformAction(PerformInfos, uint.Parse(argStrings[1]));
+						if (localizer.Language == UILang.CN)
+							pluginInterface.Framework.Gui.Toast.ShowQuest($"使用{InstrumentSheet.GetRow(uint.Parse(argStrings[1])).Instrument}开始了演奏。");
+						//else
+						//	pluginInterface.Framework.Gui.Toast.ShowQuest($"Start playing with the {InstrumentSheet.GetRow(uint.Parse(argStrings[1])).Instrument}.");
 					}
 					catch (Exception e)
 					{
@@ -263,6 +267,11 @@ namespace MidiBard
 							var possiblekey2 = InstrumentSheet.FirstOrDefault(i => i.Instrument.RawString == name);
 							PluginLog.Debug($"{name} {possiblekey} {possiblekey2} {(possiblekey ?? possiblekey2)?.Instrument}");
 							DoPerformAction(PerformInfos, (possiblekey ?? possiblekey2).RowId);
+							if (localizer.Language == UILang.CN)
+								pluginInterface.Framework.Gui.Toast.ShowQuest($"使用{(possiblekey ?? possiblekey2).Instrument}开始了演奏。");
+							//else
+							//	pluginInterface.Framework.Gui.Toast.ShowQuest($"Start playing with the {(possiblekey ?? possiblekey2).Instrument}.");
+
 						}
 						catch (Exception exception)
 						{
@@ -270,6 +279,14 @@ namespace MidiBard
 						}
 						//
 					}
+				}
+				else if (argStrings[0] == "quit" && InPerformanceMode)
+				{
+					DoPerformAction(PerformInfos, 0);
+					if (localizer.Language == UILang.CN)
+						pluginInterface.Framework.Gui.Toast.ShowQuest("停止了演奏。");
+					//else
+					//	pluginInterface.Framework.Gui.Toast.ShowQuest("Stopped playing.");
 				}
 
 				else if (argStrings[0] == "play")
@@ -296,6 +313,7 @@ namespace MidiBard
 				{
 					PlaybackManager.Last();
 				}
+
 
 			}
 			else
