@@ -386,10 +386,17 @@ namespace MidiBard
 				ImGui.SameLine(ImGui.GetWindowContentRegionWidth() - ImGui.CalcTextSize(fmt).X);
 				ImGui.Text(fmt);
 
-				var text = CurrentInstrument != 0 ? InstrumentSheet.GetRow(CurrentInstrument).Instrument : string.Empty;
-				var size = ImGui.CalcTextSize(text);
-				ImGui.SameLine((ImGui.GetWindowContentRegionWidth() - size.X) / 2);
-				ImGui.Text(text);
+				try
+				{
+					var text = CurrentInstrument != 0 ? InstrumentSheet.GetRow(CurrentInstrument).Instrument : string.Empty;
+					var size = ImGui.CalcTextSize(text);
+					ImGui.SameLine((ImGui.GetWindowContentRegionWidth() - size.X) / 2);
+					ImGui.Text(text);
+				}
+				catch (Exception e)
+				{
+					//
+				}
 			}
 			else
 			{
@@ -398,10 +405,17 @@ namespace MidiBard
 				ImGui.SameLine(ImGui.GetWindowContentRegionWidth() - ImGui.GetItemRectSize().X);
 				ImGui.Text("0:00:00");
 
-				var text = CurrentInstrument != 0 ? InstrumentSheet.GetRow(CurrentInstrument).Instrument : string.Empty;
-				var size = ImGui.CalcTextSize(text);
-				ImGui.SameLine((ImGui.GetWindowContentRegionWidth() - size.X) / 2);
-				ImGui.Text(text);
+				try
+				{
+					var text = CurrentInstrument != 0 ? InstrumentSheet.GetRow(CurrentInstrument).Instrument : string.Empty;
+					var size = ImGui.CalcTextSize(text);
+					ImGui.SameLine((ImGui.GetWindowContentRegionWidth() - size.X) / 2);
+					ImGui.Text(text);
+				}
+				catch (Exception e)
+				{
+					//
+				}
 			}
 
 			ImGui.PopStyleColor();
@@ -789,8 +803,8 @@ namespace MidiBard
 					ImGui.Text($"Instrument: {InstrumentSheet.GetRow(CurrentInstrument).Instrument}");
 					ImGui.Text($"Name: {InstrumentSheet.GetRow(CurrentInstrument).Name.RawString}");
 				}
-				ImGui.Text($"unkFloat: {UnkFloat}");
-				ImGui.Text($"unkByte: {UnkByte1}");
+				//ImGui.Text($"unkFloat: {UnkFloat}");
+				//ImGui.Text($"unkByte: {UnkByte1}");
 			}
 			catch (Exception e)
 			{

@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Dalamud.Game.Internal.Network;
 using Dalamud.Plugin;
+using Lumina.Data;
 using Lumina.Excel;
 using Lumina.Excel.GeneratedSheets;
 using Melanchall.DryWetMidi.Core;
@@ -41,9 +42,10 @@ namespace MidiBard
 		internal delegate void DoPerformActionDelegate(IntPtr performInfoPtr, uint instrumentId, int a3 = 0);
 		internal static DoPerformActionDelegate DoPerformAction;
 
-		internal static byte CurrentInstrument => Marshal.ReadByte(PerformInfos + 3 + 9);
-		internal static byte UnkByte1 => Marshal.ReadByte(PerformInfos + 3 + 8);
-		internal static float UnkFloat => Marshal.PtrToStructure<float>(PerformInfos + 3);
+		internal static byte instrumentoffset55;
+		internal static byte CurrentInstrument => Marshal.ReadByte(PerformInfos + 3 + instrumentoffset55);
+		//internal static byte UnkByte1 => Marshal.ReadByte(PerformInfos + 3 + 8);
+		//internal static float UnkFloat => Marshal.PtrToStructure<float>(PerformInfos + 3);
 
 		internal static bool InPerformanceMode => Marshal.ReadByte(PerformanceAgent.Pointer + 0x20) != 0;
 		internal static bool MetronomeRunning => Marshal.ReadByte(MetronomeAgent.Pointer + 0x73) == 1;
@@ -102,6 +104,15 @@ namespace MidiBard
 
 			PerformInfos = pi.TargetModuleScanner.GetStaticAddressFromSig("48 8B 15 ?? ?? ?? ?? F6 C2 ??");
 			DoPerformAction = Marshal.GetDelegateForFunctionPointer<DoPerformActionDelegate>(pi.TargetModuleScanner.ScanText("48 89 6C 24 10 48 89 74 24 18 57 48 83 EC ?? 48 83 3D ?? ?? ?? ?? ?? 41 8B E8"));
+
+			try
+			{
+				instrumentoffset55 = Marshal.ReadByte(pi.TargetModuleScanner.ScanText("40 88 ?? ?? 66 89 ?? ?? 40 84") + 3);
+			}
+			catch (Exception e)
+			{
+				instrumentoffset55 = 0x9;
+			}
 
 			InstrumentSheet = pi.Data.Excel.GetSheet<Perform>();
 
