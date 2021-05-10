@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Dalamud.Plugin;
 using Melanchall.DryWetMidi.Common;
@@ -17,11 +18,12 @@ namespace MidiBard
 {
 	public static class PlaybackExtension
 	{
-		public static Playback GetFilePlayback(this MidiFile file)
+		public static Playback GetFilePlayback(this (MidiFile, string) fileTuple)
 		{
+			var file = fileTuple.Item1;
+
 			MidiClockSettings clock = new MidiClockSettings { CreateTickGeneratorCallback = () => new HighPrecisionTickGenerator() };
 
-			CurrentFile = file;
 			try
 			{
 				CurrentTMap = file.GetTempoMap();
@@ -124,6 +126,7 @@ namespace MidiBard
 			playback.InterruptNotesOnStop = true;
 			playback.Speed = config.playSpeed;
 			playback.Finished += Playback_Finished;
+
 			return playback;
 		}
 
@@ -139,9 +142,10 @@ namespace MidiBard
 						if (EnsembleModeRunning) return;
 						try
 						{
-							currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying + 1].Item1.GetFilePlayback();
+							currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying + 1].GetFilePlayback();
 							PlaylistManager.CurrentPlaying += 1;
 							currentPlayback.Start();
+							Task.Run(() => SwitchInstrument.WaitSwitchInstrument());
 						}
 						catch (Exception exception)
 						{
@@ -152,16 +156,18 @@ namespace MidiBard
 						if (EnsembleModeRunning) return;
 						try
 						{
-							currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying + 1].Item1.GetFilePlayback();
+							currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying + 1].GetFilePlayback();
 							PlaylistManager.CurrentPlaying += 1;
 							currentPlayback.Start();
+							Task.Run(() => SwitchInstrument.WaitSwitchInstrument());
 						}
 						catch (Exception exception)
 						{
 							if (!PlaylistManager.Filelist.Any()) return;
-							currentPlayback = PlaylistManager.Filelist[0].Item1.GetFilePlayback();
+							currentPlayback = PlaylistManager.Filelist[0].GetFilePlayback();
 							PlaylistManager.CurrentPlaying = 0;
 							currentPlayback.Start();
+							Task.Run(() => SwitchInstrument.WaitSwitchInstrument());
 						}
 						break;
 					case PlayMode.SingleRepeat:
@@ -179,9 +185,10 @@ namespace MidiBard
 								nexttrack = r.Next(0, PlaylistManager.Filelist.Count);
 							} while (nexttrack == PlaylistManager.CurrentPlaying);
 
-							currentPlayback = PlaylistManager.Filelist[nexttrack].Item1.GetFilePlayback();
+							currentPlayback = PlaylistManager.Filelist[nexttrack].GetFilePlayback();
 							PlaylistManager.CurrentPlaying = nexttrack;
 							currentPlayback.Start();
+							Task.Run(() => SwitchInstrument.WaitSwitchInstrument());
 						}
 						catch (Exception exception)
 						{

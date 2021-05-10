@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 using Dalamud.Game.Internal.Network;
 using Dalamud.Plugin;
 using Lumina.Data;
@@ -26,9 +27,10 @@ namespace MidiBard
 		internal static BardPlayDevice BardPlayer;
 
 		internal static Playback currentPlayback;
-		internal static MidiFile CurrentFile;
+		//internal static MidiFile CurrentFile;
 		internal static TempoMap CurrentTMap;
 		internal static List<(TrackChunk, string)> CurrentTracks;
+
 		internal static Localizer localizer;
 		private static int configSaverTick;
 
@@ -166,14 +168,17 @@ namespace MidiBard
 				if (configSaverTick == 60 * 60)
 				{
 					configSaverTick = 0;
-					try
+					if (!EnsembleModeRunning)
 					{
-						config.Save();
-						PluginLog.Debug("config saved.");
-					}
-					catch (Exception e)
-					{
-						PluginLog.Debug(e, "error when auto save settings.");
+						try
+						{
+							config.Save();
+							PluginLog.Debug("config saved.");
+						}
+						catch (Exception e)
+						{
+							PluginLog.Debug(e, "error when auto save settings.");
+						}
 					}
 				}
 			}
@@ -214,7 +219,7 @@ namespace MidiBard
 					{
 						if (PlaylistManager.CurrentPlaying != -1)
 						{
-							currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].Item1.GetFilePlayback();
+							currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].GetFilePlayback();
 						}
 					}
 				}
@@ -246,7 +251,7 @@ namespace MidiBard
 		//}
 
 		[Command("/mbard")]
-		[HelpMessage("Toggle config window.\n/mbard perform <instrument name/instrument ID>: Start playing with the specified instrument.\n/mbard quit: Quit performance mode.\n/mbard <play/pause/stop/next/last>: Playing status control.")]
+		[HelpMessage("Toggle config window.\n/mbard perform <instrument name/instrument ID> → Start playing with the specified instrument.\n/mbard quit → Quit performance mode.\n/mbard <play/pause/stop/next/last> → Player control.")]
 		public void Command2(string command, string args)
 		{
 			OnCommand(command, args);
@@ -263,23 +268,26 @@ namespace MidiBard
 				{
 					try
 					{
-						DoPerformAction(PerformInfos, uint.Parse(argStrings[1]));
-						if (localizer.Language == UILang.CN)
-							pluginInterface.Framework.Gui.Toast.ShowQuest($"使用{InstrumentSheet.GetRow(uint.Parse(argStrings[1])).Instrument}开始了演奏。");
-						//else
-						//	pluginInterface.Framework.Gui.Toast.ShowQuest($"Start playing with the {InstrumentSheet.GetRow(uint.Parse(argStrings[1])).Instrument}.");
+						if (uint.TryParse(argStrings[1], out var instrumentId) && instrumentId > 0 && instrumentId < InstrumentSheet.RowCount)
+						{
+							DoPerformAction(PerformInfos, instrumentId);
+							if (localizer.Language == UILang.CN)
+								pluginInterface.Framework.Gui.Toast.ShowQuest($"使用{InstrumentSheet.GetRow(instrumentId).Instrument}开始演奏。");
+							//else
+							//	pluginInterface.Framework.Gui.Toast.ShowQuest($"Start playing with the {InstrumentSheet.GetRow(uint.Parse(argStrings[1])).Instrument}.");
+						}
 					}
 					catch (Exception e)
 					{
 						try
 						{
 							var name = argStrings[1];
-							var possiblekey = InstrumentSheet.FirstOrDefault(i => i.Name.RawString.Contains(name));
-							var possiblekey2 = InstrumentSheet.FirstOrDefault(i => i.Instrument.RawString == name);
+							var possiblekey = InstrumentSheet.FirstOrDefault(i => i.Instrument.RawString == name);
+							var possiblekey2 = InstrumentSheet.FirstOrDefault(i => i.Name.RawString.Contains(name));
 							PluginLog.Debug($"{name} {possiblekey} {possiblekey2} {(possiblekey ?? possiblekey2)?.Instrument}");
 							DoPerformAction(PerformInfos, (possiblekey ?? possiblekey2).RowId);
 							if (localizer.Language == UILang.CN)
-								pluginInterface.Framework.Gui.Toast.ShowQuest($"使用{(possiblekey ?? possiblekey2).Instrument}开始了演奏。");
+								pluginInterface.Framework.Gui.Toast.ShowQuest($"使用{(possiblekey ?? possiblekey2).Instrument}开始演奏。");
 							//else
 							//	pluginInterface.Framework.Gui.Toast.ShowQuest($"Start playing with the {(possiblekey ?? possiblekey2).Instrument}.");
 

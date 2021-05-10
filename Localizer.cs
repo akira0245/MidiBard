@@ -80,11 +80,13 @@ namespace MidiBard
             zh.Add("Play list rows number.", "播放列表窗口同时显示的行数");
             zh.Add("Player width", "播放器宽度");
             zh.Add("Player window max width.", "播放器窗口最大宽度");
-            zh.Add("Auto open MidiBard window", "自动打开MIDIBARD");
+            zh.Add("Auto open MidiBard", "自动打开MIDIBARD");
             zh.Add("Open MidiBard window automatically when entering performance mode", "在进入演奏模式时自动打开MIDIBARD窗口。");
             zh.Add("Import in progress...", "正在导入...");
             zh.Add("One or more of your modpacks failed to import.\nPlease submit a bug report.", "你有一个或多个MID文件导入失败。");
             zh.Add("Select a mid file", "选择MID文件");
+            zh.Add("Instrument", "乐器选择");
+            zh.Add("Auto switch instrument", "自动切换乐器");
 
 
         }

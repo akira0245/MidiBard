@@ -4,8 +4,8 @@
   "InternalName": "MidiBard",
   "Description": "Bard Performance using midi files.",
   "Tags": [ "Bard", "Midi", "akira0245" ],
-  "RepoUrl": "",
-  "AssemblyVersion": "1.0.1.0",
+  "RepoUrl": "https://github.com/akira0245/MidiBard",
+  "AssemblyVersion": "1.2.0.0",
   "ApplicableVersion": "any",
   "DalamudApiLevel": 3
 }

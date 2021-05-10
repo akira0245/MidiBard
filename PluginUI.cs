@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface;
 using Dalamud.Plugin;
 using ImGuiNET;
@@ -123,7 +125,7 @@ namespace MidiBard
 									ImGui.BulletText(
 										"如何开始使用MIDIBARD演奏？" +
 										"\n　MIDIBARD窗口默认在角色进入演奏模式后自动弹出。" +
-										"\n　点击窗口左上角的“+”按钮来将乐曲文件导入到播放列表。仅支持.mid格式的乐曲。" +
+										"\n　点击窗口左上角的“+”按钮来将乐曲文件导入到播放列表，仅支持.mid格式的乐曲。" +
 										"\n　导入时按Ctrl或Shift可以选择多个文件一同导入。" +
 										"\n　双击播放列表中要演奏的乐曲后点击播放按钮开始演奏。\n");
 									ImGui.BulletText(
@@ -138,6 +140,9 @@ namespace MidiBard
 										"\n　并确保合奏准备确认窗口中已勾选“使用合奏助手”选项后点击开始即可开始合奏。" +
 										"\n　注：节拍器前两小节为准备时间，从第1小节开始会正式开始合奏。" +
 										"\n　　　考虑到不同使用环境乐曲加载速度可能不一致，为了避免切换乐曲导致的不同步，在乐曲结束时合奏会自动停止。\n");
+									ImGui.BulletText(
+										"后台演奏时有轻微卡顿不流畅怎么办？" +
+										"\n　在游戏内“系统设置→显示设置→帧数限制”中取消勾选 “程序在游戏窗口处于非激活状态时限制帧数” 的选项并应用设置。\n");
 									ImGui.Spacing();
 
 									ImGui.End();
@@ -146,8 +151,6 @@ namespace MidiBard
 								ImGui.PopStyleVar();
 							}
 						}
-
-
 
 						if (EnsembleModeRunning)
 						{
@@ -166,6 +169,7 @@ namespace MidiBard
 							ImGui.PopStyleColor();
 						}
 					}
+
 					ImGui.PopStyleVar(2);
 
 
@@ -211,9 +215,9 @@ namespace MidiBard
 											currentPlayback?.Dispose();
 											currentPlayback = null;
 
-											currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying]
-												.Item1.GetFilePlayback();
+											currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].GetFilePlayback();
 											if (wasplaying) currentPlayback?.Start();
+											Task.Run(SwitchInstrument.WaitSwitchInstrument);
 										}
 										catch (Exception e)
 										{
@@ -316,8 +320,8 @@ namespace MidiBard
 					DrawButtonStop();
 					DrawButtonFastForward();
 					DrawButtonPlayMode();
-					DrawButtonShowMusicControlPanel();
 					DrawButtonShowSettingsPanel();
+					DrawButtonShowInstrumentSwitch();
 					DrawButtonMiniPlayer();
 				}
 				ImGui.PopFont();
@@ -327,14 +331,41 @@ namespace MidiBard
 				{
 					DrawTrackTrunkSelectionWindow();
 					ImGui.Separator();
-					DrawMusicControlPanel();
-				}
-				if (config.showSettingsPanel)
-				{
+					DrawPanelMusicControl();
+					//}
+					//if (config.showSettingsPanel)
+					//{
 					ImGui.Separator();
-					DrawGeneralSettingPanel();
+					DrawPanelGeneralSettings();
 				}
 				if (Debug) DrawDebugWindow();
+
+				var size = ImGui.GetWindowSize();
+				var pos = ImGui.GetWindowPos();
+				var vp = ImGui.GetWindowViewport();
+
+
+
+				//ImGui.SetNextWindowViewport(vp.ID);
+				ImGui.SetNextWindowPos(pos + new Vector2(size.X + 1, 0));
+				//ImGui.SetNextWindowSizeConstraints(Vector2.Zero, size);
+				if (config.showInstrumentSwitchWindow && ImGui.Begin("Instrument".Localize(), ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoBringToFrontOnFocus | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.AlwaysAutoResize))
+				{
+					ImGui.SetNextItemWidth(120);
+					UIcurrentInstrument = Plugin.CurrentInstrument;
+					if (ImGui.ListBox("##instrumentSwitch", ref UIcurrentInstrument,
+						InstrumentSheet.Select(i => i.Instrument.ToString()).ToArray(), (int)InstrumentSheet.RowCount,
+						(int)InstrumentSheet.RowCount))
+					{
+						Task.Run(() => SwitchInstrument.SwitchTo((uint)UIcurrentInstrument));
+					}
+
+					//if (ImGui.Button("Quit"))
+					//{
+					//	Task.Run(() => SwitchInstrument.SwitchTo(0));
+					//}
+					ImGui.End();
+				}
 
 				ImGui.End();
 			}
@@ -431,23 +462,7 @@ namespace MidiBard
 
 			ToolTip("Toggle mini player".Localize());
 		}
-
 		private static unsafe void DrawButtonShowSettingsPanel()
-		{
-			var Textcolor = *ImGui.GetStyleColorVec4(ImGuiCol.Text);
-			ImGui.SameLine();
-			if (config.showSettingsPanel)
-				ImGui.PushStyleColor(ImGuiCol.Text, 0x9C60FF8E);
-			else
-				ImGui.PushStyleColor(ImGuiCol.Text, Textcolor);
-
-			if (ImGui.Button((FontAwesomeIcon.Cog).ToIconString())) config.showSettingsPanel ^= true;
-
-			ImGui.PopStyleColor();
-			ToolTip("Toggle settings panel".Localize());
-		}
-
-		private static unsafe void DrawButtonShowMusicControlPanel()
 		{
 			//showMusicControlPanel button
 
@@ -458,10 +473,25 @@ namespace MidiBard
 			else
 				ImGui.PushStyleColor(ImGuiCol.Text, Textcolor);
 
-			if (ImGui.Button(FontAwesomeIcon.Music.ToIconString())) config.showMusicControlPanel ^= true;
+			if (ImGui.Button(FontAwesomeIcon.Cog.ToIconString())) config.showMusicControlPanel ^= true;
 
 			ImGui.PopStyleColor();
-			ToolTip("Toggle player control panel".Localize());
+			ToolTip("Toggle settings panel".Localize());
+		}
+
+		private static unsafe void DrawButtonShowInstrumentSwitch()
+		{
+			var Textcolor = *ImGui.GetStyleColorVec4(ImGuiCol.Text);
+			ImGui.SameLine();
+			if (config.showInstrumentSwitchWindow)
+				ImGui.PushStyleColor(ImGuiCol.Text, 0x9C60FF8E);
+			else
+				ImGui.PushStyleColor(ImGuiCol.Text, Textcolor);
+
+			if (ImGui.Button((FontAwesomeIcon.Music).ToIconString())) config.showInstrumentSwitchWindow ^= true;
+
+			ImGui.PopStyleColor();
+			ToolTip("Toggle instrument switch panel".Localize());
 		}
 
 		private static unsafe void DrawButtonPlayPause()
@@ -594,7 +624,7 @@ namespace MidiBard
 		}
 
 
-		private static void DrawMusicControlPanel()
+		private static void DrawPanelMusicControl()
 		{
 			if (currentPlayback != null)
 			{
@@ -697,7 +727,7 @@ namespace MidiBard
 			//	$"{config.timeBetweenSongs:F2} [{500000 * config.timeBetweenSongs:F0}]", ImGuiSliderFlags.AlwaysClamp);
 		}
 
-		private void DrawGeneralSettingPanel()
+		private void DrawPanelGeneralSettings()
 		{
 			ImGui.SliderInt("Playlist size".Localize(), ref config.playlistSizeY, 2, 50,
 				config.playlistSizeY.ToString(), ImGuiSliderFlags.AlwaysClamp);
@@ -712,15 +742,21 @@ namespace MidiBard
 			if (ImGui.Combo("Language".Localize(), ref config.uiLang, uilangStrings, 2))
 				localizer = new Localizer((UILang)config.uiLang);
 
-			ImGui.Checkbox("Monitor ensemble".Localize(), ref config.MonitorOnEnsemble);
-			HelpMarker("Auto start ensemble when entering in-game party ensemble mode.".Localize());
 
+			ImGui.Checkbox("Auto open MidiBard".Localize(), ref config.AutoOpenPlayerWhenPerforming);
+			HelpMarker("Open MidiBard window automatically when entering performance mode".Localize());
 			//ImGui.Checkbox("Auto Confirm Ensemble Ready Check".Localize(), ref config.AutoConfirmEnsembleReadyCheck);
 			//if (localizer.Language == UILang.CN) HelpMarker("在收到合奏准备确认时自动选择确认。");
 
-			ImGui.Checkbox("Auto open MidiBard window".Localize(), ref config.AutoOpenPlayerWhenPerforming);
-			HelpMarker("Open MidiBard window automatically when entering performance mode".Localize());
+			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
+			ImGui.Checkbox("Monitor ensemble".Localize(), ref config.MonitorOnEnsemble);
+			HelpMarker("Auto start ensemble when entering in-game party ensemble mode.".Localize());
 
+			ImGui.Checkbox("Auto switch instrument".Localize(), ref config.autoSwitchInstrument);
+			if (localizer.Language == UILang.CN)
+			{
+				HelpMarker("根据要求自动切换乐器。如果需要自动切换乐器，请在文件开头添加 #乐器名#。\n比如：#鲁特琴#demo.mid".Localize());
+			}
 			//if (ImGui.ColorPicker4("Theme Color", ref config.ThemeColor, ImGuiColorEditFlags.AlphaBar))
 			//{
 
@@ -729,7 +765,11 @@ namespace MidiBard
 		private static void DrawDebugWindow()
 		{
 			ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(5, 0));
-			ImGui.Begin("MIDIBARD DEBUG", ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.AlwaysAutoResize);
+			//ImGui.SetNextWindowSize(new Vector2(500, 800));
+			ImGui.Begin("MIDIBARD DEBUG", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoTitleBar);
+			ImGui.Columns(2);
+			ImGui.SetColumnWidth(0, ImGui.GetWindowContentRegionWidth() - 130);
+			ImGui.BeginChild("childleft", ImGui.GetContentRegionAvail(), false);
 			try
 			{
 				ImGui.Text($"AgentModule: {AgentManager.AgentModule.ToInt64():X}");
@@ -798,7 +838,7 @@ namespace MidiBard
 			try
 			{
 				ImGui.Text($"CurrentInstrumentKey: {CurrentInstrument}");
-				if (CurrentInstrument != 0)
+				//if (CurrentInstrument != 0)
 				{
 					ImGui.Text($"Instrument: {InstrumentSheet.GetRow(CurrentInstrument).Instrument}");
 					ImGui.Text($"Name: {InstrumentSheet.GetRow(CurrentInstrument).Name.RawString}");
@@ -811,10 +851,28 @@ namespace MidiBard
 				ImGui.Text(e.ToString());
 			}
 
+			ImGui.EndChild();
+			ImGui.NextColumn();
+			ImGui.BeginChild("childright", ImGui.GetContentRegionAvail(), false);
+
+			//ImGui.SetNextItemWidth(120);
+			//UIcurrentInstrument = Plugin.CurrentInstrument;
+			//if (ImGui.ListBox("##instrumentSwitch", ref UIcurrentInstrument, InstrumentSheet.Select(i => i.Instrument.ToString()).ToArray(), (int)InstrumentSheet.RowCount, (int)InstrumentSheet.RowCount))
+			//{
+			//	Task.Run(() => SwitchInstrument.SwitchTo((uint)UIcurrentInstrument));
+			//}
+
+			//if (ImGui.Button("Quit"))
+			//{
+			//	Task.Run(() => SwitchInstrument.SwitchTo(0));
+			//}
+			ImGui.EndChild();
 			ImGui.End();
 			ImGui.PopStyleVar();
+
 		}
 
+		private static int UIcurrentInstrument;
 		#region import
 
 		private const string LabelTab = "Import Mods";

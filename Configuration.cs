@@ -48,6 +48,9 @@ namespace MidiBard
 		public bool showSettingsPanel;
 		public int playlistSizeY = 10;
 		public bool miniPlayer;
+
+		public bool showInstrumentSwitchWindow = true;
+		public bool autoSwitchInstrument = true;
 		//public float timeBetweenSongs = 0;
 
 		// Add any other properties or methods here.
