@@ -320,8 +320,8 @@ namespace MidiBard
 					DrawButtonStop();
 					DrawButtonFastForward();
 					DrawButtonPlayMode();
+					DrawButtonShowPlayerControl();
 					DrawButtonShowSettingsPanel();
-					DrawButtonShowInstrumentSwitch();
 					DrawButtonMiniPlayer();
 				}
 				ImGui.PopFont();
@@ -332,9 +332,9 @@ namespace MidiBard
 					DrawTrackTrunkSelectionWindow();
 					ImGui.Separator();
 					DrawPanelMusicControl();
-					//}
-					//if (config.showSettingsPanel)
-					//{
+				}
+				if (config.showSettingsPanel)
+				{
 					ImGui.Separator();
 					DrawPanelGeneralSettings();
 				}
@@ -346,26 +346,26 @@ namespace MidiBard
 
 
 
-				//ImGui.SetNextWindowViewport(vp.ID);
-				ImGui.SetNextWindowPos(pos + new Vector2(size.X + 1, 0));
-				//ImGui.SetNextWindowSizeConstraints(Vector2.Zero, size);
-				if (config.showInstrumentSwitchWindow && ImGui.Begin("Instrument".Localize(), ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoBringToFrontOnFocus | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.AlwaysAutoResize))
-				{
-					ImGui.SetNextItemWidth(120);
-					UIcurrentInstrument = Plugin.CurrentInstrument;
-					if (ImGui.ListBox("##instrumentSwitch", ref UIcurrentInstrument,
-						InstrumentSheet.Select(i => i.Instrument.ToString()).ToArray(), (int)InstrumentSheet.RowCount,
-						(int)InstrumentSheet.RowCount))
-					{
-						Task.Run(() => SwitchInstrument.SwitchTo((uint)UIcurrentInstrument));
-					}
+				////ImGui.SetNextWindowViewport(vp.ID);
+				//ImGui.SetNextWindowPos(pos + new Vector2(size.X + 1, 0));
+				////ImGui.SetNextWindowSizeConstraints(Vector2.Zero, size);
+				//if (config.showInstrumentSwitchWindow && ImGui.Begin("Instrument".Localize(), ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoBringToFrontOnFocus | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.AlwaysAutoResize))
+				//{
+				//	ImGui.SetNextItemWidth(120);
+				//	UIcurrentInstrument = Plugin.CurrentInstrument;
+				//	if (ImGui.ListBox("##instrumentSwitch", ref UIcurrentInstrument,
+				//		InstrumentSheet.Select(i => i.Instrument.ToString()).ToArray(), (int)InstrumentSheet.RowCount,
+				//		(int)InstrumentSheet.RowCount))
+				//	{
+				//		Task.Run(() => SwitchInstrument.SwitchTo((uint)UIcurrentInstrument));
+				//	}
 
-					//if (ImGui.Button("Quit"))
-					//{
-					//	Task.Run(() => SwitchInstrument.SwitchTo(0));
-					//}
-					ImGui.End();
-				}
+				//	//if (ImGui.Button("Quit"))
+				//	//{
+				//	//	Task.Run(() => SwitchInstrument.SwitchTo(0));
+				//	//}
+				//	ImGui.End();
+				//}
 
 				ImGui.End();
 			}
@@ -462,10 +462,10 @@ namespace MidiBard
 
 			ToolTip("Toggle mini player".Localize());
 		}
-		private static unsafe void DrawButtonShowSettingsPanel()
-		{
-			//showMusicControlPanel button
 
+
+		private static unsafe void DrawButtonShowPlayerControl()
+		{
 			var Textcolor = *ImGui.GetStyleColorVec4(ImGuiCol.Text);
 			ImGui.SameLine();
 			if (config.showMusicControlPanel)
@@ -473,26 +473,27 @@ namespace MidiBard
 			else
 				ImGui.PushStyleColor(ImGuiCol.Text, Textcolor);
 
-			if (ImGui.Button(FontAwesomeIcon.Cog.ToIconString())) config.showMusicControlPanel ^= true;
+			if (ImGui.Button((FontAwesomeIcon.Music).ToIconString())) config.showMusicControlPanel ^= true;
+
+			ImGui.PopStyleColor();
+			ToolTip("Toggle player control panel".Localize());
+		}
+
+		private static unsafe void DrawButtonShowSettingsPanel()
+		{
+			var Textcolor = *ImGui.GetStyleColorVec4(ImGuiCol.Text);
+			ImGui.SameLine();
+			if (config.showSettingsPanel)
+				ImGui.PushStyleColor(ImGuiCol.Text, 0x9C60FF8E);
+			else
+				ImGui.PushStyleColor(ImGuiCol.Text, Textcolor);
+
+			if (ImGui.Button(FontAwesomeIcon.Cog.ToIconString())) config.showSettingsPanel ^= true;
 
 			ImGui.PopStyleColor();
 			ToolTip("Toggle settings panel".Localize());
 		}
 
-		private static unsafe void DrawButtonShowInstrumentSwitch()
-		{
-			var Textcolor = *ImGui.GetStyleColorVec4(ImGuiCol.Text);
-			ImGui.SameLine();
-			if (config.showInstrumentSwitchWindow)
-				ImGui.PushStyleColor(ImGuiCol.Text, 0x9C60FF8E);
-			else
-				ImGui.PushStyleColor(ImGuiCol.Text, Textcolor);
-
-			if (ImGui.Button((FontAwesomeIcon.Music).ToIconString())) config.showInstrumentSwitchWindow ^= true;
-
-			ImGui.PopStyleColor();
-			ToolTip("Toggle instrument switch panel".Localize());
-		}
 
 		private static unsafe void DrawButtonPlayPause()
 		{
@@ -626,6 +627,18 @@ namespace MidiBard
 
 		private static void DrawPanelMusicControl()
 		{
+			UIcurrentInstrument = Plugin.CurrentInstrument;
+			if (ImGui.Combo("Instrument".Localize(), ref UIcurrentInstrument, InstrumentStrings, InstrumentStrings.Length, 12))
+			{
+				Task.Run(() => SwitchInstrument.SwitchTo((uint)UIcurrentInstrument, true));
+			}
+
+			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+			{
+				Task.Run(() => SwitchInstrument.SwitchTo(0));
+				PlaybackManager.Pause();
+			}
+
 			if (currentPlayback != null)
 			{
 				var currentTime = currentPlayback.GetCurrentTime<MetricTimeSpan>();
@@ -706,7 +719,7 @@ namespace MidiBard
 			}
 
 
-			ImGui.InputInt("Note Offset".Localize(), ref config.NoteNumberOffset, 1, 12);
+			ImGui.InputInt("Note Offset".Localize(), ref config.NoteNumberOffset, 12);
 			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right)) config.NoteNumberOffset = 0;
 
 			if (ImGui.Button("Octave+".Localize())) config.NoteNumberOffset += 12;
@@ -717,7 +730,7 @@ namespace MidiBard
 			ToolTip("Subtract 1 octave(12 Semitone) onto all notes.".Localize());
 
 			ImGui.SameLine();
-			if (ImGui.Button("Reset Offset".Localize())) config.NoteNumberOffset = 0;
+			if (ImGui.Button("Reset##note".Localize())) config.NoteNumberOffset = 0;
 
 			ImGui.SameLine();
 			ImGui.Checkbox("AdaptNotes".Localize(), ref config.AdaptNotesOOR);

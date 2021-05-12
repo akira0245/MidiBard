@@ -61,11 +61,11 @@ namespace MidiBard
             zh.Add("Track", "音轨");
             zh.Add($"notes)", "音符)");
             zh.Add("Note Offset", "音高偏移");
-            zh.Add("Octave+", "升八度");
-            zh.Add("Octave-", "降八度");
-            zh.Add("Add 1 octave(12 Semitone) onto all notes.", "对将要演奏的所有音符升高八度（12个半音）");
-            zh.Add("Subtract 1 octave(12 Semitone) onto all notes.", "对将要演奏的所有音符降低八度（12个半音）");
-            zh.Add("Reset Offset", "重置偏移");
+            zh.Add("Octave+", "升高八度");
+            zh.Add("Octave-", "降低八度");
+            zh.Add("Add 1 octave(12 Semitone) onto all notes.", "对将要演奏的所有音符升高八度（12半音）");
+            zh.Add("Subtract 1 octave(12 Semitone) onto all notes.", "对将要演奏的所有音符降低八度（12半音）");
+            zh.Add("Reset##note", "重置音高");
             zh.Add("AdaptNotes", "自适应音高");
             zh.Add("Adapt high/low pitch notes which are out of range\r\ninto 3 octaves we can play", 
 	            "对超出演奏范围的音符自动升/降八度直至其可以被演奏。");

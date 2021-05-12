@@ -39,6 +39,7 @@ namespace MidiBard
 		private static bool wasEnsembleModeRunning = false;
 
 		internal static ExcelSheet<Perform> InstrumentSheet;
+		internal static string[] InstrumentStrings;
 		internal static IntPtr PerformInfos;
 
 		internal delegate void DoPerformActionDelegate(IntPtr performInfoPtr, uint instrumentId, int a3 = 0);
@@ -117,6 +118,8 @@ namespace MidiBard
 			}
 
 			InstrumentSheet = pi.Data.Excel.GetSheet<Perform>();
+			InstrumentStrings = InstrumentSheet.Where(i => !string.IsNullOrWhiteSpace(i.Instrument) || i.RowId == 0)
+				.Select(i => $"{i.RowId:00} {(i.RowId == 0 ? "None" : $"{i.Instrument.RawString} ({i.Name})")}").ToArray();
 
 			foreach (var fileName in config.Playlist)
 			{

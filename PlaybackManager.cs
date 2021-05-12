@@ -37,6 +37,11 @@ namespace MidiBard
 
 			try
 			{
+				if (currentPlayback?.GetCurrentTime<MidiTimeSpan>() == currentPlayback?.GetDuration<MidiTimeSpan>())
+				{
+					currentPlayback?.MoveToStart();
+				}
+
 				currentPlayback?.Start();
 			}
 			catch (Exception e)
