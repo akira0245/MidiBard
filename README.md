@@ -13,7 +13,7 @@ MidiBard是基于[卫月框架](https://bbs.tggfl.com/topic/32/dalamud-%E5%8D%AB
 
 
 # 插件界面
-[![gwUVv8.png](https://z3.ax1x.com/2021/05/12/gwUVv8.png)](https://imgtu.com/i/gwUVv8)
+[![gwaZJ1.png](https://z3.ax1x.com/2021/05/12/gwaZJ1.png)](https://imgtu.com/i/gwaZJ1)
 
 
 # 安装方法
