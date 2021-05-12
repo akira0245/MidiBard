@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -18,11 +19,15 @@ namespace MidiBard
 {
 	public static class PlaybackExtension
 	{
+		static Regex regex = new Regex(@"^#.*?([-|+][0-9]+).*?#", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
 		public static Playback GetFilePlayback(this (MidiFile, string) fileTuple)
 		{
 			var file = fileTuple.Item1;
 
 			MidiClockSettings clock = new MidiClockSettings { CreateTickGeneratorCallback = () => new HighPrecisionTickGenerator() };
+
+			
 
 			try
 			{
@@ -125,8 +130,46 @@ namespace MidiBard
 			}
 			playback.InterruptNotesOnStop = true;
 			playback.Speed = config.playSpeed;
-			playback.Finished += Playback_Finished;
 
+			if (config.autoPitchShift)
+			{
+				var match = regex.Match(fileTuple.Item2);
+
+				if (match.Success && int.TryParse(match.Groups[1].Value, out var demandedNoteOffset))
+				{
+					PluginLog.Debug($"DemandedNoteOffset: {demandedNoteOffset}");
+					config.NoteNumberOffset = demandedNoteOffset;
+				}
+				else
+				{
+					//config.NoteNumberOffset = 0;
+				}
+
+				playback.Finished += (sender, args) =>
+				{
+					switch ((PlayMode)config.PlayMode)
+					{
+						case PlayMode.Single:
+							break;
+						case PlayMode.SingleRepeat:
+							break;
+						case PlayMode.ListOrdered:
+							if (match.Success) config.NoteNumberOffset = 0;
+							break;
+						case PlayMode.ListRepeat:
+							if (match.Success) config.NoteNumberOffset = 0;
+							break;
+						case PlayMode.Random:
+							if (match.Success) config.NoteNumberOffset = 0;
+							break;
+						default:
+							throw new ArgumentOutOfRangeException();
+					}
+				};
+			}
+
+			playback.Finished += Playback_Finished;
+			
 			return playback;
 		}
 
@@ -142,6 +185,8 @@ namespace MidiBard
 						if (EnsembleModeRunning) return;
 						try
 						{
+							currentPlayback.Dispose();
+							currentPlayback = null;
 							currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying + 1].GetFilePlayback();
 							PlaylistManager.CurrentPlaying += 1;
 							currentPlayback.Start();
@@ -151,11 +196,14 @@ namespace MidiBard
 						{
 
 						}
+
 						break;
 					case PlayMode.ListRepeat:
 						if (EnsembleModeRunning) return;
 						try
 						{
+							currentPlayback.Dispose();
+							currentPlayback = null;
 							currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying + 1].GetFilePlayback();
 							PlaylistManager.CurrentPlaying += 1;
 							currentPlayback.Start();
@@ -164,6 +212,8 @@ namespace MidiBard
 						catch (Exception exception)
 						{
 							if (!PlaylistManager.Filelist.Any()) return;
+							currentPlayback.Dispose();
+							currentPlayback = null;
 							currentPlayback = PlaylistManager.Filelist[0].GetFilePlayback();
 							PlaylistManager.CurrentPlaying = 0;
 							currentPlayback.Start();
@@ -185,6 +235,8 @@ namespace MidiBard
 								nexttrack = r.Next(0, PlaylistManager.Filelist.Count);
 							} while (nexttrack == PlaylistManager.CurrentPlaying);
 
+							currentPlayback.Dispose();
+							currentPlayback = null;
 							currentPlayback = PlaylistManager.Filelist[nexttrack].GetFilePlayback();
 							PlaylistManager.CurrentPlaying = nexttrack;
 							currentPlayback.Start();

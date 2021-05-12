@@ -51,6 +51,7 @@ namespace MidiBard
 
 		public bool showInstrumentSwitchWindow = true;
 		public bool autoSwitchInstrument = true;
+		public bool autoPitchShift = true;
 		//public float timeBetweenSongs = 0;
 
 		// Add any other properties or methods here.

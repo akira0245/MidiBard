@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -138,11 +139,18 @@ namespace MidiBard
 										"\n　合奏前在播放列表中双击要合奏的乐曲，播放器下方会出现可供演奏的所有音轨，请为每位合奏成员分别选择其需要演奏的音轨。" +
 										"\n　选择音轨后队长点击节拍器窗口的“合奏准备确认”按钮，" +
 										"\n　并确保合奏准备确认窗口中已勾选“使用合奏助手”选项后点击开始即可开始合奏。" +
-										"\n　注：节拍器前两小节为准备时间，从第1小节开始会正式开始合奏。" +
-										"\n　　　考虑到不同使用环境乐曲加载速度可能不一致，为了避免切换乐曲导致的不同步，在乐曲结束时合奏会自动停止。\n");
+										"\n　※节拍器前两小节为准备时间，从第1小节开始会正式开始合奏。" +
+										"\n　　考虑到不同使用环境乐曲加载速度可能不一致，为了避免切换乐曲导致的不同步，在乐曲结束时合奏会自动停止。\n");
 									ImGui.BulletText(
 										"后台演奏时有轻微卡顿不流畅怎么办？" +
 										"\n　在游戏内“系统设置→显示设置→帧数限制”中取消勾选 “程序在游戏窗口处于非激活状态时限制帧数” 的选项并应用设置。\n");
+									ImGui.BulletText(
+										"如何让MIDIBARD为不同乐曲自动切换音调和乐器？" +
+										"\n　在导入前把要指定乐器和移调的乐曲文件名前加入“#<乐器名><移调的半音数量>#”。" +
+										"\n　例如：原乐曲文件名为“demo.mid”" +
+										"\n　将其重命名为“#中提琴+12#demo.mid”可在演奏到该乐曲时自动切换到中提琴并升调1个八度演奏。" +
+										"\n　将其重命名为“#长笛-24#demo.mid”可在演奏到该乐曲时切换到长笛并降调2个八度演奏。" +
+										"\n　※可以只添加#+12#或#竖琴#或#harp#，也会有对应的升降调或切换乐器效果。");
 									ImGui.Spacing();
 
 									ImGui.End();
@@ -632,6 +640,7 @@ namespace MidiBard
 			{
 				Task.Run(() => SwitchInstrument.SwitchTo((uint)UIcurrentInstrument, true));
 			}
+			ToolTip("Select current instrument. \nRight click to quit performance mode.".Localize());
 
 			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
 			{
@@ -670,6 +679,7 @@ namespace MidiBard
 				float zeroprogress = 0;
 				ImGui.SliderFloat("Progress".Localize(), ref zeroprogress, 0, 1, "0:00", ImGuiSliderFlags.NoInput);
 			}
+			ToolTip("Set the playing progress. \nRight click to restart current playback.".Localize());
 
 			#region bpm
 
@@ -694,16 +704,14 @@ namespace MidiBard
 			{
 				SetSpeed();
 			}
+			ToolTip("Set the speed of events playing. 1 means normal speed.\nFor example, to play events twice slower this property should be set to 0.5.\nRight Click to reset back to 1.".Localize());
 
 			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
 			{
 				config.playSpeed = 1;
 				SetSpeed();
 			}
-
-			HelpMarker("Gets or sets the speed of events playing. 1 means normal speed.\nFor example, to play events twice slower this property should be set to 0.5.\nRight Click to reset back to 1.".Localize());
-
-
+			
 			void SetSpeed()
 			{
 				try
@@ -719,21 +727,23 @@ namespace MidiBard
 			}
 
 
-			ImGui.InputInt("Note Offset".Localize(), ref config.NoteNumberOffset, 12);
+			ImGui.InputInt("Pitch shift".Localize(), ref config.NoteNumberOffset, 12);
 			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right)) config.NoteNumberOffset = 0;
+			ToolTip("Pitch shift, Measured by semitone. \nRight click to reset.".Localize());
+
 
 			if (ImGui.Button("Octave+".Localize())) config.NoteNumberOffset += 12;
-			ToolTip("Add 1 octave(12 Semitone) onto all notes.".Localize());
+			ToolTip("Add 1 octave(+12 semitones) to all notes.".Localize());
 
 			ImGui.SameLine();
 			if (ImGui.Button("Octave-".Localize())) config.NoteNumberOffset -= 12;
-			ToolTip("Subtract 1 octave(12 Semitone) onto all notes.".Localize());
+			ToolTip("Subtract 1 octave(-12 semitones) to all notes.".Localize());
 
 			ImGui.SameLine();
 			if (ImGui.Button("Reset##note".Localize())) config.NoteNumberOffset = 0;
 
 			ImGui.SameLine();
-			ImGui.Checkbox("AdaptNotes".Localize(), ref config.AdaptNotesOOR);
+			ImGui.Checkbox("Auto Adapt".Localize(), ref config.AdaptNotesOOR);
 			HelpMarker("Adapt high/low pitch notes which are out of range\r\ninto 3 octaves we can play".Localize());
 
 			//ImGui.SliderFloat("secbetweensongs", ref config.timeBetweenSongs, 0, 10,
@@ -765,11 +775,13 @@ namespace MidiBard
 			ImGui.Checkbox("Monitor ensemble".Localize(), ref config.MonitorOnEnsemble);
 			HelpMarker("Auto start ensemble when entering in-game party ensemble mode.".Localize());
 
+
+			ImGui.Checkbox("Auto pitch shift".Localize(), ref config.autoPitchShift);
+			HelpMarker("Auto pitch shift notes on demand. If you need this, \nplease add #pitch shift number# before file name.\nE.g. #-12#demo.mid".Localize());
+			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
+
 			ImGui.Checkbox("Auto switch instrument".Localize(), ref config.autoSwitchInstrument);
-			if (localizer.Language == UILang.CN)
-			{
-				HelpMarker("根据要求自动切换乐器。如果需要自动切换乐器，请在文件开头添加 #乐器名#。\n比如：#鲁特琴#demo.mid".Localize());
-			}
+			HelpMarker("Auto switch instrument on demand. If you need this, \nplease add #instrument name# before file name.\nE.g. #harp#demo.mid".Localize());
 			//if (ImGui.ColorPicker4("Theme Color", ref config.ThemeColor, ImGuiColorEditFlags.AlphaBar))
 			//{
 
@@ -980,37 +992,7 @@ namespace MidiBard
 				{
 					_hasError = false;
 
-
-					foreach (var fileName in picker.FileNames)
-					{
-						PluginLog.Log($"-> {fileName} START");
-
-						try
-						{
-							//_texToolsImport = new TexToolsImport(new DirectoryInfo(_base._plugin!.Configuration!.CurrentCollection));
-							//_texToolsImport.ImportModPack(new FileInfo(fileName));
-
-							using (var f = new FileStream(fileName, FileMode.Open, FileAccess.Read,
-								FileShare.ReadWrite))
-							{
-								var loaded = MidiFile.Read(f, readingSettings);
-								//PluginLog.Log(f.Name);
-								//PluginLog.LogDebug($"{loaded.OriginalFormat}, {loaded.TimeDivision}, Duration: {loaded.GetDuration<MetricTimeSpan>().Hours:00}:{loaded.GetDuration<MetricTimeSpan>().Minutes:00}:{loaded.GetDuration<MetricTimeSpan>().Seconds:00}:{loaded.GetDuration<MetricTimeSpan>().Milliseconds:000}");
-								//foreach (var chunk in loaded.Chunks) PluginLog.LogDebug($"{chunk}");
-								var substring = f.Name.Substring(f.Name.LastIndexOf('\\') + 1);
-								PlaylistManager.Filelist.Add((loaded,
-									substring.Substring(0, substring.LastIndexOf('.'))));
-								config.Playlist.Add(fileName);
-							}
-
-							PluginLog.Log($"-> {fileName} OK!");
-						}
-						catch (Exception ex)
-						{
-							PluginLog.LogError(ex, "Failed to import file at {0}", fileName);
-							_hasError = true;
-						}
-					}
+					PlaylistManager.ImportMidiFile(picker.FileNames, true);
 
 					//_texToolsImport = null;
 					//_base.ReloadMods();
@@ -1019,6 +1001,8 @@ namespace MidiBard
 				_isImportRunning = false;
 			});
 		}
+
+
 
 		#endregion
 	}

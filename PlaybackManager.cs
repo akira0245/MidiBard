@@ -114,6 +114,7 @@ namespace MidiBard
 					{
 						try
 						{
+							// ReSharper disable once PossibleNullReferenceException
 							currentPlayback.Start();
 						}
 						catch (Exception e)

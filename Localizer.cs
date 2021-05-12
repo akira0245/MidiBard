@@ -60,19 +60,17 @@ namespace MidiBard
                 "音轨选择。\r\nMIDIBARD只会播放被选中的音轨，在合奏中有用。\r\n请注意：在演奏中切换音轨将会打断当前演奏。");
             zh.Add("Track", "音轨");
             zh.Add($"notes)", "音符)");
-            zh.Add("Note Offset", "音高偏移");
+            zh.Add("Pitch shift", "移调");
             zh.Add("Octave+", "升高八度");
             zh.Add("Octave-", "降低八度");
-            zh.Add("Add 1 octave(12 Semitone) onto all notes.", "对将要演奏的所有音符升高八度（12半音）");
-            zh.Add("Subtract 1 octave(12 Semitone) onto all notes.", "对将要演奏的所有音符降低八度（12半音）");
+            zh.Add("Add 1 octave(+12 semitones) to all notes.", "对将要演奏的所有音符升高八度（加12半音）");
+            zh.Add("Subtract 1 octave(-12 semitones) to all notes.", "对将要演奏的所有音符降低八度（减12半音）");
             zh.Add("Reset##note", "重置音高");
-            zh.Add("AdaptNotes", "自适应音高");
+            zh.Add("Auto Adapt", "自适应音高");
             zh.Add("Adapt high/low pitch notes which are out of range\r\ninto 3 octaves we can play", 
 	            "对超出演奏范围的音符自动升/降八度直至其可以被演奏。");
             zh.Add("Progress", "演奏进度");
             zh.Add("Speed", "演奏速度");
-            zh.Add("Gets or sets the speed of events playing. 1 means normal speed.\nFor example, to play events twice slower this property should be set to 0.5.\nRight Click to reset back to 1.",
-	            "设置播放速度。\r\n1代表正常速度，举例：将其设为0.5会使播放速度减半。\r\n右键点击来将它重置为1。");
             zh.Add("Monitor ensemble", "监控合奏");
             zh.Add("Auto start ensemble when entering in-game party ensemble mode.", "在游戏内的合奏助手运行时自动开始同步合奏。");
             zh.Add("Auto Confirm Ensemble Ready Check", "合奏准备自动确认");
@@ -87,7 +85,17 @@ namespace MidiBard
             zh.Add("Select a mid file", "选择MID文件");
             zh.Add("Instrument", "乐器选择");
             zh.Add("Auto switch instrument", "自动切换乐器");
+            zh.Add("Auto pitch shift", "自动移调");
+            zh.Add("Auto switch instrument on demand. If you need this, \nplease add #instrument name# before file name.\nE.g. #harp#demo.mid", 
+	            "根据要求自动切换乐器。如果需要自动切换乐器，请在文件开头添加 #乐器名#。\n例如：#鲁特琴#demo.mid");
+            zh.Add("Auto pitch shift notes on demand. If you need this, \nplease add #pitch shift number# before file name.\nE.g. #-12#demo.mid",
+	            "根据要求自动移调。如果需要自动移调，请在文件开头添加 #要移调的半音数量#。\n例如：#-12#demo.mid");
 
+            zh.Add("Pitch shift, Measured by semitone. \nRight click to reset.", "移调，以半音数计算。\n右键点击来将它重置回0。");
+            zh.Add("Set the speed of events playing. 1 means normal speed.\nFor example, to play events twice slower this property should be set to 0.5.\nRight Click to reset back to 1.",
+	            "设置Midi事件的播放速度倍数。\n例如将其设为0.5会使播放速度减半。\n右键点击来将它重置回1。");
+            zh.Add("Set the playing progress. \nRight click to restart current playback.", "乐曲播放进度，右键点击回到乐曲开头。");
+            zh.Add("Select current instrument. \nRight click to quit performance mode.", "设置和切换当前乐器，右键点击会退出演奏模式。");
 
         }
     }

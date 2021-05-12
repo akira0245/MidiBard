@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Documents;
 using Dalamud.Plugin;
 using Melanchall.DryWetMidi.Core;
+using Melanchall.DryWetMidi.Interaction;
 
 namespace MidiBard
 {
@@ -62,5 +65,83 @@ namespace MidiBard
 
 		private static int currentPlaying = -1;
 		private static int currentSelected = -1;
+
+		internal static readonly ReadingSettings readingSettings = new ReadingSettings
+		{
+			NoHeaderChunkPolicy = NoHeaderChunkPolicy.Ignore,
+			NotEnoughBytesPolicy = NotEnoughBytesPolicy.Ignore,
+			InvalidChannelEventParameterValuePolicy = InvalidChannelEventParameterValuePolicy.ReadValid,
+			InvalidChunkSizePolicy = InvalidChunkSizePolicy.Ignore,
+			InvalidMetaEventParameterValuePolicy = InvalidMetaEventParameterValuePolicy.SnapToLimits,
+			MissedEndOfTrackPolicy = MissedEndOfTrackPolicy.Ignore,
+			UnexpectedTrackChunksCountPolicy = UnexpectedTrackChunksCountPolicy.Ignore,
+			ExtraTrackChunkPolicy = ExtraTrackChunkPolicy.Read,
+			UnknownChunkIdPolicy = UnknownChunkIdPolicy.ReadAsUnknownChunk,
+			SilentNoteOnPolicy = SilentNoteOnPolicy.NoteOff,
+			TextEncoding = Encoding.Default,
+			InvalidSystemCommonEventParameterValuePolicy = InvalidSystemCommonEventParameterValuePolicy.SnapToLimits
+		};
+
+		internal static void ImportMidiFile(IEnumerable<string> pickerFileNames, bool addToSavedConfigFileList)
+		{
+			foreach (var fileName in pickerFileNames)
+			{
+				PluginLog.Log($"-> {fileName} START");
+
+				try
+				{
+					//_texToolsImport = new TexToolsImport(new DirectoryInfo(_base._plugin!.Configuration!.CurrentCollection));
+					//_texToolsImport.ImportModPack(new FileInfo(fileName));
+
+					using (var f = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+					{
+						var loaded = MidiFile.Read(f, readingSettings);
+						//PluginLog.Log(f.Name);
+						//PluginLog.LogDebug($"{loaded.OriginalFormat}, {loaded.TimeDivision}, Duration: {loaded.GetDuration<MetricTimeSpan>().Hours:00}:{loaded.GetDuration<MetricTimeSpan>().Minutes:00}:{loaded.GetDuration<MetricTimeSpan>().Seconds:00}:{loaded.GetDuration<MetricTimeSpan>().Milliseconds:000}");
+						//foreach (var chunk in loaded.Chunks) PluginLog.LogDebug($"{chunk}");
+						var substring = f.Name.Substring(f.Name.LastIndexOf('\\') + 1);
+
+						try
+						{
+							var chordStopwatch = Stopwatch.StartNew();
+							loaded.ProcessChords(chord =>
+							{
+								//PluginLog.Verbose($"{chord} {chord.Time} {chord.Notes.Count()}");
+								var i = 0;
+								foreach (var chordNote in chord.Notes.OrderBy(j => j.NoteNumber))
+								{
+									//var starttime = chordNote.GetTimedNoteOnEvent().Time;
+									//var offtime = chordNote.GetTimedNoteOffEvent().Time;
+									chordNote.Time += i;
+									chordNote.Length -= i;
+
+									i += 1;
+									//PluginLog.Verbose($"[{i}]{chordNote} [{starttime}/{chordNote.GetTimedNoteOnEvent().Time} {offtime}/{chordNote.GetTimedNoteOffEvent().Time}]");
+								}
+							}, chord => chord.Notes.Count() > 1);
+							PluginLog.Debug($"chord processing takes {chordStopwatch.Elapsed.TotalMilliseconds:F3}ms");
+						}
+						catch (Exception e)
+						{
+							PluginLog.Error(e, $"error when processing chords on {fileName}");
+						}
+
+						Filelist.Add((loaded, substring.Substring(0, substring.LastIndexOf('.'))));
+
+						if (addToSavedConfigFileList)
+						{
+							Plugin.config.Playlist.Add(fileName);
+						}
+					}
+
+					PluginLog.Log($"-> {fileName} OK!");
+				}
+				catch (Exception ex)
+				{
+					PluginLog.LogError(ex, "Failed to import file at {0}", fileName);
+					//_hasError = true;
+				}
+			}
+		}
 	}
 }

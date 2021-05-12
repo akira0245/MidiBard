@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -69,21 +70,7 @@ namespace MidiBard
 
 		public string Name => "MidiBard";
 
-		internal static readonly ReadingSettings readingSettings = new ReadingSettings
-		{
-			NoHeaderChunkPolicy = NoHeaderChunkPolicy.Ignore,
-			NotEnoughBytesPolicy = NotEnoughBytesPolicy.Ignore,
-			InvalidChannelEventParameterValuePolicy = InvalidChannelEventParameterValuePolicy.ReadValid,
-			InvalidChunkSizePolicy = InvalidChunkSizePolicy.Ignore,
-			InvalidMetaEventParameterValuePolicy = InvalidMetaEventParameterValuePolicy.SnapToLimits,
-			MissedEndOfTrackPolicy = MissedEndOfTrackPolicy.Ignore,
-			UnexpectedTrackChunksCountPolicy = UnexpectedTrackChunksCountPolicy.Ignore,
-			ExtraTrackChunkPolicy = ExtraTrackChunkPolicy.Read,
-			UnknownChunkIdPolicy = UnknownChunkIdPolicy.ReadAsUnknownChunk,
-			SilentNoteOnPolicy = SilentNoteOnPolicy.NoteOff,
-			TextEncoding = Encoding.Default,
-			InvalidSystemCommonEventParameterValuePolicy = InvalidSystemCommonEventParameterValuePolicy.SnapToLimits
-		};
+		
 
 		public void Initialize(DalamudPluginInterface pi)
 		{
@@ -121,38 +108,9 @@ namespace MidiBard
 			InstrumentStrings = InstrumentSheet.Where(i => !string.IsNullOrWhiteSpace(i.Instrument) || i.RowId == 0)
 				.Select(i => $"{i.RowId:00} {(i.RowId == 0 ? "None" : $"{i.Instrument.RawString} ({i.Name})")}").ToArray();
 
-			foreach (var fileName in config.Playlist)
-			{
-				PluginLog.LogDebug($"-> {fileName} START");
-
-				try
-				{
-					//_texToolsImport = new TexToolsImport(new DirectoryInfo(_base._plugin!.Configuration!.CurrentCollection));
-					//_texToolsImport.ImportModPack(new FileInfo(fileName));
-
-					using (var f = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-					{
-						var loaded = MidiFile.Read(f, readingSettings);
-						//PluginLog.Log(f.Name);
-						//PluginLog.LogDebug($"{loaded.OriginalFormat}, {loaded.TimeDivision}, Duration: {loaded.GetDuration<MetricTimeSpan>().Hours:00}:{loaded.GetDuration<MetricTimeSpan>().Minutes:00}:{loaded.GetDuration<MetricTimeSpan>().Seconds:00}:{loaded.GetDuration<MetricTimeSpan>().Milliseconds:000}");
-						//foreach (var chunk in loaded.Chunks) PluginLog.LogDebug($"{chunk}");
-						var substring = f.Name.Substring(f.Name.LastIndexOf('\\') + 1);
-						PlaylistManager.Filelist.Add((loaded, substring.Substring(0, substring.LastIndexOf('.'))));
-					}
-
-					PluginLog.LogDebug($"-> {fileName} OK!");
-				}
-				catch (Exception ex)
-				{
-					PluginLog.LogError(ex, "Failed to import file at {0}", fileName);
-				}
-			}
-
-
+			PlaylistManager.ImportMidiFile(config.Playlist, false);
 
 			pluginInterface.Framework.OnUpdateEvent += Tick;
-
-
 		}
 
 		private void Tick(Dalamud.Game.Internal.Framework framework)
@@ -285,8 +243,8 @@ namespace MidiBard
 						try
 						{
 							var name = argStrings[1].ToLowerInvariant();
-							Perform possibleInstrument = Plugin.InstrumentSheet.FirstOrDefault(i => i.Instrument.RawString.ToLowerInvariant() == name.ToLowerInvariant());
-							Perform possibleGMName = Plugin.InstrumentSheet.FirstOrDefault(i => i.Name.RawString.ToLowerInvariant().Contains(name.ToLowerInvariant()));
+							Perform possibleInstrument = Plugin.InstrumentSheet.FirstOrDefault(i => i.Instrument.RawString.ToLowerInvariant() == name);
+							Perform possibleGMName = Plugin.InstrumentSheet.FirstOrDefault(i => i.Name.RawString.ToLowerInvariant().Contains(name));
 
 							PluginLog.Debug($"{name} {possibleInstrument} {possibleGMName} {(possibleInstrument ?? possibleGMName)?.Instrument} {(possibleInstrument ?? possibleGMName)?.Name}");
 

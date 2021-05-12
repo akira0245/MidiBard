@@ -73,7 +73,7 @@ namespace MidiBard
 			return ret;
 		}
 
-		static Regex regex = new Regex("^#(.+?)#", RegexOptions.IgnoreCase);
+		static Regex regex = new Regex(@"^#(.*?)([-|+][0-9]+)?#", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 		internal static async Task WaitSwitchInstrument()
 		{
 			var match = regex.Match(PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].Item2);
@@ -92,7 +92,14 @@ namespace MidiBard
 
 				if (key != null)
 				{
-					await SwitchTo(key.RowId);
+					if (key.RowId != 0)
+					{
+						await SwitchTo(key.RowId);
+					}
+					else
+					{
+						PluginLog.Debug("key.RowId == 0, not gonna switch instrument.");
+					}
 				}
 				else
 				{
