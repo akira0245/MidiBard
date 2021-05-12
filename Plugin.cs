@@ -271,7 +271,7 @@ namespace MidiBard
 				{
 					try
 					{
-						if (uint.TryParse(argStrings[1], out var instrumentId) && instrumentId > 0 && instrumentId < InstrumentSheet.RowCount)
+						if (uint.TryParse(argStrings[1], out var instrumentId) && instrumentId > 0 && instrumentId < InstrumentStrings.Length)
 						{
 							DoPerformAction(PerformInfos, instrumentId);
 							if (localizer.Language == UILang.CN)
@@ -284,13 +284,16 @@ namespace MidiBard
 					{
 						try
 						{
-							var name = argStrings[1];
-							var possiblekey = InstrumentSheet.FirstOrDefault(i => i.Instrument.RawString == name);
-							var possiblekey2 = InstrumentSheet.FirstOrDefault(i => i.Name.RawString.Contains(name));
-							PluginLog.Debug($"{name} {possiblekey} {possiblekey2} {(possiblekey ?? possiblekey2)?.Instrument}");
-							DoPerformAction(PerformInfos, (possiblekey ?? possiblekey2).RowId);
+							var name = argStrings[1].ToLowerInvariant();
+							Perform possibleInstrument = Plugin.InstrumentSheet.FirstOrDefault(i => i.Instrument.RawString.ToLowerInvariant() == name.ToLowerInvariant());
+							Perform possibleGMName = Plugin.InstrumentSheet.FirstOrDefault(i => i.Name.RawString.ToLowerInvariant().Contains(name.ToLowerInvariant()));
+
+							PluginLog.Debug($"{name} {possibleInstrument} {possibleGMName} {(possibleInstrument ?? possibleGMName)?.Instrument} {(possibleInstrument ?? possibleGMName)?.Name}");
+
+							var key = possibleInstrument ?? possibleGMName; 
+							DoPerformAction(PerformInfos, key.RowId);
 							if (localizer.Language == UILang.CN)
-								pluginInterface.Framework.Gui.Toast.ShowQuest($"使用{(possiblekey ?? possiblekey2).Instrument}开始演奏。");
+								pluginInterface.Framework.Gui.Toast.ShowQuest($"使用{(possibleInstrument ?? possibleGMName).Instrument}开始演奏。");
 							//else
 							//	pluginInterface.Framework.Gui.Toast.ShowQuest($"Start playing with the {(possiblekey ?? possiblekey2).Instrument}.");
 

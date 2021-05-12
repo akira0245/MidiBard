@@ -81,10 +81,10 @@ namespace MidiBard
 			{
 				var wasplaying = Plugin.IsPlaying;
 				Plugin.currentPlayback?.Stop();
-				var captured = match.Groups[1].Value;
+				var captured = match.Groups[1].Value.ToLowerInvariant();
 
-				Perform possibleInstrument = Plugin.InstrumentSheet.FirstOrDefault(i => i.Instrument.RawString == captured.ToLowerInvariant());
-				Perform possibleGMName = Plugin.InstrumentSheet.FirstOrDefault(i => i.Name.RawString.Contains(captured.ToLowerInvariant()));
+				Perform possibleInstrument = Plugin.InstrumentSheet.FirstOrDefault(i => i.Instrument.RawString.ToLowerInvariant() == captured);
+				Perform possibleGMName = Plugin.InstrumentSheet.FirstOrDefault(i => i.Name.RawString.ToLowerInvariant().Contains(captured));
 
 				PluginLog.Debug($"{captured} {possibleInstrument} {possibleGMName} {(possibleInstrument ?? possibleGMName)?.Instrument} {(possibleInstrument ?? possibleGMName)?.Name}");
 
