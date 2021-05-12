@@ -13,14 +13,16 @@ MidiBard是基于[卫月框架](https://bbs.tggfl.com/topic/32/dalamud-%E5%8D%AB
 
 
 # 插件界面
-[![gwaZJ1.png](https://z3.ax1x.com/2021/05/12/gwaZJ1.png)](https://imgtu.com/i/gwaZJ1)
-
+[![gwaZJ1.png](https://z3.ax1x.com/2021/05/12/gwaZJ1.png)](https://imgtu.com/i/gwaZJ1) [![g0C64x.png](https://z3.ax1x.com/2021/05/12/g0C64x.png)](https://imgtu.com/i/g0C64x)
 
 # 安装方法
 > MidiBard需要[卫月框架](https://bbs.tggfl.com/topic/32/dalamud-%E5%8D%AB%E6%9C%88%E6%A1%86%E6%9E%B6)，如未安装请参考[原帖](https://bbs.tggfl.com/topic/32/dalamud-%E5%8D%AB%E6%9C%88%E6%A1%86%E6%9E%B6)安装后继续。
 
 正确安装卫月框架并注入后在游戏聊天框中输入`/xlsettings`打开Dalamud 设置窗口，复制该源  
-`https://raw.fastgit.org/akira0245/DalamudPlugins/cn/pluginmaster.json`并将其添加到插件仓库  
+`https://raw.fastgit.org/akira0245/DalamudPlugins/cn/pluginmaster.json` 并将其添加到插件仓库  
+
+[![gw7vxx.png](https://z3.ax1x.com/2021/05/12/gw7vxx.png)](https://imgtu.com/i/gw7vxx)
+
 成功添加后在`/xlplugins`中搜索MidiBard并安装即可。
 
 
