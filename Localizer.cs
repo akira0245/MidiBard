@@ -34,7 +34,7 @@ namespace MidiBard
         {
             zh.Add("Import midi file.", "导入MIDI文件");
             zh.Add("Clear Playlist", "清空播放列表");
-            zh.Add("Language", "语言");
+            zh.Add("UI Language", "界面语言");
             zh.Add("Help", "常见问题");
 
             zh.Add("Change the UI Language.", "改变界面语言");
@@ -96,6 +96,7 @@ namespace MidiBard
 	            "设置Midi事件的播放速度倍数。\n例如将其设为0.5会使播放速度减半。\n右键点击来将它重置回1。");
             zh.Add("Set the playing progress. \nRight click to restart current playback.", "乐曲播放进度，右键点击回到乐曲开头。");
             zh.Add("Select current instrument. \nRight click to quit performance mode.", "设置和切换当前乐器，右键点击会退出演奏模式。");
+            zh.Add("Override Guitar Tones", "自动电吉他音色");
 
         }
     }

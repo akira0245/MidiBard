@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Dalamud.Plugin;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Devices;
@@ -11,7 +12,15 @@ namespace MidiBard
 	{
 		public void PrepareForEventsSending()
 		{
-
+			//if (Plugin.PlayingGuitar && Plugin.config.OverrideGuitarTones)
+			//{
+			//	var tone = Plugin.config.TracksTone[noteOnEvent.Channel];
+			//	var PerformanceToneChange = Plugin.pluginInterface.Framework.Gui.GetAddonByName("PerformanceToneChange", 1);
+			//	if (PerformanceToneChange != null)
+			//	{
+			//		playlib.GuitarSwitchTone(PerformanceToneChange.Address, tone);
+			//	}
+			//}
 		}
 
 		public void SendEvent(MidiEvent midiEvent)
@@ -65,10 +74,5 @@ namespace MidiBard
 		}
 
 		public event EventHandler<MidiEventSentEventArgs> EventSent;
-
-		protected virtual void OnEventSent(MidiEventSentEventArgs e)
-		{
-			EventSent?.Invoke(this, e);
-		}
 	}
 }

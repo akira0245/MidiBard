@@ -9,11 +9,14 @@ using System.Threading.Tasks;
 using Dalamud.Game.Internal.Network;
 using Dalamud.Plugin;
 using Lumina.Data;
+using Lumina.Data.Files;
 using Lumina.Excel;
 using Lumina.Excel.GeneratedSheets;
+using Melanchall.DryWetMidi.Composing;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Interaction;
+using Melanchall.DryWetMidi.MusicTheory;
 using MidiBard.Attributes;
 using playlibnamespace;
 
@@ -25,12 +28,13 @@ namespace MidiBard
 		internal static PluginCommandManager<Plugin> commandManager;
 		internal static Configuration config;
 		internal static PluginUI ui;
-		internal static BardPlayDevice BardPlayer;
+
+		internal static BardPlayDevice CurrentOutputDevice;
 
 		internal static Playback currentPlayback;
 		//internal static MidiFile CurrentFile;
 		internal static TempoMap CurrentTMap;
-		internal static List<(TrackChunk, string)> CurrentTracks;
+		internal static List<(TrackChunk, TrackInfo)> CurrentTracks;
 
 		internal static Localizer localizer;
 		private static int configSaverTick;
@@ -51,26 +55,30 @@ namespace MidiBard
 		//internal static byte UnkByte1 => Marshal.ReadByte(PerformInfos + 3 + 8);
 		//internal static float UnkFloat => Marshal.PtrToStructure<float>(PerformInfos + 3);
 
+		internal static readonly byte[] guitarGroup = { 24, 25, 26, 27, 28 };
+		internal static bool PlayingGuitar => guitarGroup.Contains(CurrentInstrument);
+		internal static int CurrentGroupTone => Marshal.ReadInt32(PerformanceAgent.Pointer + 0x1B0);
 		internal static bool InPerformanceMode => Marshal.ReadByte(PerformanceAgent.Pointer + 0x20) != 0;
 		internal static bool MetronomeRunning => Marshal.ReadByte(MetronomeAgent.Pointer + 0x73) == 1;
 		internal static bool EnsembleModeRunning => Marshal.ReadByte(MetronomeAgent.Pointer + 0x80) == 1;
 
 		internal static byte MetronomeBeatsperBar => Marshal.ReadByte(MetronomeAgent.Pointer + 0x72);
 		internal static int MetronomeBeatsElapsed => Marshal.ReadInt32(MetronomeAgent.Pointer + 0x78);
-		internal static long MetronomeTickRate => Marshal.ReadInt64(MetronomeAgent.Pointer + 0x60);
+		internal static long MetronomePPQN => Marshal.ReadInt64(MetronomeAgent.Pointer + 0x60);
 		internal static long MetronomeTimer1 => Marshal.ReadInt64(MetronomeAgent.Pointer + 0x48);
 		internal static long MetronomeTimer2 => Marshal.ReadInt64(MetronomeAgent.Pointer + 0x50);
 
+		internal static int CurrentTone => Marshal.ReadInt32(PerformanceAgent.Pointer + 0x1B0);
 		internal static bool notePressed => Marshal.ReadByte(PerformanceAgent.Pointer + 0x60) != 0x9C;
 		internal static byte noteNumber => notePressed ? Marshal.ReadByte(PerformanceAgent.Pointer + 0x60) : (byte)0;
 		internal static long PerformanceTimer1 => Marshal.ReadInt64(PerformanceAgent.Pointer + 0x38);
 		internal static long PerformanceTimer2 => Marshal.ReadInt64(PerformanceAgent.Pointer + 0x40);
 
 		internal static bool IsPlaying => currentPlayback?.IsRunning == true;
-
+		internal static Playback testplayback = null;
 		public string Name => "MidiBard";
 
-		
+
 
 		public void Initialize(DalamudPluginInterface pi)
 		{
@@ -80,20 +88,22 @@ namespace MidiBard
 
 			localizer = new Localizer((UILang)config.uiLang);
 
-			ui = new PluginUI();
-			pluginInterface.UiBuilder.OnBuildUi += ui.Draw;
 			commandManager = new PluginCommandManager<Plugin>(this, pluginInterface);
 
 			playlib.initialize(pluginInterface);
-			BardPlayer = new BardPlayDevice();
+			CurrentOutputDevice = new BardPlayDevice();
+			//CurrentInputDevice = InputDevice.GetAll().First();
+			//CurrentInputDevice.EventReceived += CurrentInputDeviceOnEventReceived;
 
 			AgentManager.Initialize();
 
 			MetronomeAgent = AgentManager.FindAgentInterfaceByVtable(pi.TargetModuleScanner.GetStaticAddressFromSig("48 8D 05 ?? ?? ?? ?? 48 89 03 48 8D 4B 40"));
-			PerformanceAgent = AgentManager.FindAgentInterfaceByVtable(pi.TargetModuleScanner.GetStaticAddressFromSig("48 8D 05 ?? ?? ?? ?? 48 8B F9 48 89 01 48 8D 05 ?? ?? ?? ?? 48 89 41 28 48 8B 49 48"));
+			PerformanceAgent = AgentManager.FindAgentInterfaceByVtable(pi.TargetModuleScanner.GetStaticAddressFromSig(
+				"48 8D 05 ?? ?? ?? ?? 48 8B F9 48 89 01 48 8D 05 ?? ?? ?? ?? 48 89 41 28 48 8B 49 48"));
 
 			PerformInfos = pi.TargetModuleScanner.GetStaticAddressFromSig("48 8B 15 ?? ?? ?? ?? F6 C2 ??");
-			DoPerformAction = Marshal.GetDelegateForFunctionPointer<DoPerformActionDelegate>(pi.TargetModuleScanner.ScanText("48 89 6C 24 10 48 89 74 24 18 57 48 83 EC ?? 48 83 3D ?? ?? ?? ?? ?? 41 8B E8"));
+			DoPerformAction = Marshal.GetDelegateForFunctionPointer<DoPerformActionDelegate>(pi.TargetModuleScanner.ScanText(
+				"48 89 6C 24 10 48 89 74 24 18 57 48 83 EC ?? 48 83 3D ?? ?? ?? ?? ?? 41 8B E8"));
 
 			try
 			{
@@ -108,9 +118,22 @@ namespace MidiBard
 			InstrumentStrings = InstrumentSheet.Where(i => !string.IsNullOrWhiteSpace(i.Instrument) || i.RowId == 0)
 				.Select(i => $"{i.RowId:00} {(i.RowId == 0 ? "None" : $"{i.Instrument.RawString} ({i.Name})")}").ToArray();
 
-			PlaylistManager.ImportMidiFile(config.Playlist, false);
 
+			Task.Run(() =>
+			{
+				PlaylistManager.ImportMidiFile(config.Playlist, false);
+			});
+
+
+			ui = new PluginUI();
+			pluginInterface.UiBuilder.OnBuildUi += ui.Draw;
 			pluginInterface.Framework.OnUpdateEvent += Tick;
+			pluginInterface.UiBuilder.OnOpenConfigUi += (sender, args) => ui.IsVisible ^= true;
+		}
+
+		private void CurrentInputDeviceOnEventReceived(object sender, MidiEventReceivedEventArgs e)
+		{
+			CurrentOutputDevice.SendEvent(e.Event);
 		}
 
 		private void Tick(Dalamud.Game.Internal.Framework framework)
@@ -248,7 +271,7 @@ namespace MidiBard
 
 							PluginLog.Debug($"{name} {possibleInstrument} {possibleGMName} {(possibleInstrument ?? possibleGMName)?.Instrument} {(possibleInstrument ?? possibleGMName)?.Name}");
 
-							var key = possibleInstrument ?? possibleGMName; 
+							var key = possibleInstrument ?? possibleGMName;
 							DoPerformAction(PerformInfos, key.RowId);
 							if (localizer.Language == UILang.CN)
 								pluginInterface.Framework.Gui.Toast.ShowQuest($"使用{(possibleInstrument ?? possibleGMName).Instrument}开始演奏。");
@@ -336,7 +359,10 @@ namespace MidiBard
 		{
 			if (!disposing) return;
 
+			DeviceManager.DisposeDevice();
 			pluginInterface.Framework.OnUpdateEvent -= Tick;
+			//CurrentInputDevice.EventReceived -= CurrentInputDeviceOnEventReceived;
+
 			try
 			{
 				currentPlayback?.Stop();

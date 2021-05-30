@@ -42,16 +42,22 @@ namespace MidiBard
 		public bool AutoOpenPlayerWhenPerforming = true;
 		//public bool TrimStart;
 		//public bool TrimEnd;
-		public bool[] EnabledTracks = Enumerable.Repeat(true, 16).ToArray();
+		public bool[] EnabledTracks = Enumerable.Repeat(true, 100).ToArray();
+		public int[] TracksTone = new int[100];
 		public int uiLang = Plugin.pluginInterface.UiLanguage == "zh" ? 1 : 0;
 		public bool showMusicControlPanel;
 		public bool showSettingsPanel;
 		public int playlistSizeY = 10;
 		public bool miniPlayer;
 
-		public bool showInstrumentSwitchWindow = true;
 		public bool autoSwitchInstrument = true;
 		public bool autoPitchShift = true;
+		public bool OverrideGuitarTones = true;
+		public int InputDeviceID;
+
+		public int testLength = 40;
+		public int testInterval;
+		public int testRepeat;
 		//public float timeBetweenSongs = 0;
 
 		// Add any other properties or methods here.

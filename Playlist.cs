@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Documents;
 using Dalamud.Plugin;
+using Melanchall.DryWetMidi.Common;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 
@@ -101,29 +102,70 @@ namespace MidiBard
 						//foreach (var chunk in loaded.Chunks) PluginLog.LogDebug($"{chunk}");
 						var substring = f.Name.Substring(f.Name.LastIndexOf('\\') + 1);
 
+						#region processing channels
+
+						//var channelStopwatch = Stopwatch.StartNew();
+
+						//byte moveToChannel = 0;
+						//foreach (var trackChunk in loaded.GetTrackChunks().Where(i => i.Events.OfType<NoteEvent>().Any()))
+						//{
+						//	foreach (var trackChunkEvent in trackChunk.Events.OfType<NoteEvent>())
+						//	{
+						//		trackChunkEvent.Channel = new FourBitNumber(moveToChannel);
+						//	}
+						//	moveToChannel++;
+						//}
+						//PluginLog.Debug($"channel preprocessing took {channelStopwatch.Elapsed.TotalMilliseconds:F3}ms");
+
+						#endregion
+
 						try
 						{
 							var chordStopwatch = Stopwatch.StartNew();
 							loaded.ProcessChords(chord =>
 							{
-								//PluginLog.Verbose($"{chord} {chord.Time} {chord.Notes.Count()}");
-								var i = 0;
-								foreach (var chordNote in chord.Notes.OrderBy(j => j.NoteNumber))
+								try
 								{
-									//var starttime = chordNote.GetTimedNoteOnEvent().Time;
-									//var offtime = chordNote.GetTimedNoteOffEvent().Time;
-									chordNote.Time += i;
-									chordNote.Length -= i;
+									//PluginLog.Verbose($"{chord} {chord.Time} {chord.Length} {chord.Notes.Count()}");
+									var i = 0;
+									foreach (var chordNote in chord.Notes.OrderBy(j => j.NoteNumber))
+									{
+										//var starttime = chordNote.GetTimedNoteOnEvent().Time;
+										//var offtime = chordNote.GetTimedNoteOffEvent().Time;
 
-									i += 1;
-									//PluginLog.Verbose($"[{i}]{chordNote} [{starttime}/{chordNote.GetTimedNoteOnEvent().Time} {offtime}/{chordNote.GetTimedNoteOffEvent().Time}]");
+										chordNote.Time += i;
+										if (chordNote.Length - i < 0)
+										{
+											chordNote.Length = 0;
+										}
+										else
+										{
+											chordNote.Length -= i;
+										}
+
+
+										i += 1;
+
+										//PluginLog.Verbose($"[{i}]{chordNote} [{starttime}/{chordNote.GetTimedNoteOnEvent().Time} {offtime}/{chordNote.GetTimedNoteOffEvent().Time}]");
+									}
+								}
+								catch (Exception e)
+								{
+									try
+									{
+										PluginLog.Verbose($"{chord.Channel} {chord} {chord.Time} {e}");
+									}
+									catch (Exception exception)
+									{
+										PluginLog.Verbose($"error when processing a chord: {exception}");
+									}
 								}
 							}, chord => chord.Notes.Count() > 1);
-							PluginLog.Debug($"chord processing takes {chordStopwatch.Elapsed.TotalMilliseconds:F3}ms");
+							PluginLog.Debug($"chord processing took {chordStopwatch.Elapsed.TotalMilliseconds:F3}ms");
 						}
 						catch (Exception e)
 						{
-							PluginLog.Error(e, $"error when processing chords on {fileName}");
+							PluginLog.Error($"error when processing chords on {fileName}\n{e.Message}");
 						}
 
 						Filelist.Add((loaded, substring.Substring(0, substring.LastIndexOf('.'))));
