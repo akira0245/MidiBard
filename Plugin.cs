@@ -28,6 +28,7 @@ namespace MidiBard
 		internal static PluginCommandManager<Plugin> commandManager;
 		internal static Configuration config;
 		internal static PluginUI ui;
+		//internal static int InputDeviceID;
 
 		internal static BardPlayDevice CurrentOutputDevice;
 

@@ -69,6 +69,12 @@ namespace MidiBard
 				ImGui.PopFont();
 			}
 		}
+		const uint orange = 0xAA00B0E0;
+		const uint red = 0xAA0000D0;
+		const uint grassgreen1 = 0xFF00A0D0;
+		const uint grassgreen2 = 0xFF00A0D0;
+		const uint grassgreen3 = 0xFF00A0D0;
+		const uint violet = 0xAAFF888E;
 
 		public unsafe void Draw()
 		{
@@ -78,323 +84,373 @@ namespace MidiBard
 			//var Buttoncolor = *ImGui.GetStyleColorVec4(ImGuiCol.Button);
 			//var ButtonHoveredcolor = *ImGui.GetStyleColorVec4(ImGuiCol.ButtonHovered);
 			//var ButtonActivecolor = *ImGui.GetStyleColorVec4(ImGuiCol.ButtonActive);
-
-
-			ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(5, 5));
 			ImGui.SetNextWindowPos(new Vector2(100, 100), ImGuiCond.FirstUseEver);
-			ImGui.SetNextWindowSize(new Vector2(400, 400), ImGuiCond.FirstUseEver);
-			//ImGui.SetNextWindowSizeConstraints(new Vector2(356, 10), config.miniPlayer ? new Vector2(356, 100) : new Vector2(10000, 10000));
-			var flag = config.miniPlayer ? ImGuiWindowFlags.NoDecoration : ImGuiWindowFlags.None;
-			ImGui.SetNextWindowSizeConstraints(new Vector2(357 * ImGui.GetIO().FontGlobalScale, 0), new Vector2(357 * ImGui.GetIO().FontGlobalScale, 10000));
-			//if (config.miniPlayer) ImGui.SetNextWindowSizeConstraints(Vector2.Zero, new Vector2(357 * ImGui.GetWindowDpiScale(), 10000));
-			if (ImGui.Begin("MidiBard", ref IsVisible,
-				ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | flag))
+			var scaledWidth = 357 * ImGui.GetIO().FontGlobalScale;
+			ImGui.SetNextWindowSizeConstraints(new Vector2(scaledWidth, 0), new Vector2(scaledWidth, 10000));
+
+			//ImGui.PushStyleVar(ImGuiStyleVar.WindowTitleAlign, new Vector2(0.5f, 0.5f));
+
+			//uint color = ImGui.GetColorU32(ImGuiCol.TitleBgActive);
+			var ensembleModeRunning = EnsembleModeRunning;
+			var ensemblePreparing = MetronomeBeatsElapsed < 0;
+			var listeningForEvents = DeviceManager.IsListeningForEvents;
+
+			//if (ensembleModeRunning)
+			//{
+			//	if (ensemblePreparing)
+			//	{
+			//		color = orange;
+			//	}
+			//	else
+			//	{
+			//		color = red;
+			//	}
+			//}
+			//else
+			//{
+			//	if (isListeningForEvents)
+			//	{
+			//		color = violet;
+			//	}
+			//}
+			//ImGui.PushStyleColor(ImGuiCol.TitleBgActive, color);
+
+			try
 			{
-				if (!config.miniPlayer)
+				//var title = string.Format("MidiBard{0}{1}###midibard",
+				//	ensembleModeRunning ? " - Ensemble Running" : string.Empty,
+				//	isListeningForEvents ? " - Listening Events" : string.Empty);
+				var flag = config.miniPlayer ? ImGuiWindowFlags.NoDecoration : ImGuiWindowFlags.None;
+				ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(5,5));
+
+				if (ImGui.Begin("MidiBard", ref IsVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | flag))
 				{
-					ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(4, 4));
-					ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(15, 4));
+					void coloredSelectable(uint color, string content)
 					{
-						if (!_isImportRunning)
+						ImGui.PushStyleColor(ImGuiCol.Button, color);
+						ImGui.PushStyleColor(ImGuiCol.ButtonHovered, color);
+						ImGui.Button(content, new Vector2(-1, ImGui.GetFrameHeight()));
+						ImGui.PopStyleColor(2);
+					}
+
+					ImGui.PushStyleVar(ImGuiStyleVar.SelectableTextAlign, new Vector2(0.5f, 0.5f));
+					if (ensembleModeRunning)
+					{
+						if (ensemblePreparing)
 						{
-							DrawImportButton();
-							ToolTip("Import midi file.".Localize());
+							coloredSelectable(orange, "Ensemble Mode Preparing".Localize());
 						}
 						else
 						{
-							DrawImportProgress();
+							coloredSelectable(red, "Ensemble Mode Running".Localize());
 						}
+					}
 
-						if (_hasError) DrawFailedImportMessage();
+					if (listeningForEvents)
+					{
+						coloredSelectable(violet, "Listening input device: ".Localize() + DeviceManager.CurrentInputDevice.ToDeviceString());
+					}
 
-						//ImGui.SameLine();
-						//if (ImGui.Button("Remove Selected"))
-						//{
-						//	PlaylistManager.Remove(PlaylistManager.currentPlaying);
-						//}
+					ImGui.PopStyleVar();
 
-						ImGui.SameLine();
-						if (ImGui.Button("Clear Playlist".Localize())) PlaylistManager.Clear();
-
-						if (localizer.Language == UILang.CN)
+					if (!config.miniPlayer)
+					{
+						ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(4, 4));
+						ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(15, 4));
 						{
-							ImGui.SameLine();
-							ImGui.PushFont(UiBuilder.IconFont);
-							if (ImGui.Button(FontAwesomeIcon.QuestionCircle.ToIconString()))
+							if (!_isImportRunning)
 							{
-								//config.showHelpWindow ^= true;
-							}
-
-							ImGui.PopFont();
-
-							if (ImGui.IsItemHovered())
-							{
-								var currentwindowpos = ImGui.GetWindowPos();
-								ImGui.SetNextWindowPos(currentwindowpos + new Vector2(0,
-									ImGui.GetTextLineHeightWithSpacing() + ImGui.GetFrameHeightWithSpacing() +
-									ImGui.GetStyle().WindowPadding.Y));
-								ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(4, 4));
-								if (ImGui.Begin("HelpWindow",
-									ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.Tooltip |
-									ImGuiWindowFlags.AlwaysAutoResize))
-								{
-									ImGui.BulletText(
-										"如何开始使用MIDIBARD演奏？" +
-										"\n　MIDIBARD窗口默认在角色进入演奏模式后自动弹出。" +
-										"\n　点击窗口左上角的“+”按钮来将乐曲文件导入到播放列表，仅支持.mid格式的乐曲。" +
-										"\n　导入时按Ctrl或Shift可以选择多个文件一同导入。" +
-										"\n　双击播放列表中要演奏的乐曲后点击播放按钮开始演奏。\n");
-									ImGui.BulletText(
-										"为什么点击播放之后没有正常演奏？" +
-										"\n　MIDIBARD仅使用37键演奏模式。" +
-										"\n　请在游戏“乐器演奏操作设置”的“键盘操作”类别下启用“全音阶一同显示、设置按键”的选项。\n");
-									ImGui.BulletText(
-										"如何使用MIDIBARD进行多人合奏？" +
-										"\n　MIDIBARD使用游戏中的合奏助手来完成合奏，请在合奏时打开游戏的节拍器窗口。" +
-										"\n　合奏前在播放列表中双击要合奏的乐曲，播放器下方会出现可供演奏的所有音轨，请为每位合奏成员分别选择其需要演奏的音轨。" +
-										"\n　选择音轨后队长点击节拍器窗口的“合奏准备确认”按钮，" +
-										"\n　并确保合奏准备确认窗口中已勾选“使用合奏助手”选项后点击开始即可开始合奏。" +
-										"\n　※节拍器前两小节为准备时间，从第1小节开始会正式开始合奏。" +
-										"\n　　考虑到不同使用环境乐曲加载速度可能不一致，为了避免切换乐曲导致的不同步，在乐曲结束时合奏会自动停止。\n");
-									ImGui.BulletText(
-										"后台演奏时有轻微卡顿不流畅怎么办？" +
-										"\n　在游戏内“系统设置→显示设置→帧数限制”中取消勾选 “程序在游戏窗口处于非激活状态时限制帧数” 的选项并应用设置。\n");
-									ImGui.BulletText(
-										"如何让MIDIBARD为不同乐曲自动切换音调和乐器？" +
-										"\n　在导入前把要指定乐器和移调的乐曲文件名前加入“#<乐器名><移调的半音数量>#”。" +
-										"\n　例如：原乐曲文件名为“demo.mid”" +
-										"\n　将其重命名为“#中提琴+12#demo.mid”可在演奏到该乐曲时自动切换到中提琴并升调1个八度演奏。" +
-										"\n　将其重命名为“#长笛-24#demo.mid”可在演奏到该乐曲时切换到长笛并降调2个八度演奏。" +
-										"\n　※可以只添加#+12#或#竖琴#或#harp#，也会有对应的升降调或切换乐器效果。");
-									ImGui.Spacing();
-
-									ImGui.End();
-								}
-
-								ImGui.PopStyleVar();
-							}
-						}
-
-						if (EnsembleModeRunning)
-						{
-							ImGui.SameLine();
-							if (MetronomeBeatsElapsed < 0)
-							{
-								ImGui.PushStyleColor(ImGuiCol.Button, 0xFF00A0D0);
-								ImGui.Button("Ensemble Mode Preparing".Localize());
+								DrawImportButton();
+								ToolTip("Import midi file.".Localize());
 							}
 							else
 							{
-								ImGui.PushStyleColor(ImGuiCol.Button, 0xFF0000D0);
-								ImGui.Button("Ensemble Mode Running".Localize());
+								DrawImportProgress();
 							}
 
-							ImGui.PopStyleColor();
-						}
-					}
+							if (_hasError) DrawFailedImportMessage();
 
-					ImGui.PopStyleVar(2);
+							//ImGui.SameLine();
+							//if (ImGui.Button("Remove Selected"))
+							//{
+							//	PlaylistManager.Remove(PlaylistManager.currentPlaying);
+							//}
 
+							ImGui.SameLine();
+							if (ImGui.Button("Clear Playlist".Localize())) PlaylistManager.Clear();
 
-
-					if (PlaylistManager.Filelist.Count == 0)
-					{
-						if (ImGui.Button("Import midi files to start performing!".Localize(), new Vector2(-1, 25)))
-							RunImportTask();
-					}
-					else
-					{
-						ImGui.PushStyleColor(ImGuiCol.Button, 0);
-						ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0);
-						ImGui.PushStyleColor(ImGuiCol.ButtonActive, 0);
-						ImGui.PushStyleColor(ImGuiCol.Header, 0x3C60FF8E);
-						ImGui.PushStyleColor(ImGuiCol.HeaderHovered, 0x80808080);
-						if (ImGui.BeginTable("##PlaylistTable", 3,
-							ImGuiTableFlags.RowBg | ImGuiTableFlags.PadOuterX |
-							ImGuiTableFlags.ScrollY | ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.ContextMenuInBody,
-							new Vector2(-1,
-								ImGui.GetTextLineHeightWithSpacing() * Math.Min(config.playlistSizeY,
-									PlaylistManager.Filelist.Count)
-							)))
-						{
-							ImGui.TableSetupColumn("\ue035", ImGuiTableColumnFlags.WidthFixed);
-							ImGui.TableSetupColumn("##delete", ImGuiTableColumnFlags.WidthFixed);
-							ImGui.TableSetupColumn("filename", ImGuiTableColumnFlags.WidthStretch);
-							for (var i = 0; i < PlaylistManager.Filelist.Count; i++)
+							if (localizer.Language == UILang.CN)
 							{
-								ImGui.TableNextRow();
-								ImGui.TableSetColumnIndex(0);
-								if (ImGui.Selectable($"{i + 1:000}##plistitem", PlaylistManager.CurrentPlaying == i,
-									ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowDoubleClick |
-									ImGuiSelectableFlags.AllowItemOverlap))
-								{
-									if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
-									{
-										PlaylistManager.CurrentPlaying = i;
-
-										try
-										{
-											var wasplaying = IsPlaying;
-											currentPlayback?.Dispose();
-											currentPlayback = null;
-
-											currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].GetFilePlayback();
-											if (wasplaying) currentPlayback?.Start();
-											Task.Run(SwitchInstrument.WaitSwitchInstrument);
-										}
-										catch (Exception e)
-										{
-											//
-										}
-									}
-									else
-									{
-										PlaylistManager.CurrentSelected = i;
-									}
-								}
-
-								ImGui.TableNextColumn();
 								ImGui.PushFont(UiBuilder.IconFont);
-								ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
-								if (ImGui.Button($"{((FontAwesomeIcon)0xF2ED).ToIconString()}##{i}", new Vector2(ImGui.GetTextLineHeight(), ImGui.GetTextLineHeight())))
+								ImGui.SameLine(ImGui.GetWindowContentRegionWidth() - ImGui.CalcTextSize(FontAwesomeIcon.QuestionCircle.ToIconString()).X - ImGui.GetStyle().FramePadding.X * 2 + ImGui.GetCursorPosX());
+								if (ImGui.Button(FontAwesomeIcon.QuestionCircle.ToIconString()))
 								{
-									PlaylistManager.Remove(i);
-								}
-								ImGui.PopStyleVar();
-								ImGui.PopFont();
-								ImGui.TableNextColumn();
-								try
-								{
-									ImGui.TextUnformatted(PlaylistManager.Filelist[i].Item2);
-									ToolTip(PlaylistManager.Filelist[i].Item2);
-								}
-								catch (Exception e)
-								{
-									ImGui.TextUnformatted("deleted");
+									//config.showHelpWindow ^= true;
 								}
 
+								ImGui.PopFont();
+
+								if (ImGui.IsItemHovered())
+								{
+									var currentwindowpos = ImGui.GetWindowPos();
+									ImGui.SetNextWindowPos(currentwindowpos + new Vector2(0,
+										ImGui.GetTextLineHeightWithSpacing() + ImGui.GetFrameHeightWithSpacing() +
+										ImGui.GetStyle().WindowPadding.Y));
+									ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(4, 4));
+									if (ImGui.Begin("HelpWindow",
+										ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.Tooltip |
+										ImGuiWindowFlags.AlwaysAutoResize))
+									{
+										ImGui.BulletText(
+											"如何开始使用MIDIBARD演奏？" +
+											"\n　MIDIBARD窗口默认在角色进入演奏模式后自动弹出。" +
+											"\n　点击窗口左上角的“+”按钮来将乐曲文件导入到播放列表，仅支持.mid格式的乐曲。" +
+											"\n　导入时按Ctrl或Shift可以选择多个文件一同导入。" +
+											"\n　双击播放列表中要演奏的乐曲后点击播放按钮开始演奏。\n");
+										ImGui.BulletText(
+											"为什么点击播放之后没有正常演奏？" +
+											"\n　MIDIBARD仅使用37键演奏模式。" +
+											"\n　请在游戏“乐器演奏操作设置”的“键盘操作”类别下启用“全音阶一同显示、设置按键”的选项。\n");
+										ImGui.BulletText(
+											"如何使用MIDIBARD进行多人合奏？" +
+											"\n　MIDIBARD使用游戏中的合奏助手来完成合奏，请在合奏时打开游戏的节拍器窗口。" +
+											"\n　合奏前在播放列表中双击要合奏的乐曲，播放器下方会出现可供演奏的所有音轨，请为每位合奏成员分别选择其需要演奏的音轨。" +
+											"\n　选择音轨后队长点击节拍器窗口的“合奏准备确认”按钮，" +
+											"\n　并确保合奏准备确认窗口中已勾选“使用合奏助手”选项后点击开始即可开始合奏。" +
+											"\n　※节拍器前两小节为准备时间，从第1小节开始会正式开始合奏。" +
+											"\n　　考虑到不同使用环境乐曲加载速度可能不一致，为了避免切换乐曲导致的不同步，在乐曲结束时合奏会自动停止。\n");
+										ImGui.BulletText(
+											"如何让MIDIBARD为不同乐曲自动切换音调和乐器？" +
+											"\n　在导入前把要指定乐器和移调的乐曲文件名前加入“#<乐器名><移调的半音数量>#”。" +
+											"\n　例如：原乐曲文件名为“demo.mid”" +
+											"\n　将其重命名为“#中提琴+12#demo.mid”可在演奏到该乐曲时自动切换到中提琴并升调1个八度演奏。" +
+											"\n　将其重命名为“#长笛-24#demo.mid”可在演奏到该乐曲时切换到长笛并降调2个八度演奏。" +
+											"\n　※可以只添加#+12#或#竖琴#或#harp#，也会有对应的升降调或切换乐器效果。");
+										ImGui.BulletText(
+											"如何为MIDIBARD配置外部Midi输入（如loopMidi或Midi键盘）？" +
+											"\n　在“输入设备”下拉菜单中选择你的Midi设备，窗口顶端出现“正在监听Midi输入”信息后即可使用外部输入。\n");
+										ImGui.BulletText(
+											"后台演奏时有轻微卡顿不流畅怎么办？" +
+											"\n　在游戏内“系统设置→显示设置→帧数限制”中取消勾选 “程序在游戏窗口处于非激活状态时限制帧数” 的选项并应用设置。\n");
+										ImGui.BulletText("讨论及BUG反馈群：260985966");
+										ImGui.Spacing();
+
+										ImGui.End();
+									}
+
+									ImGui.PopStyleVar();
+								}
 							}
 
-							ImGui.EndTable();
+
 						}
 
-						ImGui.PopStyleColor(5);
+						ImGui.PopStyleVar(2);
+
+
+						if (PlaylistManager.Filelist.Count == 0)
+						{
+							if (ImGui.Button("Import midi files to start performing!".Localize(), new Vector2(-1, ImGui.GetFrameHeight())))
+								RunImportTask();
+						}
+						else
+						{
+							ImGui.PushStyleColor(ImGuiCol.Button, 0);
+							ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0);
+							ImGui.PushStyleColor(ImGuiCol.ButtonActive, 0);
+							ImGui.PushStyleColor(ImGuiCol.Header, 0x3C60FF8E);
+							if (ImGui.BeginTable("##PlaylistTable", 3,
+								ImGuiTableFlags.RowBg | ImGuiTableFlags.PadOuterX |
+								ImGuiTableFlags.ScrollY | ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.ContextMenuInBody,
+								new Vector2(-1,
+									ImGui.GetTextLineHeightWithSpacing() * Math.Min(10,
+										PlaylistManager.Filelist.Count)
+								)))
+							{
+								ImGui.TableSetupColumn("\ue035", ImGuiTableColumnFlags.WidthFixed);
+								ImGui.TableSetupColumn("##delete", ImGuiTableColumnFlags.WidthFixed);
+								ImGui.TableSetupColumn("filename", ImGuiTableColumnFlags.WidthStretch);
+								for (var i = 0; i < PlaylistManager.Filelist.Count; i++)
+								{
+									ImGui.TableNextRow();
+									ImGui.TableSetColumnIndex(0);
+									if (ImGui.Selectable($"{i + 1:000}##plistitem", PlaylistManager.CurrentPlaying == i,
+										ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowDoubleClick |
+										ImGuiSelectableFlags.AllowItemOverlap))
+									{
+										if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+										{
+											PlaylistManager.CurrentPlaying = i;
+
+											try
+											{
+												var wasplaying = IsPlaying;
+												currentPlayback?.Dispose();
+												currentPlayback = null;
+
+												currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].GetFilePlayback();
+												if (wasplaying) currentPlayback?.Start();
+												Task.Run(SwitchInstrument.WaitSwitchInstrument);
+											}
+											catch (Exception e)
+											{
+												//
+											}
+										}
+										else
+										{
+											PlaylistManager.CurrentSelected = i;
+										}
+									}
+
+									ImGui.TableNextColumn();
+									ImGui.PushFont(UiBuilder.IconFont);
+									ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
+									if (ImGui.Button($"{((FontAwesomeIcon)0xF2ED).ToIconString()}##{i}", new Vector2(ImGui.GetTextLineHeight(), ImGui.GetTextLineHeight())))
+									{
+										PlaylistManager.Remove(i);
+									}
+									ImGui.PopStyleVar();
+									ImGui.PopFont();
+									ImGui.TableNextColumn();
+									try
+									{
+										var item2 = PlaylistManager.Filelist[i].Item2;
+										ImGui.TextUnformatted(item2);
+										ToolTip(item2);
+									}
+									catch (Exception e)
+									{
+										ImGui.TextUnformatted("deleted");
+									}
+
+								}
+
+								ImGui.EndTable();
+							}
+
+							ImGui.PopStyleColor(4);
+						}
+
+						#region old playlist
+
+						//ImGui.BeginListBox("##PlayList1", new Vector2(-1, ImGui.GetTextLineHeightWithSpacing() * maxItems));
+						//{
+						//	var i = 0;
+						//	foreach (var tuple in PlaylistManager.Filelist)
+						//	{
+						//		if (PlaylistManager.currentPlaying == i)
+						//		{
+						//			ImGui.PushStyleColor(ImGuiCol.Text, config.ThemeColor);
+						//		}
+
+						//		if (ImGui.Selectable($"{tuple.Item2}##{i}", PlaylistManager.currentSelected[i], ImGuiSelectableFlags.AllowDoubleClick))
+						//		{
+
+						//		}
+						//		if (PlaylistManager.currentPlaying == i)
+						//		{
+						//			ImGui.PopStyleColor();
+						//		}
+						//		i++;
+						//	}
+						//}
+						//ImGui.EndListBox();
+						//ImGui.Text(sb.ToString());
+
+						//if (ImGui.ListBox("##PlayList", ref PlaylistManager.currentPlaying, items, itemsCount, maxItems))
+						//{
+						//	var wasplaying = IsPlaying;
+						//	currentPlayback?.Dispose();
+
+						//	try
+						//	{
+						//		currentPlayback = PlaylistManager.Filelist[PlaylistManager.currentPlaying].Item1.GetPlayback();
+						//		if (wasplaying) currentPlayback?.Start();
+						//	}
+						//	catch (Exception e)
+						//	{
+
+						//	}
+						//}
+
+						#endregion
+
+						ImGui.Spacing();
 					}
 
-					#region old playlist
-
-					//ImGui.BeginListBox("##PlayList1", new Vector2(-1, ImGui.GetTextLineHeightWithSpacing() * maxItems));
-					//{
-					//	var i = 0;
-					//	foreach (var tuple in PlaylistManager.Filelist)
-					//	{
-					//		if (PlaylistManager.currentPlaying == i)
-					//		{
-					//			ImGui.PushStyleColor(ImGuiCol.Text, config.ThemeColor);
-					//		}
-
-					//		if (ImGui.Selectable($"{tuple.Item2}##{i}", PlaylistManager.currentSelected[i], ImGuiSelectableFlags.AllowDoubleClick))
-					//		{
-
-					//		}
-					//		if (PlaylistManager.currentPlaying == i)
-					//		{
-					//			ImGui.PopStyleColor();
-					//		}
-					//		i++;
-					//	}
-					//}
-					//ImGui.EndListBox();
-					//ImGui.Text(sb.ToString());
-
-					//if (ImGui.ListBox("##PlayList", ref PlaylistManager.currentPlaying, items, itemsCount, maxItems))
-					//{
-					//	var wasplaying = IsPlaying;
-					//	currentPlayback?.Dispose();
-
-					//	try
-					//	{
-					//		currentPlayback = PlaylistManager.Filelist[PlaylistManager.currentPlaying].Item1.GetPlayback();
-					//		if (wasplaying) currentPlayback?.Start();
-					//	}
-					//	catch (Exception e)
-					//	{
-
-					//	}
-					//}
-
-					#endregion
+					DrawCurrentPlaying();
 
 					ImGui.Spacing();
+
+					DrawProgressBar();
+
+					ImGui.Spacing();
+
+					ImGui.PushFont(UiBuilder.IconFont);
+					ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(4, 4));
+					ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(15, 4));
+					{
+						DrawButtonPlayPause();
+						DrawButtonStop();
+						DrawButtonFastForward();
+						DrawButtonPlayMode();
+						DrawButtonShowPlayerControl();
+						DrawButtonShowSettingsPanel();
+						DrawButtonMiniPlayer();
+					}
+					ImGui.PopFont();
+					ImGui.PopStyleVar(2);
+
+					if (config.showMusicControlPanel)
+					{
+						DrawTrackTrunkSelectionWindow();
+						ImGui.Separator();
+						DrawPanelMusicControl();
+					}
+					if (config.showSettingsPanel)
+					{
+						ImGui.Separator();
+						DrawPanelGeneralSettings();
+					}
+					if (Debug) DrawDebugWindow();
+
+					var size = ImGui.GetWindowSize();
+					var pos = ImGui.GetWindowPos();
+					var vp = ImGui.GetWindowViewport();
+
+
+
+					////ImGui.SetNextWindowViewport(vp.ID);
+					//ImGui.SetNextWindowPos(pos + new Vector2(size.X + 1, 0));
+					////ImGui.SetNextWindowSizeConstraints(Vector2.Zero, size);
+					//if (config.showInstrumentSwitchWindow && ImGui.Begin("Instrument".Localize(), ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoBringToFrontOnFocus | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.AlwaysAutoResize))
+					//{
+					//	ImGui.SetNextItemWidth(120);
+					//	UIcurrentInstrument = Plugin.CurrentInstrument;
+					//	if (ImGui.ListBox("##instrumentSwitch", ref UIcurrentInstrument,
+					//		InstrumentSheet.Select(i => i.Instrument.ToString()).ToArray(), (int)InstrumentSheet.RowCount,
+					//		(int)InstrumentSheet.RowCount))
+					//	{
+					//		Task.Run(() => SwitchInstrument.SwitchTo((uint)UIcurrentInstrument));
+					//	}
+
+					//	//if (ImGui.Button("Quit"))
+					//	//{
+					//	//	Task.Run(() => SwitchInstrument.SwitchTo(0));
+					//	//}
+					//	ImGui.End();
+					//}
+
+					ImGui.End();
 				}
-
-				DrawCurrentPlaying();
-
-				ImGui.Spacing();
-
-				DrawProgressBar();
-
-				ImGui.Spacing();
-
-				ImGui.PushFont(UiBuilder.IconFont);
-				ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(4, 4));
-				ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(15, 4));
-				{
-					DrawButtonPlayPause();
-					DrawButtonStop();
-					DrawButtonFastForward();
-					DrawButtonPlayMode();
-					DrawButtonShowPlayerControl();
-					DrawButtonShowSettingsPanel();
-					DrawButtonMiniPlayer();
-				}
-				ImGui.PopFont();
-				ImGui.PopStyleVar(2);
-
-				if (config.showMusicControlPanel)
-				{
-					DrawTrackTrunkSelectionWindow();
-					ImGui.Separator();
-					DrawPanelMusicControl();
-				}
-				if (config.showSettingsPanel)
-				{
-					ImGui.Separator();
-					DrawPanelGeneralSettings();
-				}
-				if (Debug) DrawDebugWindow();
-
-				var size = ImGui.GetWindowSize();
-				var pos = ImGui.GetWindowPos();
-				var vp = ImGui.GetWindowViewport();
-
-
-
-				////ImGui.SetNextWindowViewport(vp.ID);
-				//ImGui.SetNextWindowPos(pos + new Vector2(size.X + 1, 0));
-				////ImGui.SetNextWindowSizeConstraints(Vector2.Zero, size);
-				//if (config.showInstrumentSwitchWindow && ImGui.Begin("Instrument".Localize(), ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoBringToFrontOnFocus | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.AlwaysAutoResize))
-				//{
-				//	ImGui.SetNextItemWidth(120);
-				//	UIcurrentInstrument = Plugin.CurrentInstrument;
-				//	if (ImGui.ListBox("##instrumentSwitch", ref UIcurrentInstrument,
-				//		InstrumentSheet.Select(i => i.Instrument.ToString()).ToArray(), (int)InstrumentSheet.RowCount,
-				//		(int)InstrumentSheet.RowCount))
-				//	{
-				//		Task.Run(() => SwitchInstrument.SwitchTo((uint)UIcurrentInstrument));
-				//	}
-
-				//	//if (ImGui.Button("Quit"))
-				//	//{
-				//	//	Task.Run(() => SwitchInstrument.SwitchTo(0));
-				//	//}
-				//	ImGui.End();
-				//}
-
-				ImGui.End();
+			}
+			finally
+			{
+				ImGui.PopStyleVar();
+				//ImGui.PopStyleColor();
 			}
 
-			ImGui.PopStyleVar();
 		}
 
 		private static unsafe void DrawCurrentPlaying()
@@ -834,7 +890,7 @@ namespace MidiBard
 			}
 
 
-			ImGui.InputInt("Pitch shift".Localize(), ref config.NoteNumberOffset, 12);
+			ImGui.InputInt("Transpose".Localize(), ref config.NoteNumberOffset, 12);
 			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right)) config.NoteNumberOffset = 0;
 			ToolTip("Pitch shift, Measured by semitone. \nRight click to reset.".Localize());
 
@@ -874,6 +930,25 @@ namespace MidiBard
 			//	//CurrentInputDevice.Connect(CurrentOutputDevice);
 			//}
 
+			var inputDevices = DeviceManager.Devices;
+			//ImGui.BeginListBox("##auofhiao", new Vector2(-1, ImGui.GetTextLineHeightWithSpacing()* (inputDevices.Length + 1)));
+			if (ImGui.BeginCombo("Input Device".Localize(), DeviceManager.CurrentInputDevice.ToDeviceString()))
+			{
+				if (ImGui.Selectable("None##device", DeviceManager.CurrentInputDevice is null))
+				{
+					DeviceManager.DisposeDevice();
+				}
+				for (int i = 0; i < inputDevices.Length; i++)
+				{
+					var device = inputDevices[i];
+					if (ImGui.Selectable($"{device.Name}##{i}", device.Id == DeviceManager.CurrentInputDevice?.Id))
+					{
+						DeviceManager.SetDevice(device);
+					}
+				}
+				ImGui.EndCombo();
+			}
+
 			if (ImGui.Combo("UI Language".Localize(), ref config.uiLang, uilangStrings, 2))
 			{
 				localizer = new Localizer((UILang)config.uiLang);
@@ -906,19 +981,18 @@ namespace MidiBard
 		}
 		private static void DrawDebugWindow()
 		{
-			ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(5, 0));
-			//ImGui.SetNextWindowSize(new Vector2(500, 800));
+			//ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(5, 0));
 			if (ImGui.Begin("MIDIBARD DEBUG", ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.AlwaysAutoResize))
 			{
 				try
 				{
 					ImGui.TextUnformatted($"AgentModule: {AgentManager.AgentModule.ToInt64():X}");
 					ImGui.SameLine();
-					if (ImGui.Button("C##AgentModule")) ImGui.SetClipboardText($"{AgentManager.AgentModule.ToInt64():X}");
+					if (ImGui.SmallButton("C##AgentModule")) ImGui.SetClipboardText($"{AgentManager.AgentModule.ToInt64():X}");
 
 					ImGui.TextUnformatted($"UiModule: {AgentManager.UiModule.ToInt64():X}");
 					ImGui.SameLine();
-					if (ImGui.Button("C##4")) ImGui.SetClipboardText($"{AgentManager.UiModule.ToInt64():X}");
+					if (ImGui.SmallButton("C##4")) ImGui.SetClipboardText($"{AgentManager.UiModule.ToInt64():X}");
 					ImGui.TextUnformatted($"AgentCount:{AgentManager.Agents.Count}");
 				}
 				catch (Exception e)
@@ -931,7 +1005,7 @@ namespace MidiBard
 				{
 					ImGui.TextUnformatted($"AgentPerformance: {PerformanceAgent.Pointer.ToInt64():X}");
 					ImGui.SameLine();
-					if (ImGui.Button("C##AgentPerformance")) ImGui.SetClipboardText($"{PerformanceAgent.Pointer.ToInt64():X}");
+					if (ImGui.SmallButton("C##AgentPerformance")) ImGui.SetClipboardText($"{PerformanceAgent.Pointer.ToInt64():X}");
 
 					ImGui.TextUnformatted($"AgentID: {PerformanceAgent.Id}");
 
@@ -952,7 +1026,7 @@ namespace MidiBard
 				{
 					ImGui.TextUnformatted($"AgentMetronome: {MetronomeAgent.Pointer.ToInt64():X}");
 					ImGui.SameLine();
-					if (ImGui.Button("C##AgentMetronome")) ImGui.SetClipboardText($"{MetronomeAgent.Pointer.ToInt64():X}");
+					if (ImGui.SmallButton("C##AgentMetronome")) ImGui.SetClipboardText($"{MetronomeAgent.Pointer.ToInt64():X}");
 					ImGui.TextUnformatted($"AgentID: {MetronomeAgent.Id}");
 
 
@@ -976,7 +1050,7 @@ namespace MidiBard
 				{
 					ImGui.TextUnformatted($"PerformInfos: {PerformInfos.ToInt64() + 3:X}");
 					ImGui.SameLine();
-					if (ImGui.Button("C##PerformInfos")) ImGui.SetClipboardText($"{PerformInfos.ToInt64() + 3:X}");
+					if (ImGui.SmallButton("C##PerformInfos")) ImGui.SetClipboardText($"{PerformInfos.ToInt64() + 3:X}");
 					ImGui.TextUnformatted($"CurrentInstrumentKey: {CurrentInstrument}");
 					ImGui.TextUnformatted($"Instrument: {InstrumentSheet.GetRow(CurrentInstrument).Instrument}");
 					ImGui.TextUnformatted($"Name: {InstrumentSheet.GetRow(CurrentInstrument).Name.RawString}");
@@ -994,39 +1068,60 @@ namespace MidiBard
 				ImGui.TextUnformatted($"currentSelected: {PlaylistManager.CurrentSelected}");
 				ImGui.TextUnformatted($"FilelistCount: {PlaylistManager.Filelist.Count}");
 				ImGui.TextUnformatted($"currentUILanguage: {pluginInterface.UiLanguage}");
-				var size = ImGui.GetWindowContentRegionWidth();
-				//var pos = ImGui.GetWindowPos() + new Vector2(0, size.Y);
-
-
 
 				ImGui.Separator();
 				try
 				{
-					var devicesList = DeviceManager.Devices.Select(i => i.ToDeviceString()).ToArray();
-					if (ImGui.Combo("##????", ref config.InputDeviceID, devicesList, devicesList.Length))
-					{
-						if (config.InputDeviceID == 0)
-						{
-							DeviceManager.DisposeDevice();
-						}
-						else
-						{
-							DeviceManager.SetDevice(InputDevice.GetByName(devicesList[config.InputDeviceID]));
-						}
-					}
+					//var devicesList = DeviceManager.Devices.Select(i => i.ToDeviceString()).ToArray();
 
-					if (ImGui.Button("Start Event Listening"))
+
+					//var inputDevices = DeviceManager.Devices;
+					////ImGui.BeginListBox("##auofhiao", new Vector2(-1, ImGui.GetTextLineHeightWithSpacing()* (inputDevices.Length + 1)));
+					//if (ImGui.BeginCombo("Input Device", DeviceManager.CurrentInputDevice.ToDeviceString()))
+					//{
+					//	if (ImGui.Selectable("None##device", DeviceManager.CurrentInputDevice is null))
+					//	{
+					//		DeviceManager.DisposeDevice();
+					//	}
+					//	for (int i = 0; i < inputDevices.Length; i++)
+					//	{
+					//		var device = inputDevices[i];
+					//		if (ImGui.Selectable($"{device.Name}##{i}", device.Id == DeviceManager.CurrentInputDevice?.Id))
+					//		{
+					//			DeviceManager.SetDevice(device);
+					//		}
+					//	}
+					//	ImGui.EndCombo();
+					//}
+
+
+
+					//ImGui.EndListBox();
+
+					//if (ImGui.ListBox("##????", ref InputDeviceID, devicesList, devicesList.Length))
+					//{
+					//	if (InputDeviceID == 0)
+					//	{
+					//		DeviceManager.DisposeDevice();
+					//	}
+					//	else
+					//	{
+					//		DeviceManager.SetDevice(InputDevice.GetByName(devicesList[InputDeviceID]));
+					//	}
+					//}
+
+					if (ImGui.SmallButton("Start Event Listening"))
 					{
 						DeviceManager.CurrentInputDevice?.StartEventsListening();
 					}
 					ImGui.SameLine();
-					if (ImGui.Button("Stop Event Listening"))
+					if (ImGui.SmallButton("Stop Event Listening"))
 					{
 						DeviceManager.CurrentInputDevice?.StopEventsListening();
 					}
 
 					ImGui.TextUnformatted($"InputDevices: {InputDevice.GetDevicesCount()}\n{string.Join("\n", InputDevice.GetAll().Select(i => $"[{i.Id}] {i.Name}"))}");
-					ImGui.TextUnformatted($"OutPutDevices: {OutputDevice.GetDevicesCount()}\n{string.Join("\n", OutputDevice.GetAll().Select(i => $"[{i.Id}] {i.Name}({i.DeviceType})"))}");
+					ImGui.TextUnformatted($"OutputDevices: {OutputDevice.GetDevicesCount()}\n{string.Join("\n", OutputDevice.GetAll().Select(i => $"[{i.Id}] {i.Name}({i.DeviceType})"))}");
 
 					ImGui.TextUnformatted($"CurrentInputDevice: \n{DeviceManager.CurrentInputDevice} Listening: {DeviceManager.CurrentInputDevice?.IsListeningForEvents}");
 					ImGui.TextUnformatted($"CurrentOutputDevice: \n{CurrentOutputDevice}");
@@ -1247,8 +1342,8 @@ namespace MidiBard
 
 				ImGui.End();
 			}
+			//ImGui.PopStyleVar();
 
-			ImGui.PopStyleVar();
 		}
 
 		private static int UIcurrentInstrument;

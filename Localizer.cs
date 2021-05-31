@@ -97,6 +97,8 @@ namespace MidiBard
             zh.Add("Set the playing progress. \nRight click to restart current playback.", "乐曲播放进度，右键点击回到乐曲开头。");
             zh.Add("Select current instrument. \nRight click to quit performance mode.", "设置和切换当前乐器，右键点击会退出演奏模式。");
             zh.Add("Override Guitar Tones", "自动电吉他音色");
+            zh.Add("Listening input device: ", "正在监听MIDI输入：");
+            zh.Add("Input Device", "输入设备");
 
         }
     }

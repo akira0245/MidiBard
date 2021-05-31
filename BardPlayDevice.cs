@@ -10,6 +10,7 @@ namespace MidiBard
 {
 	class BardPlayDevice : IOutputDevice
 	{
+		
 		public void PrepareForEventsSending()
 		{
 			//if (Plugin.PlayingGuitar && Plugin.config.OverrideGuitarTones)
@@ -45,9 +46,18 @@ namespace MidiBard
 						adaptedOctave--;
 					}
 				}
-				PluginLog.Verbose($"{noteOnEvent.GetNoteName().ToString().Replace("Sharp", "#")}{noteOnEvent.GetNoteOctave()} ({noteNum})" +
-								  $"{(noteNum < 0 || noteNum > 36 ? "(out of range)" : string.Empty)}" +
-								  $"{(adaptedOctave != 0 ? $"[adapted {adaptedOctave} Oct]" : string.Empty)}");
+
+				var s = $"{noteOnEvent.DeltaTime} | {noteOnEvent.GetNoteName().ToString().Replace("Sharp", "#")}{noteOnEvent.GetNoteOctave()} ({noteNum})";
+				if (noteNum < 0 || noteNum > 36)
+				{
+					s += "(out of range)";
+				}
+				if (adaptedOctave != 0)
+				{
+					s += $"[adapted {adaptedOctave} Oct]";
+				}
+				PluginLog.Verbose(s);
+
 				if (noteNum < 0 || noteNum > 36) return;
 				playlib.PressKey(keyboard.Address, noteNum);
 			}

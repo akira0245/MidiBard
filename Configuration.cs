@@ -53,7 +53,6 @@ namespace MidiBard
 		public bool autoSwitchInstrument = true;
 		public bool autoPitchShift = true;
 		public bool OverrideGuitarTones = true;
-		public int InputDeviceID;
 
 		public int testLength = 40;
 		public int testInterval;

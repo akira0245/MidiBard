@@ -10,6 +10,24 @@ namespace MidiBard
 {
 	static class DeviceManager
 	{
+		internal static bool IsListeningForEvents
+		{
+			get
+			{
+				var ret = false;
+				try
+				{
+					ret = CurrentInputDevice.IsListeningForEvents;
+				}
+				catch (Exception e)
+				{
+					//
+				}
+
+				return ret;
+			}
+		}
+
 		internal static string ToDeviceString(this InputDevice device)
 		{
 			if (device is null)
@@ -21,12 +39,13 @@ namespace MidiBard
 
 		internal static InputDevice CurrentInputDevice { get; set; }
 
-		internal static IEnumerable<InputDevice> Devices
+		internal static InputDevice[] Devices
 		{
 			get
 			{
-				var alldevice = InputDevice.GetAll();
-				return alldevice.Prepend(null);
+				return InputDevice.GetAll().ToArray();
+				//var alldevice = InputDevice.GetAll();
+				//return alldevice.Prepend(null);
 			}
 		}
 
@@ -34,9 +53,19 @@ namespace MidiBard
 		{
 			DisposeDevice();
 			if (device is null) return;
-			CurrentInputDevice = device;
-			CurrentInputDevice.EventReceived += InputDevice_EventReceived;
-			CurrentInputDevice.StartEventsListening();
+
+			try
+			{
+				CurrentInputDevice = device;
+				CurrentInputDevice.EventReceived += InputDevice_EventReceived;
+				CurrentInputDevice.StartEventsListening();
+			}
+			catch (Exception e)
+			{
+				PluginLog.Error(e, "midi device possibly being occupied.");
+				DisposeDevice();
+			}
+
 		}
 
 		internal static void DisposeDevice()
@@ -59,6 +88,7 @@ namespace MidiBard
 
 		private static void InputDevice_EventReceived(object sender, MidiEventReceivedEventArgs e)
 		{
+			//PluginLog.Verbose(e.Event.ToString());
 			Plugin.CurrentOutputDevice.SendEvent(e.Event);
 		}
 	}
