@@ -9,7 +9,7 @@ using static MidiBard.Plugin;
 
 namespace MidiBard
 {
-	internal static class PlaybackManager
+	internal static class PlayerControl
 	{
 		internal static void Play()
 		{

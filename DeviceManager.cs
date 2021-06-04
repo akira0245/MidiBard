@@ -43,7 +43,7 @@ namespace MidiBard
 		{
 			get
 			{
-				return InputDevice.GetAll().ToArray();
+				return InputDevice.GetAll().OrderBy(i => i.Id).ToArray();
 				//var alldevice = InputDevice.GetAll();
 				//return alldevice.Prepend(null);
 			}

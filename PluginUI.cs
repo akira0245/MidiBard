@@ -121,7 +121,7 @@ namespace MidiBard
 				//	ensembleModeRunning ? " - Ensemble Running" : string.Empty,
 				//	isListeningForEvents ? " - Listening Events" : string.Empty);
 				var flag = config.miniPlayer ? ImGuiWindowFlags.NoDecoration : ImGuiWindowFlags.None;
-				ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(5,5));
+				ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(5, 5));
 
 				if (ImGui.Begin("MidiBard", ref IsVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | flag))
 				{
@@ -227,7 +227,7 @@ namespace MidiBard
 											"\n　将其重命名为“#长笛-24#demo.mid”可在演奏到该乐曲时切换到长笛并降调2个八度演奏。" +
 											"\n　※可以只添加#+12#或#竖琴#或#harp#，也会有对应的升降调或切换乐器效果。");
 										ImGui.BulletText(
-											"如何为MIDIBARD配置外部Midi输入（如loopMidi或Midi键盘）？" +
+											"如何为MIDIBARD配置外部Midi输入（如虚拟Midi接口或Midi键盘）？" +
 											"\n　在“输入设备”下拉菜单中选择你的Midi设备，窗口顶端出现“正在监听Midi输入”信息后即可使用外部输入。\n");
 										ImGui.BulletText(
 											"后台演奏时有轻微卡顿不流畅怎么办？" +
@@ -517,7 +517,7 @@ namespace MidiBard
 					currentInstrumentText = InstrumentSheet.GetRow(currentInstrument).Instrument;
 					if (PlayingGuitar && config.OverrideGuitarTones)
 					{
-						currentInstrumentText = currentInstrumentText.Split(':', '：').First();
+						currentInstrumentText = currentInstrumentText.Split(':', '：').First()+": Auto";
 					}
 				}
 				else
@@ -588,11 +588,11 @@ namespace MidiBard
 				PluginLog.Debug($"PlayPause pressed. wasplaying: {IsPlaying}");
 				if (IsPlaying)
 				{
-					PlaybackManager.Pause();
+					PlayerControl.Pause();
 				}
 				else
 				{
-					PlaybackManager.Play();
+					PlayerControl.Play();
 				}
 			}
 		}
@@ -602,7 +602,7 @@ namespace MidiBard
 			ImGui.SameLine();
 			if (ImGui.Button(FontAwesomeIcon.Stop.ToIconString()))
 			{
-				PlaybackManager.Stop();
+				PlayerControl.Stop();
 			}
 		}
 
@@ -611,12 +611,12 @@ namespace MidiBard
 			ImGui.SameLine();
 			if (ImGui.Button(FontAwesomeIcon.FastForward.ToIconString()))
 			{
-				PlaybackManager.Next();
+				PlayerControl.Next();
 			}
 
 			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
 			{
-				PlaybackManager.Last();
+				PlayerControl.Last();
 			}
 		}
 
@@ -697,25 +697,25 @@ namespace MidiBard
 
 						if (ImGui.Checkbox($"[{i + 1:00}] {CurrentTracks[i].Item2}", ref config.EnabledTracks[i]))
 						{
-							try
-							{
-								//var progress = currentPlayback.GetCurrentTime<MidiTimeSpan>();
-								//var wasplaying = IsPlaying;
+							//try
+							//{
+							//	//var progress = currentPlayback.GetCurrentTime<MidiTimeSpan>();
+							//	//var wasplaying = IsPlaying;
 
-								currentPlayback?.Dispose();
-								//if (wasplaying)
-								//{
+							//	currentPlayback?.Dispose();
+							//	//if (wasplaying)
+							//	//{
 
-								//}
-							}
-							catch (Exception e)
-							{
-								PluginLog.Error(e, "error when disposing current playback while changing track selection");
-							}
-							finally
-							{
-								currentPlayback = null;
-							}
+							//	//}
+							//}
+							//catch (Exception e)
+							//{
+							//	PluginLog.Error(e, "error when disposing current playback while changing track selection");
+							//}
+							//finally
+							//{
+							//	currentPlayback = null;
+							//}
 						}
 
 						if (configEnabledTrack)
@@ -797,6 +797,35 @@ namespace MidiBard
 
 		private static void DrawPanelMusicControl()
 		{
+
+
+			var inputDevices = DeviceManager.Devices;
+
+			if (ImGui.BeginCombo("Input Device".Localize(), DeviceManager.CurrentInputDevice.ToDeviceString()))
+			{
+				if (ImGui.Selectable("None##device", DeviceManager.CurrentInputDevice is null))
+				{
+					DeviceManager.DisposeDevice();
+				}
+				for (int i = 0; i < inputDevices.Length; i++)
+				{
+					var device = inputDevices[i];
+					if (ImGui.Selectable($"{device.Name}##{i}", device.Id == DeviceManager.CurrentInputDevice?.Id))
+					{
+						DeviceManager.SetDevice(device);
+					}
+				}
+				ImGui.EndCombo();
+			}
+			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+			{
+				DeviceManager.DisposeDevice();
+			}
+			ToolTip("Choose external midi input device. right click to reset.".Localize());
+
+
+
+
 			UIcurrentInstrument = Plugin.CurrentInstrument;
 			if (ImGui.Combo("Instrument".Localize(), ref UIcurrentInstrument, InstrumentStrings, InstrumentStrings.Length, 20))
 			{
@@ -807,8 +836,10 @@ namespace MidiBard
 			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
 			{
 				Task.Run(() => SwitchInstrument.SwitchTo(0));
-				PlaybackManager.Pause();
+				PlayerControl.Pause();
 			}
+
+
 
 			if (currentPlayback != null)
 			{
@@ -889,10 +920,9 @@ namespace MidiBard
 				}
 			}
 
-
 			ImGui.InputInt("Transpose".Localize(), ref config.NoteNumberOffset, 12);
 			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right)) config.NoteNumberOffset = 0;
-			ToolTip("Pitch shift, Measured by semitone. \nRight click to reset.".Localize());
+			ToolTip("Transpose, measured by semitone. \nRight click to reset.".Localize());
 
 
 			if (ImGui.Button("Octave+".Localize())) config.NoteNumberOffset += 12;
@@ -908,6 +938,8 @@ namespace MidiBard
 			ImGui.SameLine();
 			ImGui.Checkbox("Auto Adapt".Localize(), ref config.AdaptNotesOOR);
 			HelpMarker("Adapt high/low pitch notes which are out of range\r\ninto 3 octaves we can play".Localize());
+
+
 
 			//ImGui.SliderFloat("secbetweensongs", ref config.timeBetweenSongs, 0, 10,
 			//	$"{config.timeBetweenSongs:F2} [{500000 * config.timeBetweenSongs:F0}]", ImGuiSliderFlags.AlwaysClamp);
@@ -930,24 +962,7 @@ namespace MidiBard
 			//	//CurrentInputDevice.Connect(CurrentOutputDevice);
 			//}
 
-			var inputDevices = DeviceManager.Devices;
-			//ImGui.BeginListBox("##auofhiao", new Vector2(-1, ImGui.GetTextLineHeightWithSpacing()* (inputDevices.Length + 1)));
-			if (ImGui.BeginCombo("Input Device".Localize(), DeviceManager.CurrentInputDevice.ToDeviceString()))
-			{
-				if (ImGui.Selectable("None##device", DeviceManager.CurrentInputDevice is null))
-				{
-					DeviceManager.DisposeDevice();
-				}
-				for (int i = 0; i < inputDevices.Length; i++)
-				{
-					var device = inputDevices[i];
-					if (ImGui.Selectable($"{device.Name}##{i}", device.Id == DeviceManager.CurrentInputDevice?.Id))
-					{
-						DeviceManager.SetDevice(device);
-					}
-				}
-				ImGui.EndCombo();
-			}
+
 
 			if (ImGui.Combo("UI Language".Localize(), ref config.uiLang, uilangStrings, 2))
 			{
@@ -965,8 +980,8 @@ namespace MidiBard
 			HelpMarker("Auto start ensemble when entering in-game party ensemble mode.".Localize());
 
 
-			ImGui.Checkbox("Auto pitch shift".Localize(), ref config.autoPitchShift);
-			HelpMarker("Auto pitch shift notes on demand. If you need this, \nplease add #pitch shift number# before file name.\nE.g. #-12#demo.mid".Localize());
+			ImGui.Checkbox("Auto transpose".Localize(), ref config.autoPitchShift);
+			HelpMarker("Auto transpose notes on demand. If you need this, \nplease add #transpose number# before file name.\nE.g. #-12#demo.mid".Localize());
 			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
 
 			ImGui.Checkbox("Auto switch instrument".Localize(), ref config.autoSwitchInstrument);

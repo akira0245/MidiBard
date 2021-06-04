@@ -32,21 +32,19 @@ namespace MidiBard
 		public List<string> Playlist = new List<string>();
 
 		public float playSpeed = 1f;
-
-		public int PlayMode = 2;
-
+		public int PlayMode = 0;
 		public int NoteNumberOffset = 0;
 		public bool AdaptNotesOOR = true;
+
 		public bool MonitorOnEnsemble = true;
-		//public bool AutoConfirmEnsembleReadyCheck = true;
 		public bool AutoOpenPlayerWhenPerforming = true;
 		//public bool TrimStart;
 		//public bool TrimEnd;
 		public bool[] EnabledTracks = Enumerable.Repeat(true, 100).ToArray();
 		public int[] TracksTone = new int[100];
 		public int uiLang = Plugin.pluginInterface.UiLanguage == "zh" ? 1 : 0;
-		public bool showMusicControlPanel;
-		public bool showSettingsPanel;
+		public bool showMusicControlPanel = true;
+		public bool showSettingsPanel = true;
 		public int playlistSizeY = 10;
 		public bool miniPlayer;
 
@@ -54,9 +52,10 @@ namespace MidiBard
 		public bool autoPitchShift = true;
 		public bool OverrideGuitarTones = true;
 
-		public int testLength = 40;
-		public int testInterval;
-		public int testRepeat;
+		//public int testLength = 40;
+		//public int testInterval;
+		//public int testRepeat;
+
 		//public float timeBetweenSongs = 0;
 
 		// Add any other properties or methods here.

@@ -8,7 +8,7 @@ namespace MidiBard
 {
 	static class EnumerableExtensions
 	{
-		public static T MaxElement<T, R>(this IEnumerable<T> container, Func<T, R> valuingFoo) where R : IComparable
+		public static TSource MaxElement<TSource, R>(this IEnumerable<TSource> container, Func<TSource, R> valuingFoo) where R : IComparable
 		{
 			var enumerator = container.GetEnumerator();
 			if (!enumerator.MoveNext())

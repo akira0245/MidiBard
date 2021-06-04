@@ -117,7 +117,7 @@ namespace MidiBard
 
 			InstrumentSheet = pi.Data.Excel.GetSheet<Perform>();
 			InstrumentStrings = InstrumentSheet.Where(i => !string.IsNullOrWhiteSpace(i.Instrument) || i.RowId == 0)
-				.Select(i => $"{i.RowId:00} {(i.RowId == 0 ? "None" : $"{i.Instrument.RawString} ({i.Name})")}").ToArray();
+				.Select(i => $"{(i.RowId == 0 ? "None" : $"{i.RowId:00} {i.Instrument.RawString} ({i.Name})")}").ToArray();
 
 
 			Task.Run(() =>
@@ -130,11 +130,6 @@ namespace MidiBard
 			pluginInterface.UiBuilder.OnBuildUi += ui.Draw;
 			pluginInterface.Framework.OnUpdateEvent += Tick;
 			pluginInterface.UiBuilder.OnOpenConfigUi += (sender, args) => ui.IsVisible ^= true;
-		}
-
-		private void CurrentInputDeviceOnEventReceived(object sender, MidiEventReceivedEventArgs e)
-		{
-			CurrentOutputDevice.SendEvent(e.Event);
 		}
 
 		private void Tick(Dalamud.Game.Internal.Framework framework)
@@ -298,27 +293,27 @@ namespace MidiBard
 
 				else if (argStrings[0] == "play")
 				{
-					PlaybackManager.Play();
+					PlayerControl.Play();
 				}
 
 				else if (argStrings[0] == "pause")
 				{
-					PlaybackManager.Pause();
+					PlayerControl.Pause();
 				}
 
 				else if (argStrings[0] == "stop")
 				{
-					PlaybackManager.Stop();
+					PlayerControl.Stop();
 				}
 
 				else if (argStrings[0] == "next")
 				{
-					PlaybackManager.Next();
+					PlayerControl.Next();
 				}
 
 				else if (argStrings[0] == "last")
 				{
-					PlaybackManager.Last();
+					PlayerControl.Last();
 				}
 
 

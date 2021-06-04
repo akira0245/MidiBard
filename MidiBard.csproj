@@ -32,7 +32,7 @@
       <HintPath>..\..\..\Downloads\Compressed\Dalamud_v5.2.3.3_beta1\dalamudnew\Lumina.Excel.dll</HintPath>
     </Reference>
     <Reference Include="Melanchall.DryWetMidi">
-      <HintPath>..\..\..\Downloads\CHINESESERVER\Melanchall.DryWetMidi.dll</HintPath>
+      <HintPath>lib\Melanchall.DryWetMidi.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\..\..\Downloads\Compressed\Dalamud_v5.2.3.3_beta1\dalamudnew\Newtonsoft.Json.dll</HintPath>
@@ -46,6 +46,10 @@
       <HintPath>..\..\..\Downloads\Compressed\Dalamud_v5.2.3.3_beta1\Dalamud_v5.2.3.3\SDL2-CS.dll</HintPath>
     </Reference>
     <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="lib\" />
   </ItemGroup>
 
 </Project>

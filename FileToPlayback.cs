@@ -20,15 +20,12 @@ namespace MidiBard
 {
 	public static class PlaybackExtension
 	{
-		static Regex regex = new Regex(@"^#.*?([-|+][0-9]+).*?#", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		static readonly Regex regex = new Regex(@"^#.*?([-|+][0-9]+).*?#", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		static readonly MidiClockSettings clock = new MidiClockSettings { CreateTickGeneratorCallback = () => new HighPrecisionTickGenerator() };
 
-		public static Playback GetFilePlayback(this (MidiFile, string) fileTuple)
+		public static BardPlayback GetFilePlayback(this (MidiFile, string) fileTuple)
 		{
 			var file = fileTuple.Item1;
-
-			MidiClockSettings clock = new MidiClockSettings { CreateTickGeneratorCallback = () => new HighPrecisionTickGenerator() };
-
-
 
 			try
 			{
@@ -36,11 +33,10 @@ namespace MidiBard
 			}
 			catch (Exception e)
 			{
-				PluginLog.Debug("error when getting tmap, using default tmap instead.");
+				PluginLog.Error("error when getting file TempoMap, using default TempoMap instead.");
 				CurrentTMap = TempoMap.Default;
 			}
 
-			Playback playback;
 			try
 			{
 				CurrentTracks = file.GetTrackChunks()
@@ -54,67 +50,27 @@ namespace MidiBard
 
 						return (i, new TrackInfo
 						{
-							TrackNameEventsText = i.Events.OfType<SequenceTrackNameEvent>().Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct(), 
+							TrackNameEventsText = i.Events.OfType<SequenceTrackNameEvent>().Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct(),
 							TextEventsText = i.Events.OfType<TextEvent>().Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct(),
 							ProgramChangeEvent = i.Events.OfType<ProgramChangeEvent>().Select(j => $"channel {j.Channel}, {(GeneralMidiProgram)(byte)j.ProgramNumber}").Distinct(),
 							HighestNote = notesHighest,
 							LowestNote = notesLowest,
 							NoteCount = notesCount,
-							Duration = i.GetPlayback(CurrentTMap).GetDuration(TimeSpanType.Metric)
+							Duration = i.GetTimedEvents().LastOrDefault(e => e.Event is NoteOffEvent)?.TimeAs<MetricTimeSpan>(CurrentTMap) ?? new MetricTimeSpan()
 						});
-						//var ProgramChangeEvent = string.Join(", ", i.Events.OfType<ProgramChangeEvent>().Select(j => (GeneralMidiProgram)(byte)j.ProgramNumber).Distinct());
-						//if (string.IsNullOrWhiteSpace(TrackName)) TrackName = "Untitled";
-						//if (TrackName.Length > 25)
-						//{
-						//	TrackName = TrackName.Substring(0, 25) + "...";
-						//}
-						//var EventTypes = string.Join(", ", i.Events.GroupBy(j => j.EventType).Select(j => j.Key));
-						//var instrumentsName = string.Join(", ", i.Events.OfType<InstrumentNameEvent>().Select(j => j));
-
-						//try
-						//{
-						//TrackName = "Note Track " + TrackName;
-						//return (i, $"{TrackName} / {notesCount} notes / {notesLowest}-{notesHighest} / {(int)duration.TotalMinutes:00}:{duration.Seconds:00}.{duration.Milliseconds:000}");
-						//return (i, $"{TrackName} / {notesCount} notes / {notesLowest}-{notesHighest}");
-						//}
-						//catch (Exception e)
-						//{
-						//	var eventsCount = i.Events.Count;
-						//	var events = string.Join("\n", i.Events.Select(j => j.ToString().Replace("\0", string.Empty).Trim()));
-						//	var eventTypes = string.Join("", i.Events.GroupBy(j => j.EventType).Select(j => $"\n[{j.Key} {j.Count()}]"));
-						//	TrackName = "Control Track " + TrackName;
-						//	return (i, $"{TrackName} / {eventsCount} events{eventTypes}\n{file.GetDuration<MetricTimeSpan>()} / {i.GetPlayback(CurrentTMap).GetDuration<MetricTimeSpan>()}");
-						//}
 					}).ToList();
-
-				List<TrackChunk> SelectedTracks = new List<TrackChunk>();
-				if (CurrentTracks.Count > 1)
-				{
-					for (int i = 0; i < CurrentTracks.Count; i++)
-					{
-						if (config.EnabledTracks[i])
-						{
-							SelectedTracks.Add(CurrentTracks[i].Item1);
-						}
-					}
-				}
-				else
-				{
-					SelectedTracks = CurrentTracks.Select(i => i.Item1).ToList();
-				}
-
-				playback = SelectedTracks.GetPlayback(CurrentTMap, Plugin.CurrentOutputDevice, clock);
 			}
-			catch (Exception e)
+			catch (Exception exception1)
 			{
-				PluginLog.Debug("error when parsing tracks, falling back to generated MidiEvent playback.");
+				PluginLog.Error($"error when parsing tracks, falling back to generated MidiEvent playback. \n{exception1}");
+
 				try
 				{
 					PluginLog.Debug($"file.Chunks.Count {file.Chunks.Count}");
 					var trackChunks = file.GetTrackChunks().ToList();
-					PluginLog.Debug($"file.GetTrackChunks.Count {trackChunks.Count()}");
+					PluginLog.Debug($"file.GetTrackChunks.Count {trackChunks.Count}");
 					PluginLog.Debug($"file.GetTrackChunks.First {trackChunks.First()}");
-					PluginLog.Debug($"file.GetTrackChunks.Events.Count {trackChunks.First().Events.Count()}");
+					PluginLog.Debug($"file.GetTrackChunks.Events.Count {trackChunks.First().Events.Count}");
 					PluginLog.Debug($"file.GetTrackChunks.Events.OfType<NoteEvent>.Count {trackChunks.First().Events.OfType<NoteEvent>().Count()}");
 
 					CurrentTracks = trackChunks.Select(i =>
@@ -136,24 +92,41 @@ namespace MidiBard
 							NoteCount = notesCount
 						});
 					}).ToList();
-					List<TrackChunk> SelectedTracks = new List<TrackChunk>();
-					for (int i = 0; i < CurrentTracks.Count; i++)
-					{
-						if (config.EnabledTracks[i])
-						{
-							SelectedTracks.Add(CurrentTracks[i].Item1);
-						}
-					}
-					playback = SelectedTracks.GetPlayback(CurrentTMap, Plugin.CurrentOutputDevice, clock);
 				}
-				catch (Exception exception)
+				catch (Exception exception2)
 				{
-					PluginLog.Error(e, "still errors? check your file");
+					PluginLog.Error(exception2, "still errors? check your file");
 					throw;
 				}
 			}
-			playback.InterruptNotesOnStop = true;
-			playback.Speed = config.playSpeed;
+
+			//List<TrackChunk> SelectedTracks = new List<TrackChunk>();
+			//if (CurrentTracks.Count > 1)
+			//{
+			//	for (int i = 0; i < CurrentTracks.Count; i++)
+			//	{
+			//		if (config.EnabledTracks[i])
+			//		{
+			//			SelectedTracks.Add(CurrentTracks[i].Item1);
+			//		}
+			//	}
+			//}
+			//else
+			//{
+			//	SelectedTracks = CurrentTracks.Select(i => i.Item1).ToList();
+			//}
+
+			var timedEvents = CurrentTracks.Select(i => i.Item1)
+				.SelectMany((chunk, index) => chunk.GetTimedEvents().Select(e => new TimedEventWithTrackChunkIndex(e.Event, e.Time, index)))
+				.OrderBy(e => e.Time);
+
+
+			var playback = new BardPlayback(timedEvents, CurrentTMap, clock)
+			{
+				InterruptNotesOnStop = true,
+				Speed = config.playSpeed
+			};
+
 
 			if (config.autoPitchShift)
 			{

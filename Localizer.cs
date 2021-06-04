@@ -60,7 +60,7 @@ namespace MidiBard
                 "音轨选择。\r\nMIDIBARD只会播放被选中的音轨，在合奏中有用。\r\n请注意：在演奏中切换音轨将会打断当前演奏。");
             zh.Add("Track", "音轨");
             zh.Add($"notes)", "音符)");
-            zh.Add("Pitch shift", "移调");
+            zh.Add("Transpose", "移调");
             zh.Add("Octave+", "升高八度");
             zh.Add("Octave-", "降低八度");
             zh.Add("Add 1 octave(+12 semitones) to all notes.", "对将要演奏的所有音符升高八度（加12半音）");
@@ -85,13 +85,13 @@ namespace MidiBard
             zh.Add("Select a mid file", "选择MID文件");
             zh.Add("Instrument", "乐器选择");
             zh.Add("Auto switch instrument", "自动切换乐器");
-            zh.Add("Auto pitch shift", "自动移调");
+            zh.Add("Auto transpose", "自动移调");
             zh.Add("Auto switch instrument on demand. If you need this, \nplease add #instrument name# before file name.\nE.g. #harp#demo.mid", 
 	            "根据要求自动切换乐器。如果需要自动切换乐器，请在文件开头添加 #乐器名#。\n例如：#鲁特琴#demo.mid");
-            zh.Add("Auto pitch shift notes on demand. If you need this, \nplease add #pitch shift number# before file name.\nE.g. #-12#demo.mid",
+            zh.Add("Auto transpose notes on demand. If you need this, \nplease add #transpose number# before file name.\nE.g. #-12#demo.mid",
 	            "根据要求自动移调。如果需要自动移调，请在文件开头添加 #要移调的半音数量#。\n例如：#-12#demo.mid");
 
-            zh.Add("Pitch shift, Measured by semitone. \nRight click to reset.", "移调，以半音数计算。\n右键点击来将它重置回0。");
+            zh.Add("Transpose, measured by semitone. \nRight click to reset.", "移调，以半音数计算。\n右键点击来将它重置回0。");
             zh.Add("Set the speed of events playing. 1 means normal speed.\nFor example, to play events twice slower this property should be set to 0.5.\nRight Click to reset back to 1.",
 	            "设置Midi事件的播放速度倍数。\n例如将其设为0.5会使播放速度减半。\n右键点击来将它重置回1。");
             zh.Add("Set the playing progress. \nRight click to restart current playback.", "乐曲播放进度，右键点击回到乐曲开头。");
@@ -99,6 +99,8 @@ namespace MidiBard
             zh.Add("Override Guitar Tones", "自动电吉他音色");
             zh.Add("Listening input device: ", "正在监听MIDI输入：");
             zh.Add("Input Device", "输入设备");
+            zh.Add("Choose external midi input device. right click to reset.", "选择当前的外部midi输入设备，例如虚拟midi接口或midi键盘。\n右键点击来停止使用外部输入。");
+
 
         }
     }

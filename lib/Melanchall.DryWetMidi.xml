@@ -461,14 +461,24 @@
         </member>
         <member name="T:Melanchall.DryWetMidi.Common.FourBitNumber">
             <summary>
-            Type that is used to represent a four-bit number (0-15).
+            Type that is used to represent a four-bit number (0-15; or in binary format 0000-1111).
             </summary>
             <remarks>
-            Four-bit numbers widely used by MIDI protocol as parameters of MIDI events.
-            So instead of manipulating built-in C# numeric types (like byte or int) and checking for
-            out-of-range errors all validation of numbers in the [0; 15] range happens on data type
-            level via casting C# integer values to the <see cref="T:Melanchall.DryWetMidi.Common.FourBitNumber"/>.
+            Four-bit numbers widely used by MIDI protocol as parameters of MIDI events
+            (channel number, for example). Instead of manipulating built-in .NET numeric types
+            (like <c>byte</c> or <c>int</c>) and checking for out-of-range errors all validation of numbers
+            in the [0; 15] range happens on data type level via casting .NET integer values to
+            the <see cref="T:Melanchall.DryWetMidi.Common.FourBitNumber"/> (see <see cref="M:Melanchall.DryWetMidi.Common.FourBitNumber.op_Explicit(System.Byte)~Melanchall.DryWetMidi.Common.FourBitNumber"/>).
             </remarks>
+            <example>
+            <para>
+            For example, to set a note's channel:
+            </para>
+            <code language="csharp">
+            var noteOnEvent = new NoteOnEvent();
+            noteOnEvent.Channel = (FourBitNumber)10;
+            </code>
+            </example>
         </member>
         <member name="F:Melanchall.DryWetMidi.Common.FourBitNumber.MinValue">
             <summary>
@@ -521,12 +531,15 @@
             Converts the value of a <see cref="T:Melanchall.DryWetMidi.Common.FourBitNumber"/> to a <see cref="T:System.Byte"/>.
             </summary>
             <param name="number"><see cref="T:Melanchall.DryWetMidi.Common.FourBitNumber"/> object to convert to a byte value.</param>
+            <returns><paramref name="number"/> represented as <see cref="T:System.Byte"/>.</returns>
         </member>
         <member name="M:Melanchall.DryWetMidi.Common.FourBitNumber.op_Explicit(System.Byte)~Melanchall.DryWetMidi.Common.FourBitNumber">
             <summary>
             Converts the value of a <see cref="T:System.Byte"/> to a <see cref="T:Melanchall.DryWetMidi.Common.FourBitNumber"/>.
             </summary>
             <param name="number">Byte value to convert to a <see cref="T:Melanchall.DryWetMidi.Common.FourBitNumber"/> object.</param>
+            <returns><paramref name="number"/> represented as <see cref="T:Melanchall.DryWetMidi.Common.FourBitNumber"/>.</returns>
+            <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="number"/> is out of [0; 15] range.</exception>
         </member>
         <member name="M:Melanchall.DryWetMidi.Common.FourBitNumber.CompareTo(Melanchall.DryWetMidi.Common.FourBitNumber)">
             <summary>
@@ -731,14 +744,36 @@
         </member>
         <member name="T:Melanchall.DryWetMidi.Common.SevenBitNumber">
             <summary>
-            Type that is used to represent a seven-bit number (0-127).
+            Type that is used to represent a seven-bit number (0-127; or in binary format 0000000-1111111).
             </summary>
             <remarks>
-            Seven-bit numbers widely used by MIDI protocol as parameters of MIDI events.
-            So instead of manipulating built-in C# numeric types (like byte or int) and checking for
-            out-of-range errors all validation of numbers in the [0; 127] range happens on data type
-            level via casting C# integer values to the <see cref="T:Melanchall.DryWetMidi.Common.SevenBitNumber"/>.
+            <para>
+            Seven-bit numbers widely used by MIDI protocol as parameters of MIDI events (note number or
+            velocity). Instead of manipulating built-in .NET numeric types (like <c>byte</c> or <c>int</c>)
+            and checking for out-of-range errors all validation of numbers in the [0; 127] range happens
+            on data type level via casting .NET integer values to the <see cref="T:Melanchall.DryWetMidi.Common.SevenBitNumber"/>
+            (see <see cref="M:Melanchall.DryWetMidi.Common.SevenBitNumber.op_Explicit(System.Byte)~Melanchall.DryWetMidi.Common.SevenBitNumber"/>).
+            </para>
             </remarks>
+            <example>
+            <para>
+            For example, to set a note's number:
+            </para>
+            <code language="csharp">
+            var noteOnEvent = new NoteOnEvent();
+            noteOnEvent.NoteNumber = (SevenBitNumber)100;
+            </code>
+            <para>
+            or velocity:
+            </para>
+            <code>
+            var noteOffEvent = new NoteOffEvent(SevenBitNumber.MinValue, (SevenBitNumber)70);
+            </code>
+            <para>
+            where <c>SevenBitNumber.MinValue</c> passed to the <c>noteNumber</c> parameter and
+            <c>(SevenBitNumber)70</c> passed to the <c>velocity</c> one.
+            </para>
+            </example>
         </member>
         <member name="F:Melanchall.DryWetMidi.Common.SevenBitNumber.MinValue">
             <summary>
@@ -791,12 +826,15 @@
             Converts the value of a <see cref="T:Melanchall.DryWetMidi.Common.SevenBitNumber"/> to a <see cref="T:System.Byte"/>.
             </summary>
             <param name="number"><see cref="T:Melanchall.DryWetMidi.Common.SevenBitNumber"/> object to convert to a byte value.</param>
+            <returns><paramref name="number"/> represented as <see cref="T:System.Byte"/>.</returns>
         </member>
         <member name="M:Melanchall.DryWetMidi.Common.SevenBitNumber.op_Explicit(System.Byte)~Melanchall.DryWetMidi.Common.SevenBitNumber">
             <summary>
             Converts the value of a <see cref="T:System.Byte"/> to a <see cref="T:Melanchall.DryWetMidi.Common.SevenBitNumber"/>.
             </summary>
             <param name="number">Byte value to convert to a <see cref="T:Melanchall.DryWetMidi.Common.SevenBitNumber"/> object.</param>
+            <returns><paramref name="number"/> represented as <see cref="T:Melanchall.DryWetMidi.Common.SevenBitNumber"/>.</returns>
+            <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="number"/> is out of [0; 127] range.</exception>
         </member>
         <member name="M:Melanchall.DryWetMidi.Common.SevenBitNumber.CompareTo(Melanchall.DryWetMidi.Common.SevenBitNumber)">
             <summary>
@@ -1267,7 +1305,7 @@
             </summary>
             <example>
             <para>Following example shows how to create first four bars of Beethoven's 'Moonlight Sonata':</para>
-            <code>
+            <code language="csharp">
             // Define a chord for bass part which is just an octave
             var bassChord = new[] { Interval.Twelve };
             
@@ -8644,6 +8682,11 @@
             Tick generator which provides ticking with the specified interval.
             </summary>
         </member>
+        <member name="E:Melanchall.DryWetMidi.Devices.TickGenerator.TickGenerated">
+            <summary>
+            Occurs on tick generator's tick.
+            </summary>
+        </member>
         <member name="P:Melanchall.DryWetMidi.Devices.TickGenerator.IsRunning">
             <summary>
             Gets a value indicating whether the current tick generator is currently running or not.
@@ -8677,8 +8720,32 @@
         </member>
         <member name="T:Melanchall.DryWetMidi.Devices.DevicesConnector">
             <summary>
-            Provides a way to connect an input MIDI device to an output MIDI device.
+            Provides a way to connect an input MIDI device to an output MIDI devices to redirect all
+            incoming events from the input device to the output ones.
             </summary>
+            <example>
+            <para>
+            Following image illustrates what the connection means:
+            </para>
+            <code language="image">
+                                ╔══════╗
+                         ┌─→─E→─║ OUT1 ║
+                         │      ╚══════╝
+                         │
+            ╔══════╗     │      ╔══════╗
+            ║  IN  ║→─E→─┼─→─E→─║ OUT2 ║
+            ╚══════╝     │      ╚══════╝
+                         │
+                         │      ╔══════╗
+                         └─→─E→─║ OUT3 ║
+                                ╚══════╝
+            </code>
+            <para>
+            where <c>IN</c> is an input device (see <see cref="T:Melanchall.DryWetMidi.Devices.InputDevice"/>); <c>OUT1</c>, <c>OUT2</c>,
+            <c>OUT3</c> are output devices (see <see cref="T:Melanchall.DryWetMidi.Devices.OutputDevice"/>); <c>E</c> is a MIDI event
+            which coming from <c>IN</c> and redirected to all connected output devices.
+            </para>
+            </example>
         </member>
         <member name="M:Melanchall.DryWetMidi.Devices.DevicesConnector.#ctor(Melanchall.DryWetMidi.Devices.IInputDevice,Melanchall.DryWetMidi.Devices.IOutputDevice[])">
             <summary>
@@ -8718,17 +8785,19 @@
         <member name="P:Melanchall.DryWetMidi.Devices.DevicesConnector.AreDevicesConnected">
             <summary>
             Gets or sets a value indicating whether <see cref="P:Melanchall.DryWetMidi.Devices.DevicesConnector.InputDevice"/> currently connected
-            to <see cref="P:Melanchall.DryWetMidi.Devices.DevicesConnector.OutputDevices"/> or note (i.e. <see cref="M:Melanchall.DryWetMidi.Devices.DevicesConnector.Connect"/> method has been called).
+            to <see cref="P:Melanchall.DryWetMidi.Devices.DevicesConnector.OutputDevices"/> or not (i.e. <see cref="M:Melanchall.DryWetMidi.Devices.DevicesConnector.Connect"/> method has been called).
             </summary>
         </member>
         <member name="M:Melanchall.DryWetMidi.Devices.DevicesConnector.Connect">
             <summary>
-            Connects <see cref="P:Melanchall.DryWetMidi.Devices.DevicesConnector.InputDevice"/> to <see cref="P:Melanchall.DryWetMidi.Devices.DevicesConnector.OutputDevices"/>.
+            Connects <see cref="P:Melanchall.DryWetMidi.Devices.DevicesConnector.InputDevice"/> to <see cref="P:Melanchall.DryWetMidi.Devices.DevicesConnector.OutputDevices"/> so all events coming from
+            the input device will be redirected to the output ones.
             </summary>
         </member>
         <member name="M:Melanchall.DryWetMidi.Devices.DevicesConnector.Disconnect">
             <summary>
-            Disconnects <see cref="P:Melanchall.DryWetMidi.Devices.DevicesConnector.InputDevice"/> from <see cref="P:Melanchall.DryWetMidi.Devices.DevicesConnector.OutputDevices"/>.
+            Disconnects <see cref="P:Melanchall.DryWetMidi.Devices.DevicesConnector.InputDevice"/> from <see cref="P:Melanchall.DryWetMidi.Devices.DevicesConnector.OutputDevices"/> so events coming from
+            the input device will not be redirected to the output ones.
             </summary>
         </member>
         <member name="T:Melanchall.DryWetMidi.Devices.DevicesConnectorUtilities">
@@ -8738,7 +8807,7 @@
         </member>
         <member name="M:Melanchall.DryWetMidi.Devices.DevicesConnectorUtilities.Connect(Melanchall.DryWetMidi.Devices.IInputDevice,Melanchall.DryWetMidi.Devices.IOutputDevice[])">
             <summary>
-            Connects an input device to the specified output device.
+            Connects an input device to the specified output devices.
             </summary>
             <param name="inputDevice">Input MIDI device to connect to <paramref name="outputDevices"/>.</param>
             <param name="outputDevices">Output MIDI devices to connect <paramref name="inputDevice"/> to.</param>
@@ -10052,94 +10121,6 @@
             Occurs when MIDI event played.
             </summary>
         </member>
-        <member name="M:Melanchall.DryWetMidi.Devices.Playback.#ctor(System.Collections.Generic.IEnumerable{Melanchall.DryWetMidi.Core.MidiEvent},Melanchall.DryWetMidi.Interaction.TempoMap,Melanchall.DryWetMidi.Devices.MidiClockSettings)">
-            <summary>
-            Initializes a new instance of the <see cref="T:Melanchall.DryWetMidi.Devices.Playback"/> with the specified
-            collection of MIDI events and tempo map.
-            </summary>
-            <param name="events">Collection of MIDI events to play.</param>
-            <param name="tempoMap">Tempo map used to calculate events times.</param>
-            <param name="clockSettings">Settings of the internal playback's clock.</param>
-            <exception cref="T:System.ArgumentNullException">
-            <para>One of the following errors occured:</para>
-            <list type="bullet">
-            <item>
-            <description><paramref name="events"/> is <c>null</c>.</description>
-            </item>
-            <item>
-            <description><paramref name="tempoMap"/> is <c>null</c>.</description>
-            </item>
-            </list>
-            </exception>
-        </member>
-        <member name="M:Melanchall.DryWetMidi.Devices.Playback.#ctor(System.Collections.Generic.IEnumerable{Melanchall.DryWetMidi.Core.MidiEvent},Melanchall.DryWetMidi.Interaction.TempoMap,Melanchall.DryWetMidi.Devices.IOutputDevice,Melanchall.DryWetMidi.Devices.MidiClockSettings)">
-            <summary>
-            Initializes a new instance of the <see cref="T:Melanchall.DryWetMidi.Devices.Playback"/> with the specified
-            collection of MIDI events, tempo map and output MIDI device to play events through.
-            </summary>
-            <param name="events">Collection of MIDI events to play.</param>
-            <param name="tempoMap">Tempo map used to calculate events times.</param>
-            <param name="outputDevice">Output MIDI device to play <paramref name="events"/> through.</param>
-            <param name="clockSettings">Settings of the internal playback's clock.</param>
-            <exception cref="T:System.ArgumentNullException">
-            <para>One of the following errors occured:</para>
-            <list type="bullet">
-            <item>
-            <description><paramref name="events"/> is <c>null</c>.</description>
-            </item>
-            <item>
-            <description><paramref name="tempoMap"/> is <c>null</c>.</description>
-            </item>
-            <item>
-            <description><paramref name="outputDevice"/> is <c>null</c>.</description>
-            </item>
-            </list>
-            </exception>
-        </member>
-        <member name="M:Melanchall.DryWetMidi.Devices.Playback.#ctor(System.Collections.Generic.IEnumerable{System.Collections.Generic.IEnumerable{Melanchall.DryWetMidi.Core.MidiEvent}},Melanchall.DryWetMidi.Interaction.TempoMap,Melanchall.DryWetMidi.Devices.MidiClockSettings)">
-            <summary>
-            Initializes a new instance of the <see cref="T:Melanchall.DryWetMidi.Devices.Playback"/> with the specified
-            collection of MIDI events collections and tempo map.
-            </summary>
-            <param name="events">Collection of MIDI events collections to play.</param>
-            <param name="tempoMap">Tempo map used to calculate events times.</param>
-            <param name="clockSettings">Settings of the internal playback's clock.</param>
-            <exception cref="T:System.ArgumentNullException">
-            <para>One of the following errors occured:</para>
-            <list type="bullet">
-            <item>
-            <description><paramref name="events"/> is <c>null</c>.</description>
-            </item>
-            <item>
-            <description><paramref name="tempoMap"/> is <c>null</c>.</description>
-            </item>
-            </list>
-            </exception>
-        </member>
-        <member name="M:Melanchall.DryWetMidi.Devices.Playback.#ctor(System.Collections.Generic.IEnumerable{System.Collections.Generic.IEnumerable{Melanchall.DryWetMidi.Core.MidiEvent}},Melanchall.DryWetMidi.Interaction.TempoMap,Melanchall.DryWetMidi.Devices.IOutputDevice,Melanchall.DryWetMidi.Devices.MidiClockSettings)">
-            <summary>
-            Initializes a new instance of the <see cref="T:Melanchall.DryWetMidi.Devices.Playback"/> with the specified
-            collection of MIDI events collections, tempo map and output MIDI device to play events through.
-            </summary>
-            <param name="events">Collection of MIDI events collections to play.</param>
-            <param name="tempoMap">Tempo map used to calculate events times.</param>
-            <param name="outputDevice">Output MIDI device to play <paramref name="events"/> through.</param>
-            <param name="clockSettings">Settings of the internal playback's clock.</param>
-            <exception cref="T:System.ArgumentNullException">
-            <para>One of the following errors occured:</para>
-            <list type="bullet">
-            <item>
-            <description><paramref name="events"/> is <c>null</c>.</description>
-            </item>
-            <item>
-            <description><paramref name="tempoMap"/> is <c>null</c>.</description>
-            </item>
-            <item>
-            <description><paramref name="outputDevice"/> is <c>null</c>.</description>
-            </item>
-            </list>
-            </exception>
-        </member>
         <member name="M:Melanchall.DryWetMidi.Devices.Playback.#ctor(System.Collections.Generic.IEnumerable{Melanchall.DryWetMidi.Interaction.ITimedObject},Melanchall.DryWetMidi.Interaction.TempoMap,Melanchall.DryWetMidi.Devices.MidiClockSettings)">
             <summary>
             Initializes a new instance of the <see cref="T:Melanchall.DryWetMidi.Devices.Playback"/> with the specified
@@ -11352,12 +11333,66 @@
             <summary>
             Settings which define how chords should be detected and built.
             </summary>
+            <seealso cref="T:Melanchall.DryWetMidi.Interaction.ChordsManagingUtilities"/>
         </member>
         <member name="P:Melanchall.DryWetMidi.Interaction.ChordDetectionSettings.NotesMinCount">
             <summary>
             Gets or sets a minimum count of notes a chord can contain. So if count of simultaneously sounding
             notes is less than this value, they won't make up a chord. The default value is <c>1</c>.
             </summary>
+            <example>
+            <para>Let's take a look at the example:</para>
+            <para>
+            <code>
+            ...###...
+            ...#####.
+            .....###.
+            </code>
+            </para>
+            <para>
+            So we have three notes (represented by <c>#</c> symbol). For simplicity we'll assume that
+            <see cref="P:Melanchall.DryWetMidi.Interaction.ChordDetectionSettings.NotesTolerance"/> is <c>0</c> (default value) and every character occupies 1 unit
+            of time. If we set notes min count to <c>1</c> (which is default value), we'll get two different
+            instances of <see cref="T:Melanchall.DryWetMidi.Interaction.Chord"/>:
+            <code>
+                 A
+                 |
+            ...[###]...
+            ...[#####].
+            .....(###).
+                   |
+                   B
+            </code>
+            <c>[...]</c> and <c>(...)</c> denote two different chords (A and B).
+            </para>
+            <para>
+            If we set notes min count to <c>2</c>, we'll get only one chord:
+            <code>
+                      A
+                      |
+                  +---+---+
+                  |       |
+            ...[###]...   |
+            ...[#####].   |
+                  |       |
+                  +-------+
+                   
+            .....###...
+            </code>
+            Last note will not be turned into a chord because count of notes for a chord will be <c>1</c>
+            which is less than the specified minimum count.
+            </para>
+            <para>
+            With minimum count of notes of <c>3</c> we'll get no chords:
+            <code>
+            ...###...
+            ...#####.
+            .....###.
+            </code>
+            First possible chord will contain two notes and second chord will contain one note. In both cases
+            count of notes is less than the specified minimum count.
+            </para>
+            </example>
             <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="value"/> is zero or negative.</exception>
         </member>
         <member name="P:Melanchall.DryWetMidi.Interaction.ChordDetectionSettings.NotesTolerance">
@@ -11365,6 +11400,66 @@
             Gets or sets maximum distance of notes from the start of the first note of a chord.
             Notes within this tolerance will be included in a chord. The default value is <c>0</c>.
             </summary>
+            <example>
+            <para>Let's take a look at the example:</para>
+            <para>
+            <code>
+            ...###...
+            ....#####
+            .....###.
+            </code>
+            </para>
+            <para>
+            So we have three notes (represented by <c>#</c> symbol). Every character occupies 1 unit of time.
+            If we set notes tolerance to <c>0</c> (which is default value), we'll get three different instances of
+            <see cref="T:Melanchall.DryWetMidi.Interaction.Chord"/>:
+            <code>
+                 A
+                 |
+            ...[###]...
+                   B
+                   |
+            ....(#####)
+            .....{###}.
+                   |
+                   C
+            </code>
+            <c>[...]</c>, <c>(...)</c> and <c>{...}</c> denote three different chords (A, B and C).
+            </para>
+            <para>
+            If we set notes tolerance to <c>1</c>, we'll get two chords:
+            <code>
+                      A
+                      |
+                  +---+---+
+                  |       |
+            ...[###]...   |
+            ....[#####]   |
+                  |       |
+                  +-------+
+                   
+            .....{###}.
+                   |
+                   B
+            </code>
+            </para>
+            <para>
+            With tolerance of <c>2</c> we'll finally get a single chord:
+            <code>
+                      A
+                      |
+                  +---+---+
+                  |       |
+            ...[###]...   |
+                  |       |
+            ....[#####]   |
+                  |       |
+            .....[###].   |
+                  |       |
+                  +-------+
+            </code>
+            </para>
+            </example>
             <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="value"/> is negative.</exception>
         </member>
         <member name="P:Melanchall.DryWetMidi.Interaction.ChordDetectionSettings.NoteDetectionSettings">
@@ -11378,6 +11473,9 @@
             Gets or sets a value defining a context to search chords within. The default value is
             <see cref="F:Melanchall.DryWetMidi.Interaction.ChordSearchContext.SingleEventsCollection"/>.
             </summary>
+            <remarks>
+            See Remarks section of the <see cref="T:Melanchall.DryWetMidi.Interaction.ChordSearchContext"/> enum.
+            </remarks>
             <exception cref="T:System.ComponentModel.InvalidEnumArgumentException"><paramref name="value"/> specified an invalid value.</exception>
         </member>
         <member name="T:Melanchall.DryWetMidi.Interaction.ChordsCollection">
@@ -11444,6 +11542,71 @@
             <summary>
             Defines a context to search chords within.
             </summary>
+            <example>
+            <para>To understand what context means let's take a look at following events sequence
+            within two track chunks:</para>
+            <para>
+            <code language="image">
+            ┌───────────────┐
+            │.A...B...X...Y.│
+            └───────────────┘
+            ┌───────────────┐
+            │.C...Z.........│
+            └───────────────┘
+            </code>
+            </para>
+            <para>
+            <para>
+            where <c>A</c>, <c>B</c> and <c>C</c> mean Note On events (see <see cref="T:Melanchall.DryWetMidi.Core.NoteOnEvent"/>), and
+            <c>X</c>, <c>Y</c> and <c>Z</c> mean Note Off ones (see <see cref="T:Melanchall.DryWetMidi.Core.NoteOffEvent"/>) with different
+            note number and channel for simplicity; <c>.</c> is any other event.
+            </para>
+            </para>
+            <para>
+            If we use <see cref="F:Melanchall.DryWetMidi.Interaction.ChordSearchContext.SingleEventsCollection"/> as the context, chords will be constructed in
+            following way:
+            </para>
+            <para>
+            <code language="image">
+            ┌ ┌───┬───┬───┐ ┐
+            │.A...B...X...Y.│
+            └───────────────┘
+            ┌───────────────┐
+            │.C...Z.........│
+            └ └───┘ ────────┘
+            </code>
+            </para>
+            <para>
+            or, if highlight all chords:
+            </para>
+            <para>
+            <code language="image">
+             [             ]
+             [     ]
+            </code>
+            </para>
+            <para>
+            So chords will be constructed only from notes within the same events collection (track chunk).
+            </para>
+            <para>
+            But if we use <see cref="F:Melanchall.DryWetMidi.Interaction.ChordSearchContext.AllEventsCollections"/> as the context, we'll get a single chord:
+            </para>
+            <para>
+            <code language="image">
+            ┌ ┌───┬───┬───┐ ┐
+            │.A...B...X...Y.│
+            └ │ ─ │ ────────┘
+            ┌ │ ─ │ ────────┐
+            │.C...Z.........│
+            └───────────────┘
+            </code>
+            </para>
+            <para>
+            So a chord can be constructed from notes within different events collections.
+            </para>
+            </example>
+            <seealso cref="T:Melanchall.DryWetMidi.Interaction.ChordDetectionSettings"/>
+            <seealso cref="T:Melanchall.DryWetMidi.Interaction.ChordsManagingUtilities"/>
         </member>
         <member name="F:Melanchall.DryWetMidi.Interaction.ChordSearchContext.SingleEventsCollection">
             <summary>
@@ -11456,7 +11619,7 @@
             <summary>
             A chord can be detected within all events collection (<see cref="T:Melanchall.DryWetMidi.Core.EventsCollection"/>
             or <see cref="T:Melanchall.DryWetMidi.Core.TrackChunk"/>) of the source (<see cref="T:Melanchall.DryWetMidi.Core.MidiFile"/> for example). It means
-            MIDI events that make up a chord can be present in different events collection.
+            MIDI events that make up a chord can be present in different events collections.
             </summary>
         </member>
         <member name="T:Melanchall.DryWetMidi.Interaction.ChordsManager">
@@ -12150,10 +12313,10 @@
         </member>
         <member name="M:Melanchall.DryWetMidi.Interaction.IGrid.GetTimes(Melanchall.DryWetMidi.Interaction.TempoMap)">
             <summary>
-            Gets points in time of the current grid.
+            Gets times produced by the current grid.
             </summary>
             <param name="tempoMap">Tempo map used to get grid's times.</param>
-            <returns>Collection of points in time of the current grid.</returns>
+            <returns>Collection of times (in MIDI ticks) of the current grid.</returns>
         </member>
         <member name="T:Melanchall.DryWetMidi.Interaction.SteppedGrid">
             <summary>
@@ -12169,6 +12332,22 @@
             </summary>
             <param name="step">Distance between adjacent times.</param>
             <exception cref="T:System.ArgumentNullException"><paramref name="step"/> is <c>null</c>.</exception>
+            <example>
+            <para>
+            For example, following code:
+            </para>
+            <code language="csharp">
+            var grid = new SteppedGrid(MusicalTimeSpan.Quarter);
+            </code>
+            <para>
+            will create this grid:
+            </para>
+            <code language="image">
+            ║    ║    ║    ║ 
+            ║    ║    ║    ║ ...
+            0   1/4  1/2  3/4
+            </code>
+            </example>
         </member>
         <member name="M:Melanchall.DryWetMidi.Interaction.SteppedGrid.#ctor(Melanchall.DryWetMidi.Interaction.ITimeSpan,Melanchall.DryWetMidi.Interaction.ITimeSpan)">
             <summary>
@@ -12189,6 +12368,22 @@
             </item>
             </list>
             </exception>
+            <example>
+            <para>
+            For example, following code:
+            </para>
+            <code language="csharp">
+            var grid = new SteppedGrid(MusicalTimeSpan.Eighth, MusicalTimeSpan.Quarter);
+            </code>
+            <para>
+            will create this grid:
+            </para>
+            <code language="image">
+            ⁞  ║    ║    ║    ║ 
+            ⁞  ║    ║    ║    ║ ...
+            0 1/8  3/8  5/8  7/8
+            </code>
+            </example>
         </member>
         <member name="M:Melanchall.DryWetMidi.Interaction.SteppedGrid.#ctor(System.Collections.Generic.IEnumerable{Melanchall.DryWetMidi.Interaction.ITimeSpan})">
             <summary>
@@ -12203,6 +12398,22 @@
             <param name="steps">Collection of grid's steps.</param>
             <exception cref="T:System.ArgumentNullException"><paramref name="steps"/> is <c>null</c>.</exception>
             <exception cref="T:System.ArgumentException"><paramref name="steps"/> contains <c>null</c>.</exception>
+            <example>
+            <para>
+            For example, following code:
+            </para>
+            <code language="csharp">
+            var grid = new SteppedGrid(new[] { MusicalTimeSpan.Eighth, MusicalTimeSpan.Quarter });
+            </code>
+            <para>
+            will create this grid:
+            </para>
+            <code language="image">
+            ║    ║        ║    ║        ║ 
+            ║    ║        ║    ║        ║ ...
+            0   1/8      3/8  1/2      3/4
+            </code>
+            </example>
         </member>
         <member name="M:Melanchall.DryWetMidi.Interaction.SteppedGrid.#ctor(Melanchall.DryWetMidi.Interaction.ITimeSpan,System.Collections.Generic.IEnumerable{Melanchall.DryWetMidi.Interaction.ITimeSpan})">
             <summary>
@@ -12228,6 +12439,22 @@
             </list>
             </exception>
             <exception cref="T:System.ArgumentException"><paramref name="steps"/> contains <c>null</c>.</exception>
+            <example>
+            <para>
+            For example, following code:
+            </para>
+            <code language="csharp">
+            var grid = new SteppedGrid(MusicalTimeSpan.Eighth, new[] { MusicalTimeSpan.Eighth, MusicalTimeSpan.Quarter });
+            </code>
+            <para>
+            will create this grid:
+            </para>
+            <code language="image">
+            ⁞    ║    ║        ║    ║        ║ 
+            ⁞    ║    ║        ║    ║        ║ ...
+            0   1/8  1/4      1/2  5/8      7/8
+            </code>
+            </example>
         </member>
         <member name="P:Melanchall.DryWetMidi.Interaction.SteppedGrid.Start">
             <summary>
@@ -12823,12 +13050,16 @@
             <summary>
             Settings which define how notes should be detected and built.
             </summary>
+            <seealso cref="T:Melanchall.DryWetMidi.Interaction.NotesManagingUtilities"/>
         </member>
         <member name="P:Melanchall.DryWetMidi.Interaction.NoteDetectionSettings.NoteStartDetectionPolicy">
             <summary>
             Gets or sets how start event of a note should be found in case of overlapping notes with
             the same note number and channel. The default value is <see cref="F:Melanchall.DryWetMidi.Interaction.NoteStartDetectionPolicy.FirstNoteOn"/>.
             </summary>
+            <remarks>
+            See Remarks section of the <see cref="T:Melanchall.DryWetMidi.Interaction.NoteStartDetectionPolicy"/> enum.
+            </remarks>
             <exception cref="T:System.ComponentModel.InvalidEnumArgumentException"><paramref name="value"/> specified an invalid value.</exception>
         </member>
         <member name="P:Melanchall.DryWetMidi.Interaction.NoteDetectionSettings.NoteSearchContext">
@@ -12836,6 +13067,9 @@
             Gets or sets a value defining a context to search notes within. The default value is
             <see cref="F:Melanchall.DryWetMidi.Interaction.NoteSearchContext.SingleEventsCollection"/>.
             </summary>
+            <remarks>
+            See Remarks section of the <see cref="T:Melanchall.DryWetMidi.Interaction.NoteSearchContext"/> enum.
+            </remarks>
             <exception cref="T:System.ComponentModel.InvalidEnumArgumentException"><paramref name="value"/> specified an invalid value.</exception>
         </member>
         <member name="T:Melanchall.DryWetMidi.Interaction.NotesCollection">
@@ -12902,6 +13136,81 @@
             <summary>
             Defines a context to search notes within.
             </summary>
+            <example>
+            <para>To understand what context means let's take a look at following events sequence
+            within two track chunks:</para>
+            <para>
+            <code language="image">
+            ┌──────────────────┐
+            │.A..............Y.│
+            └──────────────────┘
+            ┌──────────────────┐
+            │.....B...X........│
+            └──────────────────┘
+            </code>
+            </para>
+            <para>
+            where <c>A</c> and <c>B</c> mean Note On events (see <see cref="T:Melanchall.DryWetMidi.Core.NoteOnEvent"/>), and <c>X</c>
+            and <c>Y</c> mean Note Off ones (see <see cref="T:Melanchall.DryWetMidi.Core.NoteOffEvent"/>) with the same note number and channel;
+            <c>.</c> is any other event. So we have two overlapped notes here. We will assume that
+            <see cref="F:Melanchall.DryWetMidi.Interaction.NoteStartDetectionPolicy.FirstNoteOn"/> used to search a note's start.
+            </para>
+            <para>
+            If we use <see cref="F:Melanchall.DryWetMidi.Interaction.NoteSearchContext.SingleEventsCollection"/> as the context, notes will be constructed in
+            following way:
+            </para>
+            <para>
+            <code language="image">
+            ┌ ┌──────────────┐ ┐
+            │.A..............Y.│
+            └──────────────────┘
+            ┌──────────────────┐
+            │.....B...X........│
+            └──── └───┘ ───────┘
+            </code>
+            </para>
+            <para>
+            or, if highlight all notes:
+            </para>
+            <para>
+            <code language="image">
+             [                ]
+                 [     ]
+            </code>
+            </para>
+            <para>
+            So every Note On event will be combined with Note Off one within the same events collection.
+            </para>
+            <para>
+            But if we use <see cref="F:Melanchall.DryWetMidi.Interaction.NoteSearchContext.AllEventsCollections"/> as the context, notes will be constructed in
+            a new way:
+            </para>
+            <para>
+            <code language="image">
+            ┌ ┌───────┐ ───────┐
+            │.A.......│......Y.│
+            └──────── │ ──── │ ┘
+            ┌──────── │ ──── │ ┐
+            │.....B...X......│.│
+            └──── └──────────┘ ┘
+            </code>
+            </para>
+            <para>
+            or, if highlight all notes:
+            </para>
+            <para>
+            <code language="image">
+             [         ]
+                 [            ]
+            </code>
+            </para>
+            <para>
+            So Note On event can be combined with Note Off one within another events collection, i.e.
+            ends of a note can be placed in different events collections.
+            </para>
+            </example>
+            <seealso cref="T:Melanchall.DryWetMidi.Interaction.NoteDetectionSettings"/>
+            <seealso cref="T:Melanchall.DryWetMidi.Interaction.NotesManagingUtilities"/>
         </member>
         <member name="F:Melanchall.DryWetMidi.Interaction.NoteSearchContext.SingleEventsCollection">
             <summary>
@@ -12914,7 +13223,7 @@
             <summary>
             A note can be detected within all events collection (<see cref="T:Melanchall.DryWetMidi.Core.EventsCollection"/>
             or <see cref="T:Melanchall.DryWetMidi.Core.TrackChunk"/>) of the source (<see cref="T:Melanchall.DryWetMidi.Core.MidiFile"/> for example). It means
-            MIDI events that make up a note can be present in different events collection.
+            MIDI events that make up a note can be present in different events collections.
             </summary>
         </member>
         <member name="T:Melanchall.DryWetMidi.Interaction.NotesManager">
@@ -13433,8 +13742,73 @@
             <exception cref="T:System.ArgumentNullException"><paramref name="note"/> is <c>null</c>.</exception>
         </member>
         <member name="T:Melanchall.DryWetMidi.Interaction.NoteStartDetectionPolicy">
+            <summary>
             Defines how start event of a note should be found in case of overlapping notes with
             the same note number and channel. The default value is <see cref="F:Melanchall.DryWetMidi.Interaction.NoteStartDetectionPolicy.FirstNoteOn"/>.
+            </summary>
+            <example>
+            <para>
+            To understand how this policy works let's take a look at following events sequence:
+            </para>
+            <para>
+            <code language="image">
+             A...B...X...Y
+            </code>
+            </para>
+            <para>
+            where <c>A</c> and <c>B</c> mean Note On events, and <c>X</c> and <c>Y</c> mean
+            Note Off ones with the same note number and channel; <c>.</c> is any other event. So we
+            have two overlapped notes here.
+            </para>
+            <para>
+            If we use <see cref="F:Melanchall.DryWetMidi.Interaction.NoteStartDetectionPolicy.FirstNoteOn"/> for the policy, notes will be constructed in
+            following way:
+            </para>
+            <para>
+            <code language="image">
+             ┌───────┐
+             A...B...X...Y
+                 └───────┘
+            </code>
+            </para>
+            <para>
+            or, if highlight notes:
+            </para>
+            <para>
+            <code language="image">
+            [         ]
+                [         ]
+            </code>
+            </para>
+            <para>
+            So every Note Off event will be combined with first free Note On event into a note.
+            </para>
+            <para>
+            But if we use <see cref="F:Melanchall.DryWetMidi.Interaction.NoteStartDetectionPolicy.LastNoteOn"/> value, notes will be constructed in
+            a new way:
+            </para>
+            <para>
+            <code language="image">
+             ┌───────────┐
+             A...B...X...Y
+                 └───┘
+            </code>
+            </para>
+            <para>
+            or, if highlight notes:
+            </para>
+            <para>
+            <code language="image">
+            [             ]
+                [     ]
+            </code>
+            </para>
+            <para>
+            So Note Off events will be combined with last free Note On event into a note.
+            </para>
+            </example>
+            <seealso cref="T:Melanchall.DryWetMidi.Interaction.NoteDetectionSettings"/>
+            <seealso cref="T:Melanchall.DryWetMidi.Interaction.NotesManagingUtilities"/>
         </member>
         <member name="F:Melanchall.DryWetMidi.Interaction.NoteStartDetectionPolicy.FirstNoteOn">
             <summary>
@@ -17466,12 +17840,14 @@
             Converts <see cref="T:System.TimeSpan"/> to <see cref="T:Melanchall.DryWetMidi.Interaction.MetricTimeSpan"/>.
             </summary>
             <param name="timeSpan"><see cref="T:System.TimeSpan"/> to convert to <see cref="T:Melanchall.DryWetMidi.Interaction.MetricTimeSpan"/>.</param>
+            <returns><paramref name="timeSpan"/> represented as <see cref="T:Melanchall.DryWetMidi.Interaction.MetricTimeSpan"/>.</returns>
         </member>
         <member name="M:Melanchall.DryWetMidi.Interaction.MetricTimeSpan.op_Implicit(Melanchall.DryWetMidi.Interaction.MetricTimeSpan)~System.TimeSpan">
             <summary>
             Converts <see cref="T:Melanchall.DryWetMidi.Interaction.MetricTimeSpan"/> to <see cref="T:System.TimeSpan"/>.
             </summary>
             <param name="timeSpan"><see cref="T:Melanchall.DryWetMidi.Interaction.MetricTimeSpan"/> to convert to <see cref="T:System.TimeSpan"/>.</param>
+            <returns><paramref name="timeSpan"/> represented as <see cref="T:System.TimeSpan"/>.</returns>
         </member>
         <member name="M:Melanchall.DryWetMidi.Interaction.MetricTimeSpan.op_Equality(Melanchall.DryWetMidi.Interaction.MetricTimeSpan,Melanchall.DryWetMidi.Interaction.MetricTimeSpan)">
             <summary>
@@ -17812,12 +18188,15 @@
             Converts <see cref="T:System.Int64"/> to <see cref="T:Melanchall.DryWetMidi.Interaction.MidiTimeSpan"/>.
             </summary>
             <param name="timeSpan"><see cref="T:System.Int64"/> to convert to <see cref="T:Melanchall.DryWetMidi.Interaction.MidiTimeSpan"/>.</param>
+            <returns><paramref name="timeSpan"/> represented as <see cref="T:Melanchall.DryWetMidi.Interaction.MidiTimeSpan"/>.</returns>
+            <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="timeSpan"/> is negative.</exception>
         </member>
         <member name="M:Melanchall.DryWetMidi.Interaction.MidiTimeSpan.op_Implicit(Melanchall.DryWetMidi.Interaction.MidiTimeSpan)~System.Int64">
             <summary>
             Converts <see cref="T:Melanchall.DryWetMidi.Interaction.MidiTimeSpan"/> to <see cref="T:System.Int64"/>.
             </summary>
             <param name="timeSpan"><see cref="T:Melanchall.DryWetMidi.Interaction.MidiTimeSpan"/> to convert to <see cref="T:System.Int64"/>.</param>
+            <returns><paramref name="timeSpan"/> represented as <see cref="T:System.Int64"/>.</returns>
         </member>
         <member name="M:Melanchall.DryWetMidi.Interaction.MidiTimeSpan.op_Equality(Melanchall.DryWetMidi.Interaction.MidiTimeSpan,Melanchall.DryWetMidi.Interaction.MidiTimeSpan)">
             <summary>
@@ -19594,12 +19973,14 @@
             Converts the value of a <see cref="T:Melanchall.DryWetMidi.MusicTheory.Interval"/> to a <see cref="T:System.Int32"/>.
             </summary>
             <param name="interval"><see cref="T:Melanchall.DryWetMidi.MusicTheory.Interval"/> object to convert to an <see cref="T:System.Int32"/>.</param>
+            <returns><paramref name="interval"/> represented as <see cref="T:System.Int32"/>.</returns>
         </member>
         <member name="M:Melanchall.DryWetMidi.MusicTheory.Interval.op_Implicit(Melanchall.DryWetMidi.Common.SevenBitNumber)~Melanchall.DryWetMidi.MusicTheory.Interval">
             <summary>
             Converts the value of a <see cref="T:Melanchall.DryWetMidi.Common.SevenBitNumber"/> to a <see cref="T:Melanchall.DryWetMidi.MusicTheory.Interval"/>.
             </summary>
             <param name="interval"><see cref="T:Melanchall.DryWetMidi.Common.SevenBitNumber"/> object to convert to an <see cref="T:Melanchall.DryWetMidi.MusicTheory.Interval"/>.</param>
+            <returns><paramref name="interval"/> represented as <see cref="T:Melanchall.DryWetMidi.MusicTheory.Interval"/>.</returns>
         </member>
         <member name="M:Melanchall.DryWetMidi.MusicTheory.Interval.op_Equality(Melanchall.DryWetMidi.MusicTheory.Interval,Melanchall.DryWetMidi.MusicTheory.Interval)">
             <summary>
@@ -31312,7 +31693,7 @@
             <param name="trackChunk"><see cref="T:Melanchall.DryWetMidi.Core.TrackChunk"/> to split chords in.</param>
             <param name="step">Step to split chords by.</param>
             <param name="tempoMap">Tempo map used to calculate times to split by.</param>
-            <param name="settings">Settings accoridng to which chords should be detected and built.</param>
+            <param name="chordDetectionSettings">Settings accoridng to which chords should be detected and built.</param>
             <exception cref="T:System.ArgumentNullException">
             <para>One of the following errors occured:</para>
             <list type="bullet">
@@ -31341,7 +31722,7 @@
             <param name="trackChunks">Collection of <see cref="T:Melanchall.DryWetMidi.Core.TrackChunk"/> to split chords in.</param>
             <param name="step">Step to split chords by.</param>
             <param name="tempoMap">Tempo map used to calculate times to split by.</param>
-            <param name="settings">Settings accoridng to which chords should be detected and built.</param>
+            <param name="chordDetectionSettings">Settings accoridng to which chords should be detected and built.</param>
             <exception cref="T:System.ArgumentNullException">
             <para>One of the following errors occured:</para>
             <list type="bullet">
@@ -31369,7 +31750,7 @@
             </remarks>
             <param name="midiFile"><see cref="T:Melanchall.DryWetMidi.Core.MidiFile"/> to split chords in.</param>
             <param name="step">Step to split chords by.</param>
-            <param name="settings">Settings accoridng to which chords should be detected and built.</param>
+            <param name="chordDetectionSettings">Settings accoridng to which chords should be detected and built.</param>
             <exception cref="T:System.ArgumentNullException">
             <para>One of the following errors occured:</para>
             <list type="bullet">
@@ -31394,7 +31775,7 @@
             <param name="partsNumber">The number of parts to split chords into.</param>
             <param name="lengthType">Type of a part's length.</param>
             <param name="tempoMap">Tempo map used to calculate times to split by.</param>
-            <param name="settings">Settings accoridng to which chords should be detected and built.</param>
+            <param name="chordDetectionSettings">Settings accoridng to which chords should be detected and built.</param>
             <exception cref="T:System.ArgumentNullException">
             <para>One of the following errors occured:</para>
             <list type="bullet">
@@ -31421,7 +31802,7 @@
             <param name="partsNumber">The number of parts to split chords into.</param>
             <param name="lengthType">Type of a part's length.</param>
             <param name="tempoMap">Tempo map used to calculate times to split by.</param>
-            <param name="settings">Settings accoridng to which chords should be detected and built.</param>
+            <param name="chordDetectionSettings">Settings accoridng to which chords should be detected and built.</param>
             <exception cref="T:System.ArgumentNullException">
             <para>One of the following errors occured:</para>
             <list type="bullet">
@@ -31447,7 +31828,7 @@
             <param name="midiFile"><see cref="T:Melanchall.DryWetMidi.Core.MidiFile"/> to split chords in.</param>
             <param name="partsNumber">The number of parts to split chords into.</param>
             <param name="lengthType">Type of a part's length.</param>
-            <param name="settings">Settings accoridng to which chords should be detected and built.</param>
+            <param name="chordDetectionSettings">Settings accoridng to which chords should be detected and built.</param>
             <exception cref="T:System.ArgumentNullException"><paramref name="midiFile"/> is <c>null</c>.</exception>
             <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="partsNumber"/> is zero or negative.</exception>
             <exception cref="T:System.ComponentModel.InvalidEnumArgumentException"><paramref name="lengthType"/> specified an invalid value.</exception>
@@ -31459,7 +31840,7 @@
             <param name="trackChunk"><see cref="T:Melanchall.DryWetMidi.Core.TrackChunk"/> to split chords in.</param>
             <param name="grid">Grid to split chords by.</param>
             <param name="tempoMap">Tempo map used to calculate times to split by.</param>
-            <param name="settings">Settings accoridng to which chords should be detected and built.</param>
+            <param name="chordDetectionSettings">Settings accoridng to which chords should be detected and built.</param>
             <exception cref="T:System.ArgumentNullException">
             <para>One of the following errors occured:</para>
             <list type="bullet">
@@ -31483,7 +31864,7 @@
             <param name="trackChunks">Collection of <see cref="T:Melanchall.DryWetMidi.Core.TrackChunk"/> to split chords in.</param>
             <param name="grid">Grid to split chords by.</param>
             <param name="tempoMap">Tempo map used to calculate times to split by.</param>
-            <param name="settings">Settings accoridng to which chords should be detected and built.</param>
+            <param name="chordDetectionSettings">Settings accoridng to which chords should be detected and built.</param>
             <exception cref="T:System.ArgumentNullException">
             <para>One of the following errors occured:</para>
             <list type="bullet">
@@ -31517,7 +31898,7 @@
             <param name="distance">Distance to split chords at.</param>
             <param name="from">Point of a chord <paramref name="distance"/> should be measured from.</param>
             <param name="tempoMap">Tempo map used for distances calculations.</param>
-            <param name="settings">Settings accoridng to which chords should be detected and built.</param>
+            <param name="chordDetectionSettings">Settings accoridng to which chords should be detected and built.</param>
             <exception cref="T:System.ArgumentNullException">
             <para>One of the following errors occured:</para>
             <list type="bullet">
@@ -31543,7 +31924,7 @@
             <param name="distance">Distance to split chords at.</param>
             <param name="from">Point of a chord <paramref name="distance"/> should be measured from.</param>
             <param name="tempoMap">Tempo map used for distances calculations.</param>
-            <param name="settings">Settings accoridng to which chords should be detected and built.</param>
+            <param name="chordDetectionSettings">Settings accoridng to which chords should be detected and built.</param>
             <exception cref="T:System.ArgumentNullException">
             <para>One of the following errors occured:</para>
             <list type="bullet">
@@ -31568,7 +31949,7 @@
             <param name="midiFile"><see cref="T:Melanchall.DryWetMidi.Core.MidiFile"/> to split chords in.</param>
             <param name="distance">Distance to split chords at.</param>
             <param name="from">Point of a chord <paramref name="distance"/> should be measured from.</param>
-            <param name="settings">Settings accoridng to which chords should be detected and built.</param>
+            <param name="chordDetectionSettings">Settings accoridng to which chords should be detected and built.</param>
             <exception cref="T:System.ArgumentNullException">
             <para>One of the following errors occured:</para>
             <list type="bullet">
@@ -31593,7 +31974,7 @@
             <param name="lengthType">The type a chord's length should be processed according to.</param>
             <param name="from">Point of a chord distance should be measured from.</param>
             <param name="tempoMap">Tempo map used for distances calculations.</param>
-            <param name="settings">Settings accoridng to which chords should be detected and built.</param>
+            <param name="chordDetectionSettings">Settings accoridng to which chords should be detected and built.</param>
             <exception cref="T:System.ArgumentNullException">
             <para>One of the following errors occured:</para>
             <list type="bullet">
@@ -31629,7 +32010,7 @@
             <param name="lengthType">The type a chord's length should be processed according to.</param>
             <param name="from">Point of a chord distance should be measured from.</param>
             <param name="tempoMap">Tempo map used for distances calculations.</param>
-            <param name="settings">Settings accoridng to which chords should be detected and built.</param>
+            <param name="chordDetectionSettings">Settings accoridng to which chords should be detected and built.</param>
             <exception cref="T:System.ArgumentNullException">
             <para>One of the following errors occured:</para>
             <list type="bullet">
@@ -31664,7 +32045,7 @@
             <param name="ratio">Ratio of a chord's length to split by. Valid values are from 0 to 1.</param>
             <param name="lengthType">The type a chord's length should be processed according to.</param>
             <param name="from">Point of a chord distance should be measured from.</param>
-            <param name="settings">Settings accoridng to which chords should be detected and built.</param>
+            <param name="chordDetectionSettings">Settings accoridng to which chords should be detected and built.</param>
             <exception cref="T:System.ArgumentNullException"><paramref name="midiFile"/> is <c>null</c>.</exception>
             <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="ratio"/> is out of valid range.</exception>
             <exception cref="T:System.ComponentModel.InvalidEnumArgumentException">
@@ -31713,7 +32094,7 @@
             </list>
             </exception>
         </member>
-        <member name="M:Melanchall.DryWetMidi.Tools.NotesSplitterUtilities.SplitNotesByStep(System.Collections.Generic.IEnumerable{Melanchall.DryWetMidi.Core.TrackChunk},Melanchall.DryWetMidi.Interaction.ITimeSpan,Melanchall.DryWetMidi.Interaction.TempoMap)">
+        <member name="M:Melanchall.DryWetMidi.Tools.NotesSplitterUtilities.SplitNotesByStep(System.Collections.Generic.IEnumerable{Melanchall.DryWetMidi.Core.TrackChunk},Melanchall.DryWetMidi.Interaction.ITimeSpan,Melanchall.DryWetMidi.Interaction.TempoMap,Melanchall.DryWetMidi.Interaction.NoteDetectionSettings)">
             <summary>
             Splits notes contained in the specified collection of <see cref="T:Melanchall.DryWetMidi.Core.TrackChunk"/> by the
             specified step so every note will be split at points equally distanced from each
@@ -31741,7 +32122,7 @@
             </list>
             </exception>
         </member>
-        <member name="M:Melanchall.DryWetMidi.Tools.NotesSplitterUtilities.SplitNotesByStep(Melanchall.DryWetMidi.Core.MidiFile,Melanchall.DryWetMidi.Interaction.ITimeSpan)">
+        <member name="M:Melanchall.DryWetMidi.Tools.NotesSplitterUtilities.SplitNotesByStep(Melanchall.DryWetMidi.Core.MidiFile,Melanchall.DryWetMidi.Interaction.ITimeSpan,Melanchall.DryWetMidi.Interaction.NoteDetectionSettings)">
             <summary>
             Splits notes contained in the specified <see cref="T:Melanchall.DryWetMidi.Core.MidiFile"/> by the specified
             step so every note will be split at points equally distanced from each other
@@ -31792,7 +32173,7 @@
             <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="partsNumber"/> is zero or negative.</exception>
             <exception cref="T:System.ComponentModel.InvalidEnumArgumentException"><paramref name="lengthType"/> specified an invalid value.</exception>
         </member>
-        <member name="M:Melanchall.DryWetMidi.Tools.NotesSplitterUtilities.SplitNotesByPartsNumber(System.Collections.Generic.IEnumerable{Melanchall.DryWetMidi.Core.TrackChunk},System.Int32,Melanchall.DryWetMidi.Interaction.TimeSpanType,Melanchall.DryWetMidi.Interaction.TempoMap)">
+        <member name="M:Melanchall.DryWetMidi.Tools.NotesSplitterUtilities.SplitNotesByPartsNumber(System.Collections.Generic.IEnumerable{Melanchall.DryWetMidi.Core.TrackChunk},System.Int32,Melanchall.DryWetMidi.Interaction.TimeSpanType,Melanchall.DryWetMidi.Interaction.TempoMap,Melanchall.DryWetMidi.Interaction.NoteDetectionSettings)">
             <summary>
             Splits notes contained in the specified collection of <see cref="T:Melanchall.DryWetMidi.Core.TrackChunk"/> into the
             specified number of parts of the equal length.
@@ -31818,7 +32199,7 @@
             <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="partsNumber"/> is zero or negative.</exception>
             <exception cref="T:System.ComponentModel.InvalidEnumArgumentException"><paramref name="lengthType"/> specified an invalid value.</exception>
         </member>
-        <member name="M:Melanchall.DryWetMidi.Tools.NotesSplitterUtilities.SplitNotesByPartsNumber(Melanchall.DryWetMidi.Core.MidiFile,System.Int32,Melanchall.DryWetMidi.Interaction.TimeSpanType)">
+        <member name="M:Melanchall.DryWetMidi.Tools.NotesSplitterUtilities.SplitNotesByPartsNumber(Melanchall.DryWetMidi.Core.MidiFile,System.Int32,Melanchall.DryWetMidi.Interaction.TimeSpanType,Melanchall.DryWetMidi.Interaction.NoteDetectionSettings)">
             <summary>
             Splits notes contained in the specified <see cref="T:Melanchall.DryWetMidi.Core.MidiFile"/> into the specified number of
             parts of the equal length.
@@ -31856,7 +32237,7 @@
             </list>
             </exception>
         </member>
-        <member name="M:Melanchall.DryWetMidi.Tools.NotesSplitterUtilities.SplitNotesByGrid(System.Collections.Generic.IEnumerable{Melanchall.DryWetMidi.Core.TrackChunk},Melanchall.DryWetMidi.Interaction.IGrid,Melanchall.DryWetMidi.Interaction.TempoMap)">
+        <member name="M:Melanchall.DryWetMidi.Tools.NotesSplitterUtilities.SplitNotesByGrid(System.Collections.Generic.IEnumerable{Melanchall.DryWetMidi.Core.TrackChunk},Melanchall.DryWetMidi.Interaction.IGrid,Melanchall.DryWetMidi.Interaction.TempoMap,Melanchall.DryWetMidi.Interaction.NoteDetectionSettings)">
             <summary>
             Splits notes contained in the specified collection of <see cref="T:Melanchall.DryWetMidi.Core.TrackChunk"/> by the
             specified grid.
@@ -31879,7 +32260,7 @@
             </list>
             </exception>
         </member>
-        <member name="M:Melanchall.DryWetMidi.Tools.NotesSplitterUtilities.SplitNotesByGrid(Melanchall.DryWetMidi.Core.MidiFile,Melanchall.DryWetMidi.Interaction.IGrid)">
+        <member name="M:Melanchall.DryWetMidi.Tools.NotesSplitterUtilities.SplitNotesByGrid(Melanchall.DryWetMidi.Core.MidiFile,Melanchall.DryWetMidi.Interaction.IGrid,Melanchall.DryWetMidi.Interaction.NoteDetectionSettings)">
             <summary>
             Splits notes contained in the specified <see cref="T:Melanchall.DryWetMidi.Core.MidiFile"/> by the specified grid.
             </summary>
@@ -31913,7 +32294,7 @@
             </exception>
             <exception cref="T:System.ComponentModel.InvalidEnumArgumentException"><paramref name="from"/> specified an invalid value.</exception>
         </member>
-        <member name="M:Melanchall.DryWetMidi.Tools.NotesSplitterUtilities.SplitNotesAtDistance(System.Collections.Generic.IEnumerable{Melanchall.DryWetMidi.Core.TrackChunk},Melanchall.DryWetMidi.Interaction.ITimeSpan,Melanchall.DryWetMidi.Tools.LengthedObjectTarget,Melanchall.DryWetMidi.Interaction.TempoMap)">
+        <member name="M:Melanchall.DryWetMidi.Tools.NotesSplitterUtilities.SplitNotesAtDistance(System.Collections.Generic.IEnumerable{Melanchall.DryWetMidi.Core.TrackChunk},Melanchall.DryWetMidi.Interaction.ITimeSpan,Melanchall.DryWetMidi.Tools.LengthedObjectTarget,Melanchall.DryWetMidi.Interaction.TempoMap,Melanchall.DryWetMidi.Interaction.NoteDetectionSettings)">
             <summary>
             Splits notes contained in the specified collection of <see cref="T:Melanchall.DryWetMidi.Core.TrackChunk"/> at the specified
             distance from a note's start or end.
@@ -31938,7 +32319,7 @@
             </exception>
             <exception cref="T:System.ComponentModel.InvalidEnumArgumentException"><paramref name="from"/> specified an invalid value.</exception>
         </member>
-        <member name="M:Melanchall.DryWetMidi.Tools.NotesSplitterUtilities.SplitNotesAtDistance(Melanchall.DryWetMidi.Core.MidiFile,Melanchall.DryWetMidi.Interaction.ITimeSpan,Melanchall.DryWetMidi.Tools.LengthedObjectTarget)">
+        <member name="M:Melanchall.DryWetMidi.Tools.NotesSplitterUtilities.SplitNotesAtDistance(Melanchall.DryWetMidi.Core.MidiFile,Melanchall.DryWetMidi.Interaction.ITimeSpan,Melanchall.DryWetMidi.Tools.LengthedObjectTarget,Melanchall.DryWetMidi.Interaction.NoteDetectionSettings)">
             <summary>
             Splits notes contained in the specified <see cref="T:Melanchall.DryWetMidi.Core.MidiFile"/> at the specified distance
             from a note's start or end.
@@ -31995,7 +32376,7 @@
             </list>
             </exception>
         </member>
-        <member name="M:Melanchall.DryWetMidi.Tools.NotesSplitterUtilities.SplitNotesAtDistance(System.Collections.Generic.IEnumerable{Melanchall.DryWetMidi.Core.TrackChunk},System.Double,Melanchall.DryWetMidi.Interaction.TimeSpanType,Melanchall.DryWetMidi.Tools.LengthedObjectTarget,Melanchall.DryWetMidi.Interaction.TempoMap)">
+        <member name="M:Melanchall.DryWetMidi.Tools.NotesSplitterUtilities.SplitNotesAtDistance(System.Collections.Generic.IEnumerable{Melanchall.DryWetMidi.Core.TrackChunk},System.Double,Melanchall.DryWetMidi.Interaction.TimeSpanType,Melanchall.DryWetMidi.Tools.LengthedObjectTarget,Melanchall.DryWetMidi.Interaction.TempoMap,Melanchall.DryWetMidi.Interaction.NoteDetectionSettings)">
             <summary>
             Splits notes contained in the specified collection of <see cref="T:Melanchall.DryWetMidi.Core.TrackChunk"/> by the
             specified ratio of a note's length measuring it from the note's start or end.
@@ -32030,7 +32411,7 @@
             </list>
             </exception>
         </member>
-        <member name="M:Melanchall.DryWetMidi.Tools.NotesSplitterUtilities.SplitNotesAtDistance(Melanchall.DryWetMidi.Core.MidiFile,System.Double,Melanchall.DryWetMidi.Interaction.TimeSpanType,Melanchall.DryWetMidi.Tools.LengthedObjectTarget)">
+        <member name="M:Melanchall.DryWetMidi.Tools.NotesSplitterUtilities.SplitNotesAtDistance(Melanchall.DryWetMidi.Core.MidiFile,System.Double,Melanchall.DryWetMidi.Interaction.TimeSpanType,Melanchall.DryWetMidi.Tools.LengthedObjectTarget,Melanchall.DryWetMidi.Interaction.NoteDetectionSettings)">
             <summary>
             Splits notes contained in the specified <see cref="T:Melanchall.DryWetMidi.Core.MidiFile"/> by the specified ratio of a
             note's length measuring it from the note's start or end. For example, 0.5 means splitting
@@ -32058,9 +32439,87 @@
             <summary>
             Provides methods to split a MIDI file.
             </summary>
-            <remarks>
-            See <see href="xref:a_file_splitter">MidiFileSplitter</see> article to learn more.
-            </remarks>
+            <example>
+            <para>
+            Methods that split a MIDI file at time(s) also transfer some events that can affect following ones
+            to a next part. List of such methods:
+            </para>
+            <para>
+            <list type="bullet">
+            <item><description><see cref="M:Melanchall.DryWetMidi.Tools.MidiFileSplitter.SplitByGrid(Melanchall.DryWetMidi.Core.MidiFile,Melanchall.DryWetMidi.Interaction.IGrid,Melanchall.DryWetMidi.Tools.SliceMidiFileSettings)"/></description></item>
+            <item><description><see cref="M:Melanchall.DryWetMidi.Tools.MidiFileSplitter.SkipPart(Melanchall.DryWetMidi.Core.MidiFile,Melanchall.DryWetMidi.Interaction.ITimeSpan,Melanchall.DryWetMidi.Tools.SliceMidiFileSettings)"/></description></item>
+            <item><description><see cref="M:Melanchall.DryWetMidi.Tools.MidiFileSplitter.TakePart(Melanchall.DryWetMidi.Core.MidiFile,Melanchall.DryWetMidi.Interaction.ITimeSpan,Melanchall.DryWetMidi.Interaction.ITimeSpan,Melanchall.DryWetMidi.Tools.SliceMidiFileSettings)"/></description></item>
+            <item><description><see cref="M:Melanchall.DryWetMidi.Tools.MidiFileSplitter.TakePart(Melanchall.DryWetMidi.Core.MidiFile,Melanchall.DryWetMidi.Interaction.ITimeSpan,Melanchall.DryWetMidi.Tools.SliceMidiFileSettings)"/></description></item>
+            <item><description><see cref="M:Melanchall.DryWetMidi.Tools.MidiFileSplitter.CutPart(Melanchall.DryWetMidi.Core.MidiFile,Melanchall.DryWetMidi.Interaction.ITimeSpan,Melanchall.DryWetMidi.Interaction.ITimeSpan,Melanchall.DryWetMidi.Tools.SliceMidiFileSettings)"/></description></item>
+            </list>
+            </para>
+            <para>
+            And the list of events that will be transferred to a next part:
+            </para>
+            <para>
+            <list type="bullet">
+            <item><description><see cref="T:Melanchall.DryWetMidi.Core.ChannelAftertouchEvent"/></description></item>
+            <item><description><see cref="T:Melanchall.DryWetMidi.Core.ControlChangeEvent"/></description></item>
+            <item><description><see cref="T:Melanchall.DryWetMidi.Core.NoteAftertouchEvent"/></description></item>
+            <item><description><see cref="T:Melanchall.DryWetMidi.Core.PitchBendEvent"/></description></item>
+            <item><description><see cref="T:Melanchall.DryWetMidi.Core.ProgramChangeEvent"/></description></item>
+            <item><description><see cref="T:Melanchall.DryWetMidi.Core.CopyrightNoticeEvent"/></description></item>
+            <item><description><see cref="T:Melanchall.DryWetMidi.Core.InstrumentNameEvent"/></description></item>
+            <item><description><see cref="T:Melanchall.DryWetMidi.Core.ProgramNameEvent"/></description></item>
+            <item><description><see cref="T:Melanchall.DryWetMidi.Core.SequenceTrackNameEvent"/></description></item>
+            <item><description><see cref="T:Melanchall.DryWetMidi.Core.DeviceNameEvent"/></description></item>
+            <item><description><see cref="T:Melanchall.DryWetMidi.Core.PortPrefixEvent"/></description></item>
+            <item><description><see cref="T:Melanchall.DryWetMidi.Core.SetTempoEvent"/></description></item>
+            <item><description><see cref="T:Melanchall.DryWetMidi.Core.ChannelPrefixEvent"/></description></item>
+            <item><description><see cref="T:Melanchall.DryWetMidi.Core.SequenceNumberEvent"/></description></item>
+            <item><description><see cref="T:Melanchall.DryWetMidi.Core.KeySignatureEvent"/></description></item>
+            <item><description><see cref="T:Melanchall.DryWetMidi.Core.SmpteOffsetEvent"/></description></item>
+            <item><description><see cref="T:Melanchall.DryWetMidi.Core.TimeSignatureEvent"/></description></item>
+            </list>
+            </para>
+            <para>
+            To illustrate how events are transferred, look at the following image showing
+            a MIDI file that will be split at the time defined by the vertical line:
+            </para>
+            <code language="image">
+            +-------------║-----------+
+            |┌────────────║──────────┐|
+            |│  A    +    ║     B    │|
+            |└────────────║──────────┘|
+            |┌────────────║──────────┐|
+            |│   +     C  ║  D       │|
+            |└────────────║──────────┘|
+            +-------------║-----------+
+            </code>
+            <para>
+            where <c>A</c>, <c>B</c>, <c>C</c> and <c>D</c> are some MIDI events not from the list above;
+            <c>+</c> is a MIDI event from the list of events that should be transferred.
+            </para>
+            <para>
+            After split we'll get following two new files:
+            </para>
+            <code language="image">
+            +--------------+
+            |┌────────────┐|
+            |│  A    +    │|
+            |└────────────┘|
+            |┌────────────┐|
+            |│   +     C  │|
+            |└────────────┘|
+            +--------------+
+                         +------------+
+                         |┌──────────┐|
+                         |+     B    │|
+                         |└──────────┘|
+                         |┌──────────┐|
+                         |+  D       │|
+                         |└──────────┘|
+                         +------------+
+            </code>
+            <para>
+            So as you can see <c>+</c> events are put at the start of the second file.
+            </para>
+            </example>
         </member>
         <member name="M:Melanchall.DryWetMidi.Tools.MidiFileSplitter.SplitByChunks(Melanchall.DryWetMidi.Core.MidiFile,Melanchall.DryWetMidi.Tools.SplitFileByChunksSettings)">
             <summary>
@@ -32071,26 +32530,160 @@
             <returns>Collection of <see cref="T:Melanchall.DryWetMidi.Core.MidiFile"/> where each file contains single chunk from
             the original file.</returns>
             <exception cref="T:System.ArgumentNullException"><paramref name="midiFile"/> is <c>null</c>.</exception>
+            <example>
+            <para>
+            For example, we have a MIDI file with two chunks:
+            </para>
+            <para>
+            <code language="image">
+            +-------------------+
+            |┌─────────────────┐|
+            |│                 │|
+            |└─────────────────┘|
+            |┌─────────────────┐|
+            |│                 │|
+            |└─────────────────┘|
+            +-------------------+
+            </code>
+            </para>
+            <para>
+            So the file will be split into two new files:
+            </para>
+            <para>
+            <code language="image">
+            +-------------------+
+            |┌─────────────────┐|
+            |│                 │|
+            |└─────────────────┘|
+            +-------------------+
+            +-------------------+
+            |┌─────────────────┐|
+            |│                 │|
+            |└─────────────────┘|
+            +-------------------+
+            </code>
+            </para>
+            <para>
+            Each new file will have the same time division (<see cref="P:Melanchall.DryWetMidi.Core.MidiFile.TimeDivision"/>) as the original one.
+            </para>
+            </example>
         </member>
         <member name="M:Melanchall.DryWetMidi.Tools.MidiFileSplitter.SplitByChannel(Melanchall.DryWetMidi.Core.MidiFile,Melanchall.DryWetMidi.Tools.SplitFileByChannelSettings)">
             <summary>
             Splits <see cref="T:Melanchall.DryWetMidi.Core.MidiFile"/> by channel.
             </summary>
+            <remarks>
+            All channel events (<see cref="T:Melanchall.DryWetMidi.Core.ChannelEvent"/>) will be grouped by channel and then events for each
+            channel will be placed to separate files. So each new file will contain channel events for single channel.
+            If <see cref="P:Melanchall.DryWetMidi.Tools.SplitFileByChannelSettings.CopyNonChannelEventsToEachFile"/> of <paramref name="settings"/>
+            set to <c>true</c> (default value), each new file will also contain all non-channel events from the original file.
+            If an input file doesn't contain channel events, result file will be just a copy of the input one.
+            </remarks>
             <param name="settings">Settings accoridng to which MIDI file should be split.</param>
             <param name="midiFile"><see cref="T:Melanchall.DryWetMidi.Core.MidiFile"/> to split.</param>
             <returns>Collection of <see cref="T:Melanchall.DryWetMidi.Core.MidiFile"/> where each file contains events for single channel
             and meta and sysex ones as defined by <paramref name="settings"/>.</returns>
             <exception cref="T:System.ArgumentNullException"><paramref name="midiFile"/> is <c>null</c>.</exception>
+            <example>
+            <para>
+            Given a MIDI file:
+            </para>
+            <code language="image">
+            +-------------------+
+            |┌─────────────────┐|
+            |│. ◊ .  ○.◊ .□□  .│|
+            |└─────────────────┘|
+            |┌─────────────────┐|
+            |│ .□. .◊   . ○ ○. │|
+            |└─────────────────┘|
+            +-------------------+
+            </code>
+            <para>
+            where <c>◊</c>, <c>○</c> and <c>□</c> mean channel MIDI events on channel 0, 1 and 2 correspondingly;
+            <c>.</c> is any non-channel event.
+            </para>
+            <para>
+            So the file will be split in following way (<see cref="P:Melanchall.DryWetMidi.Tools.SplitFileByChannelSettings.CopyNonChannelEventsToEachFile"/>
+            of <paramref name="settings"/> set to <c>true</c>):
+            </para>
+            <code language="image">
+            +-------------------+
+            |┌─────────────────┐|
+            |│..◊...◊ .◊..   ..│|
+            |└─────────────────┘|
+            +-------------------+
+            +-------------------+
+            |┌─────────────────┐|
+            |│.. ... ○. ..○ ○..│|
+            |└─────────────────┘|
+            +-------------------+
+            +-------------------+
+            |┌─────────────────┐|
+            |│..□...  . ..□□ ..│|
+            |└─────────────────┘|
+            +-------------------+
+            </code>
+            <para>
+            So each new file consist of single track chunk containing channel events of one channel and
+            all non-channel events. New files will have the same time division (<see cref="P:Melanchall.DryWetMidi.Core.MidiFile.TimeDivision"/>) as
+            the original one.
+            </para>
+            </example>
         </member>
         <member name="M:Melanchall.DryWetMidi.Tools.MidiFileSplitter.SplitByNotes(Melanchall.DryWetMidi.Core.MidiFile,Melanchall.DryWetMidi.Tools.SplitFileByNotesSettings)">
             <summary>
             Splits <see cref="T:Melanchall.DryWetMidi.Core.MidiFile"/> by notes.
             </summary>
+            <remarks>
+            The method produces new files where each one contains Note On and Note Off events for single
+            note number and channel (if it's not ignored according to <see cref="P:Melanchall.DryWetMidi.Tools.SplitFileByNotesSettings.IgnoreChannel"/>
+            of <paramref name="settings"/>). Also files can contain all non-note events as defined by
+            <see cref="P:Melanchall.DryWetMidi.Tools.SplitFileByNotesSettings.CopyNonNoteEventsToEachFile"/> of <paramref name="settings"/>. If
+            an input file doesn't contain note events, result file will be just a copy of the input one.
+            </remarks>
             <param name="midiFile"><see cref="T:Melanchall.DryWetMidi.Core.MidiFile"/> to split.</param>
             <param name="settings">Settings accoridng to which notes should be detected and built.</param>
             <returns>Collection of <see cref="T:Melanchall.DryWetMidi.Core.MidiFile"/> where each file contains events for single note and
             other events as defined by <paramref name="settings"/>.</returns>
             <exception cref="T:System.ArgumentNullException"><paramref name="midiFile"/> is <c>null</c>.</exception>
+            <example>
+            <para>
+            For example, a MIDI file contains following notes:
+            </para>
+            <code language="image">
+            +-----------------------+
+            |┌─────────────────────┐|
+            |│. [ A ]  [   B   ]. .│|
+            |└─────────────────────┘|
+            |┌─────────────────────┐|
+            |│ .  [ B ]  [  A  ] . │|
+            |└─────────────────────┘|
+            +-----------------------+
+            </code>
+            <para>
+            where <c>A</c> and <c>B</c> mean different notes; <c>.</c> is any non-note event.
+            </para>
+            <para>
+            After split we'll get following two new files:
+            </para>
+            <code language="image">
+            +-----------------------+
+            |┌─────────────────────┐|
+            |│..[ A ]    [  A  ]...│|
+            |└─────────────────────┘|
+            +-----------------------+
+            +-----------------------+
+            |┌─────────────────────┐|
+            |│..  [ B ][   B   ]...│|
+            |└─────────────────────┘|
+            +-----------------------+
+            </code>
+            <para>
+            So each new file contains one track chunk with notes of the same note number and channel, and
+            also all non-note events. New files will have the same time division (<see cref="P:Melanchall.DryWetMidi.Core.MidiFile.TimeDivision"/>)
+            as the original one.
+            </para>
+            </example>
         </member>
         <member name="M:Melanchall.DryWetMidi.Tools.MidiFileSplitter.SplitByGrid(Melanchall.DryWetMidi.Core.MidiFile,Melanchall.DryWetMidi.Interaction.IGrid,Melanchall.DryWetMidi.Tools.SliceMidiFileSettings)">
             <summary>
@@ -32114,6 +32707,45 @@
             </item>
             </list>
             </exception>
+            <example>
+            <para>
+            Given the MIDI file (vertical lines show the grid the file should be split by):
+            </para>
+            <code language="image">
+            +-----║-------║-----------+
+            |┌────║───────║──────────┐|
+            |│  A ║  B    ║     C    │|
+            |└──⁞─║──⁞────║─────⁞────┘|
+            |┌──⁞─║──⁞────║─────⁞────┐|
+            |│  ⁞ ║  ⁞ D  ║  E  ⁞    │|
+            |└──⁞─║──⁞─⁞──║──⁞──⁞────┘|
+            +---⁞-║--⁞-⁞--║--⁞--⁞-----+
+            </code>
+            <para>
+            where <c>A</c>, <c>B</c>, <c>C</c>, <c>D</c> and <c>E</c> are some MIDI events.
+            </para>
+            <para>
+            We'll get three new files as the result of the split:
+            </para>
+            <code language="image">
+            +---⁞--+ ⁞ ⁞ +---⁞--⁞-----+
+            |┌──⁞─┐| ⁞ ⁞ |┌──⁞──⁞────┐|
+            |│  A │| ⁞ ⁞ |│  ⁞  C    │|
+            |└────┘| ⁞ ⁞ |└──⁞───────┘|
+            |┌────┐| ⁞ ⁞ |┌──⁞───────┐|
+            |│    │| ⁞ ⁞ |│  E       │|
+            |└────┘| ⁞ ⁞ |└──────────┘|
+            +------+ ⁞ ⁞ +------------+
+                 +---⁞-⁞---+
+                 |┌──⁞─⁞──┐|
+                 |│  B ⁞  │|
+                 |└────⁞──┘|
+                 |┌────⁞──┐|
+                 |│    D  │|
+                 |└───────┘|
+                 +---------+
+            </code>
+            </example>
         </member>
         <member name="M:Melanchall.DryWetMidi.Tools.MidiFileSplitter.SkipPart(Melanchall.DryWetMidi.Core.MidiFile,Melanchall.DryWetMidi.Interaction.ITimeSpan,Melanchall.DryWetMidi.Tools.SliceMidiFileSettings)">
             <summary>
@@ -32136,6 +32768,39 @@
             </item>
             </list>
             </exception>
+            <example>
+            <para>
+            Given the MIDI file (vertical line shows where the file will be split):
+            </para>
+            <code language="image">
+             │←─── L ────→│
+            +-------------║-----------+
+            |┌────────────║──────────┐|
+            |│  A    B    ║     C    │|
+            |└────────────║─────⁞────┘|
+            |┌────────────║─────⁞────┐|
+            |│         D  ║  E  ⁞    │|
+            |└────────────║──⁞──⁞────┘|
+            +-------------║--⁞--⁞-----+
+            </code>
+            <para>
+            where <c>A</c>, <c>B</c>, <c>C</c>, <c>D</c> and <c>E</c> are some MIDI events;
+            <c>L</c> is <paramref name="partLength"/>.
+            </para>
+            <para>
+            Skipping the part we'll get following file:
+            </para>
+            <code language="image">
+                         +---⁞--⁞-----+
+                         |┌──⁞──⁞────┐|
+                         |│  ⁞  C    │|
+                         |└──⁞───────┘|
+                         |┌──⁞───────┐|
+                         |│  E       │|
+                         |└──────────┘|
+                         +------------+
+            </code>
+            </example>
         </member>
         <member name="M:Melanchall.DryWetMidi.Tools.MidiFileSplitter.TakePart(Melanchall.DryWetMidi.Core.MidiFile,Melanchall.DryWetMidi.Interaction.ITimeSpan,Melanchall.DryWetMidi.Tools.SliceMidiFileSettings)">
             <summary>
@@ -32158,6 +32823,39 @@
             </item>
             </list>
             </exception>
+            <example>
+            <para>
+            Given the MIDI file (vertical line shows where the file will be split):
+            </para>
+            <code language="image">
+             │←─── L ────→│
+            +-------------║-----------+
+            |┌────────────║──────────┐|
+            |│  A    B    ║     C    │|
+            |└──⁞────⁞────║──────────┘|
+            |┌──⁞────⁞────║──────────┐|
+            |│  ⁞    ⁞ D  ║  E       │|
+            |└──⁞────⁞─⁞──║──────────┘|
+            +---⁞----⁞-⁞--║-----------+
+            </code>
+            <para>
+            where <c>A</c>, <c>B</c>, <c>C</c>, <c>D</c> and <c>E</c> are some MIDI events;
+            <c>L</c> is <paramref name="partLength"/>.
+            </para>
+            <para>
+            Taking the part we'll get following file:
+            </para>
+            <code language="image">
+            +---⁞----⁞-⁞---+
+            |┌──⁞────⁞─⁞──┐|
+            |│  A    B ⁞  │|
+            |└─────────⁞──┘|
+            |┌─────────⁞──┐|
+            |│         D  │|
+            |└────────────┘|
+            +--------------+
+            </code>
+            </example>
         </member>
         <member name="M:Melanchall.DryWetMidi.Tools.MidiFileSplitter.TakePart(Melanchall.DryWetMidi.Core.MidiFile,Melanchall.DryWetMidi.Interaction.ITimeSpan,Melanchall.DryWetMidi.Interaction.ITimeSpan,Melanchall.DryWetMidi.Tools.SliceMidiFileSettings)">
             <summary>
@@ -32184,11 +32882,45 @@
             </item>
             </list>
             </exception>
+            <example>
+            <para>
+            Given the MIDI file (vertical line shows where the file will be split):
+            </para>
+            <code language="image">
+             │← S →│←─── L ───→│
+            +------║-----------║-------+
+            |┌─────║───────────║──────┐|
+            |│  A  ║  B        ║ C    │|
+            |└─────║──⁞────────║──────┘|
+            |┌─────║──⁞────────║──────┐|
+            |│     ║  ⁞ D    E ║      │|
+            |└─────║──⁞─⁞────⁞─║──────┘|
+            +------║--⁞-⁞----⁞-║-------+
+            </code>
+            <para>
+            where <c>A</c>, <c>B</c>, <c>C</c>, <c>D</c> and <c>E</c> are some MIDI events;
+            <c>S</c> is <paramref name="partStart"/> and <c>L</c> is <paramref name="partLength"/>.
+            </para>
+            <para>
+            Taking the part we'll get following file:
+            </para>
+            <code language="image">
+                  +---⁞-⁞----⁞--+
+                  |┌──⁞─⁞────⁞─┐|
+                  |│  B ⁞    ⁞ │|
+                  |└────⁞────⁞─┘|
+                  |┌────⁞────⁞─┐|
+                  |│    D    E │|
+                  |└───────────┘|
+                  +-------------+
+            </code>
+            </example>
         </member>
         <member name="T:Melanchall.DryWetMidi.Tools.SliceMidiFileSettings">
             <summary>
             Settings according to which a <see cref="T:Melanchall.DryWetMidi.Core.MidiFile"/> should be split.
             </summary>
+            <seealso cref="T:Melanchall.DryWetMidi.Tools.MidiFileSplitter"/>
         </member>
         <member name="P:Melanchall.DryWetMidi.Tools.SliceMidiFileSettings.SplitNotes">
             <summary>
@@ -32196,10 +32928,84 @@
             grid intersection or not. The default value is <c>true</c>.
             </summary>
             <remarks>
+            <para>
             <c>false</c> means notes treated as just Note On / Note Off events rather than note objects
             for <c>true</c>. Splitting notes produces new Note On / Note Off events at points of grid
             intersecting notes.
+            </para>
             </remarks>
+            <example>
+            <para>
+            Take a look at the following file which should be split at the time defined by the vertical line:
+            </para>
+            <para>
+            <code language="image">
+            +-------------║-----------+
+            |┌────────────║──────────┐|
+            |│      [A    ║  B]      │|
+            |└───────⁞────║──⁞───────┘|
+            |┌───────⁞────║──⁞───────┐|
+            |│  [A   B]   ║  ⁞ [A  B]│|
+            |└───⁞───⁞────║──⁞──⁞──⁞─┘|
+            +----⁞---⁞----║--⁞--⁞--⁞--+
+            </code>
+            </para>
+            <para>
+            where <c>A</c> and <c>B</c> mean Note On and Note Off events correspondingly (notes are highlighted
+            for convenience). So we have the file with two track chunks here containing some notes.
+            </para>
+            <para>
+            If <see cref="P:Melanchall.DryWetMidi.Tools.SliceMidiFileSettings.SplitNotes"/> set to <c>false</c>, we'll get following two new files:
+            </para>
+            <para>
+            <code language="image">
+            +----⁞---⁞-----+ ⁞  ⁞  ⁞
+            |┌───⁞───⁞────┐| ⁞  ⁞  ⁞
+            |│   ⁞   A    │| ⁞  ⁞  ⁞
+            |└───⁞───⁞────┘| ⁞  ⁞  ⁞
+            |┌───⁞───⁞────┐| ⁞  ⁞  ⁞
+            |│  [A   B]   │| ⁞  ⁞  ⁞
+            |└───⁞───⁞────┘| ⁞  ⁞  ⁞
+            +----⁞---⁞-----+ ⁞  ⁞  ⁞
+                 ⁞   ⁞   +---⁞--⁞--⁞--+
+                 ⁞   ⁞   |┌──⁞──⁞──⁞─┐|
+                 ⁞   ⁞   |│  B  ⁞  ⁞ │|
+                 ⁞   ⁞   |└──⁞──⁞──⁞─┘|
+                 ⁞   ⁞   |┌──⁞──⁞──⁞─┐|
+                 ⁞   ⁞   |│  ⁞ [A  B]│|
+                 ⁞   ⁞   |└──⁞──⁞──⁞─┘|
+                 ⁞   ⁞   +---⁞--⁞--⁞--+
+            </code>
+            </para>
+            <para>
+            So the not within first track chunk just exploded into its Note On and Note Off events placed in
+            different files after split. But if <see cref="P:Melanchall.DryWetMidi.Tools.SliceMidiFileSettings.SplitNotes"/> set to <c>true</c> (which is the default value),
+            we'll get following new files:
+            </para>
+            <para>
+            <code language="image">
+            +----⁞---⁞-----+ ⁞  ⁞  ⁞
+            |┌───⁞───⁞────┐| ⁞  ⁞  ⁞
+            |│   ⁞  [A    B] ⁞  ⁞  ⁞
+            |└───⁞───⁞────┘| ⁞  ⁞  ⁞
+            |┌───⁞───⁞────┐| ⁞  ⁞  ⁞
+            |│  [A   B]   │| ⁞  ⁞  ⁞
+            |└────────────┘| ⁞  ⁞  ⁞
+            +--------------+ ⁞  ⁞  ⁞
+                         +---⁞--⁞--⁞--+
+                         |┌──⁞──⁞──⁞─┐|
+                         [A  B] ⁞  ⁞ │|
+                         |└─────⁞──⁞─┘|
+                         |┌─────⁞──⁞─┐|
+                         |│    [A  B]│|
+                         |└──────────┘|
+                         +------------+
+            </code>
+            </para>
+            <para>
+            So we have new Note On / Note Off events at points of split which gives us new notes.
+            </para>
+            </example>
         </member>
         <member name="P:Melanchall.DryWetMidi.Tools.SliceMidiFileSettings.PreserveTimes">
             <summary>
@@ -32208,8 +33014,80 @@
             </summary>
             <remarks>
             If <c>false</c> used, events will be moved to the start of a new file. If <c>true</c> used, events
-            will be placed in new files at the same times as in the input file.
+            will be placed in new files at the same absolute times as in the input file.
             </remarks>
+            <example>
+            <para>
+            Take a look at the following file with two track chunks which should be split at the time
+            defined by the vertical line:
+            </para>
+            <para>
+            <code language="image">
+            +-------------║-----------+
+            |┌────────────║──────────┐|
+            |│     E      ║       E  │|
+            |└─────⁞──────║───────⁞──┘|
+            |┌─────⁞──────║───────⁞──┐|
+            |│     ⁞    E ║ E     ⁞  │|
+            |└─────⁞────⁞─║─⁞─────⁞──┘|
+            +------⁞----⁞-║-⁞-----⁞---+
+            </code>
+            <para>
+            where each <c>E</c> symbol represents a MIDI event.
+            </para>
+            </para>
+            <para>
+            If <see cref="P:Melanchall.DryWetMidi.Tools.SliceMidiFileSettings.PreserveTimes"/> set to <c>false</c> (which is the default value),
+            we'll get following two new files:
+            </para>
+            <para>
+            <code language="image">
+            +------⁞----⁞--+⁞     ⁞
+            |┌─────⁞────⁞─┐|⁞     ⁞
+            |│     E    ⁞ │|⁞     ⁞
+            |└─────⁞────⁞─┘|⁞     ⁞
+            |┌─────⁞────⁞─┐|⁞     ⁞
+            |│     ⁞    E │|⁞     ⁞
+            |└─────⁞────⁞─┘|⁞     ⁞
+            +------⁞----⁞--+⁞     ⁞
+                        ⁞+--⁞-----⁞---+
+                        ⁞|┌─⁞─────⁞──┐|
+                        ⁞|│ ⁞     E  │|
+                        ⁞|└─⁞─────⁞──┘|
+                        ⁞|┌─⁞─────⁞──┐|
+                        ⁞|│ E     ⁞  │|
+                        ⁞|└─⁞─────⁞──┘|
+                        ⁞+--⁞-----⁞---+
+            </code>
+            </para>
+            <para>
+            But if <see cref="P:Melanchall.DryWetMidi.Tools.SliceMidiFileSettings.PreserveTimes"/> set to <c>true</c>, we'll get following new files:
+            </para>
+            <para>
+            <code language="image">
+            +------⁞----⁞--+⁞     ⁞
+            |┌─────⁞────⁞─┐|⁞     ⁞
+            |│     E    ⁞ │|⁞     ⁞
+            |└──────────⁞─┘|⁞     ⁞
+            |┌──────────⁞─┐|⁞     ⁞
+            |│          E │|⁞     ⁞
+            |└────────────┘|⁞     ⁞
+            +--------------+⁞     ⁞
+            +---------------⁞-----⁞---+
+            |┌──────────────⁞─────⁞──┐|
+            |│              ⁞     E  │|
+            |└──────────────⁞────────┘|
+            |┌──────────────⁞────────┐|
+            |│              E        │|
+            |└───────────────────────┘|
+            +-------------------------+
+            </code>
+            </para>
+            <para>
+            So events will not be shifted to the start of a file and will keep their original
+            absolute times.
+            </para>
+            </example>
         </member>
         <member name="P:Melanchall.DryWetMidi.Tools.SliceMidiFileSettings.PreserveTrackChunks">
             <summary>
@@ -32218,8 +33096,78 @@
             The default value is <c>false</c>.
             </summary>
             <remarks>
+            <para>
             If <c>false</c> used, track chunks without events will be removed from the result.
+            </para>
             </remarks>
+            <example>
+            <para>
+            Take a look at the following file with two track chunks which should be split at the times
+            defined by the vertical lines:
+            </para>
+            <para>
+            <code language="image">
+            +-------------║-----║-----+
+            |┌────────────║─────║────┐|
+            |│     E      ║     ║  E │|
+            |└─────⁞──────║─────║──⁞─┘|
+            |┌─────⁞──────║─────║──⁞─┐|
+            |│   E ⁞      ║ E   ║  ⁞ │|
+            |└───⁞─⁞──────║─⁞───║──⁞─┘|
+            +----⁞-⁞------║-⁞---║--⁞--+
+            </code>
+            </para>
+            <para>
+            where each <c>E</c> symbol represents a MIDI event.
+            </para>
+            <para>
+            If <see cref="P:Melanchall.DryWetMidi.Tools.SliceMidiFileSettings.PreserveTrackChunks"/> set to <c>false</c> (which is the default value),
+            we'll get following three new files:
+            </para>
+            <para>
+            <code language="image">
+            +----⁞-⁞-------+⁞  +---⁞--+
+            |┌───⁞─⁞──────┐|⁞  |┌──⁞─┐|
+            |│   ⁞ E      │|⁞  |│  E │|
+            |└───⁞─⁞──────┘|⁞  |└──⁞─┘|
+            |┌───⁞─⁞──────┐|⁞  +---⁞--+
+            |│   E ⁞      │|⁞      ⁞
+            |└───⁞─⁞──────┘|⁞      ⁞
+            +----⁞-⁞-------+⁞      ⁞
+                 ⁞ ⁞     +--⁞---+  ⁞
+                 ⁞ ⁞     |┌─⁞──┐|  ⁞
+                 ⁞ ⁞     |│ E  │|  ⁞
+                 ⁞ ⁞     |└─⁞──┘|  ⁞
+                 ⁞ ⁞     +--⁞---+  ⁞
+            </code>
+            </para>
+            <para>
+            But if <see cref="P:Melanchall.DryWetMidi.Tools.SliceMidiFileSettings.PreserveTrackChunks"/> set to <c>true</c>, we'll get following new files:
+            </para>
+            <para>
+            <code language="image">
+            +----⁞-⁞-------+⁞  +---⁞--+
+            |┌───⁞─⁞──────┐|⁞  |┌──⁞─┐|
+            |│   ⁞ E      │|⁞  |│  E │|
+            |└───⁞────────┘|⁞  |└────┘|
+            |┌───⁞────────┐|⁞  |┌────┐|
+            |│   E        │|⁞  |│    │|
+            |└────────────┘|⁞  |└────┘|
+            +--------------+⁞  +------+
+                         +--⁞---+ 
+                         |┌─⁞──┐|
+                         |│ ⁞  │|
+                         |└─⁞──┘|
+                         |┌─⁞──┐|
+                         |│ E  │|
+                         |└────┘|
+                         +------+
+            </code>
+            </para>
+            <para>
+            So empty track chunks still present in new files because they're present in the original ones.
+            </para>
+            </example>
         </member>
         <member name="P:Melanchall.DryWetMidi.Tools.SliceMidiFileSettings.Markers">
             <summary>
@@ -32232,16 +33180,70 @@
             Defines how a MIDI file should be split by channel using
             <see cref="M:Melanchall.DryWetMidi.Tools.MidiFileSplitter.SplitByChannel(Melanchall.DryWetMidi.Core.MidiFile,Melanchall.DryWetMidi.Tools.SplitFileByChannelSettings)"/> method.
             </summary>
+            <seealso cref="T:Melanchall.DryWetMidi.Tools.MidiFileSplitter"/>
         </member>
         <member name="P:Melanchall.DryWetMidi.Tools.SplitFileByChannelSettings.CopyNonChannelEventsToEachFile">
+            <summary>
             Gets or sets a value indicating whether to copy all meta and system exclusive events
             to all the new files or throw them away. The default value is <c>true</c>>.
+            </summary>
+            <example>
+            <para>
+            Given a MIDI file with two track chunks:
+            </para>
+            <code language="image">
+            +-------------------+
+            |┌─────────────────┐|
+            |│. □ .  ○ .  □□  .│|
+            |└─────────────────┘|
+            |┌─────────────────┐|
+            |│ . . .○ . .○  □. │|
+            |└─────────────────┘|
+            +-------------------+
+            </code>
+            <para>
+            where <c>○</c> and <c>□</c> mean channel MIDI events on channel 0 and 1 correspondingly;
+            <c>.</c> is any non-channel event.
+            </para>
+            <para>
+            If <see cref="P:Melanchall.DryWetMidi.Tools.SplitFileByChannelSettings.CopyNonChannelEventsToEachFile"/> set to <c>true</c> (which is the default
+            value), we'll get following two new files:
+            </para>
+            <code language="image">
+            +-------------------+
+            |┌─────────────────┐|
+            |│..□...  ... □□□..│|
+            |└─────────────────┘|
+            +-------------------+
+            +-------------------+
+            |┌─────────────────┐|
+            |│.. ...○○...○   ..│|
+            |└─────────────────┘|
+            +-------------------+
+            </code>
+            <para>
+            But if <see cref="P:Melanchall.DryWetMidi.Tools.SplitFileByChannelSettings.CopyNonChannelEventsToEachFile"/> set to <c>false</c>, new files will
+            contain only channel events:
+            </para>
+            <code language="image">
+            +-------------------+
+            |┌─────────────────┐|
+            |│  □         □□□  │|
+            |└─────────────────┘|
+            +-------------------+
+            +-------------------+
+            |┌─────────────────┐|
+            |│      ○○   ○     │|
+            |└─────────────────┘|
+            +-------------------+
+            </code>
+            </example>
         </member>
         <member name="P:Melanchall.DryWetMidi.Tools.SplitFileByChannelSettings.Filter">
             <summary>
             Gets or sets a predicate to filter events out before processing. If predicate returns <c>true</c>,
-            an event will be processed; if <c>false</c> - it won't. If the property set to <c>null</c>,
-            all MIDI events will be processed.
+            an event will be processed; if <c>false</c> - it won't. If the property set to <c>null</c>
+            (default value), all MIDI events will be processed.
             </summary>
         </member>
         <member name="T:Melanchall.DryWetMidi.Tools.SplitFileByChunksSettings">
@@ -32249,12 +33251,13 @@
             Defines how a MIDI file should be split by chunks using
             <see cref="M:Melanchall.DryWetMidi.Tools.MidiFileSplitter.SplitByChunks(Melanchall.DryWetMidi.Core.MidiFile,Melanchall.DryWetMidi.Tools.SplitFileByChunksSettings)"/> method.
             </summary>
+            <seealso cref="T:Melanchall.DryWetMidi.Tools.MidiFileSplitter"/>
         </member>
         <member name="P:Melanchall.DryWetMidi.Tools.SplitFileByChunksSettings.Filter">
             <summary>
             Gets or sets a predicate to filter chunks out before processing. If predicate returns <c>true</c>,
-            a chunk will be processed; if <c>false</c> - it won't. If the property set to <c>null</c>,
-            all MIDI chunks will be processed.
+            a chunk will be processed; if <c>false</c> - it won't. If the property set to <c>null</c> (default
+            value), all MIDI chunks will be processed.
             </summary>
         </member>
         <member name="T:Melanchall.DryWetMidi.Tools.SplitFileByNotesSettings">
@@ -32262,16 +33265,69 @@
             Defines how a MIDI file should be split by notes using
             <see cref="M:Melanchall.DryWetMidi.Tools.MidiFileSplitter.SplitByNotes(Melanchall.DryWetMidi.Core.MidiFile,Melanchall.DryWetMidi.Tools.SplitFileByNotesSettings)"/> method.
             </summary>
+            <seealso cref="T:Melanchall.DryWetMidi.Tools.MidiFileSplitter"/>
         </member>
         <member name="P:Melanchall.DryWetMidi.Tools.SplitFileByNotesSettings.CopyNonNoteEventsToEachFile">
+            <summary>
             Gets or sets a value indicating whether to copy all non-note events
             to all the new files or throw them away. The default value is <c>true</c>>.
+            </summary>
+            <example>
+            <para>
+            For example, a MIDI file contains following notes:
+            </para>
+            <code language="image">
+            +-----------------------+
+            |┌─────────────────────┐|
+            |│. [ A ]  [   B   ]. .│|
+            |└─────────────────────┘|
+            |┌─────────────────────┐|
+            |│ .  [ B ]  [  A  ] . │|
+            |└─────────────────────┘|
+            +-----------------------+
+            </code>
+            <para>
+            where <c>A</c> and <c>B</c> mean different notes; <c>.</c> is any non-note event.
+            </para>
+            <para>
+            If <see cref="P:Melanchall.DryWetMidi.Tools.SplitFileByNotesSettings.CopyNonNoteEventsToEachFile"/> set to <c>true</c> (default value), we'll get following
+            two new files:
+            </para>
+            <code language="image">
+            +-----------------------+
+            |┌─────────────────────┐|
+            |│..[ A ]    [  A  ]...│|
+            |└─────────────────────┘|
+            +-----------------------+
+            +-----------------------+
+            |┌─────────────────────┐|
+            |│..  [ B ][   B   ]...│|
+            |└─────────────────────┘|
+            +-----------------------+
+            </code>
+            <para>
+            But if <see cref="P:Melanchall.DryWetMidi.Tools.SplitFileByNotesSettings.CopyNonNoteEventsToEachFile"/> set to <c>false</c>, each new file will contain
+            only note events:
+            </para>
+            <code language="image">
+            +-----------------------+
+            |┌─────────────────────┐|
+            |│  [ A ]    [  A  ]   │|
+            |└─────────────────────┘|
+            +-----------------------+
+            +-----------------------+
+            |┌─────────────────────┐|
+            |│    [ B ][   B   ]   │|
+            |└─────────────────────┘|
+            +-----------------------+
+            </code>
+            </example>
         </member>
         <member name="P:Melanchall.DryWetMidi.Tools.SplitFileByNotesSettings.Filter">
             <summary>
             Gets or sets a predicate to filter events out before processing. If predicate returns <c>true</c>,
-            an event will be processed; if <c>false</c> - it won't. If the property set to <c>null</c>,
-            all MIDI events will be processed.
+            an event will be processed; if <c>false</c> - it won't. If the property set to <c>null</c>
+            (default value), all MIDI events will be processed.
             </summary>
         </member>
         <member name="P:Melanchall.DryWetMidi.Tools.SplitFileByNotesSettings.IgnoreChannel">
@@ -32280,6 +33336,65 @@
             If set to <c>true</c>, notes with the same note number but different channels will be
             treated as same ones. The default value is <c>false</c>.
             </summary>
+            <example>
+            <para>
+            For example, a MIDI file contains following notes:
+            </para>
+            <code language="image">
+            +----------------------------------+
+            |┌────────────────────────────────┐|
+            |│  [ A0 ]  [  B1  ]    [  A1  ]  │|
+            |└────────────────────────────────┘|
+            |┌────────────────────────────────┐|
+            |│    [ B2 ]  [  A0  ]            │|
+            |└────────────────────────────────┘|
+            +----------------------------------+
+            </code>
+            <para>
+            where <c>AN</c> and <c>BN</c> mean different notes on channel <c>N</c>.
+            </para>
+            <para>
+            If <see cref="P:Melanchall.DryWetMidi.Tools.SplitFileByNotesSettings.IgnoreChannel"/> set to <c>false</c> (which is the default value),
+            we'll get four new files (since different channel means different note):
+            </para>
+            <code language="image">
+            +----------------------------------+
+            |┌────────────────────────────────┐|
+            |│  [ A0 ]    [  A0  ]            │|
+            |└────────────────────────────────┘|
+            +----------------------------------+
+            +----------------------------------+
+            |┌────────────────────────────────┐|
+            |│                      [  A1  ]  │|
+            |└────────────────────────────────┘|
+            +----------------------------------+
+            +----------------------------------+
+            |┌────────────────────────────────┐|
+            |│          [  B1  ]              │|
+            |└────────────────────────────────┘|
+            +----------------------------------+
+            +----------------------------------+
+            |┌────────────────────────────────┐|
+            |│    [ B2 ]                      │|
+            |└────────────────────────────────┘|
+            +----------------------------------+
+            </code>
+            <para>
+            But if <see cref="P:Melanchall.DryWetMidi.Tools.SplitFileByNotesSettings.IgnoreChannel"/> set to <c>true</c>, we'll get two files:
+            </para>
+            <code language="image">
+            +----------------------------------+
+            |┌────────────────────────────────┐|
+            |│  [ A0 ]    [  A0  ]  [  A1  ]  │|
+            |└────────────────────────────────┘|
+            +----------------------------------+
+            +----------------------------------+
+            |┌────────────────────────────────┐|
+            |│    [ B2 ][  B1  ]              │|
+            |└────────────────────────────────┘|
+            +----------------------------------+
+            </code>
+            </example>
         </member>
         <member name="T:Melanchall.DryWetMidi.Tools.SliceMidiFileMarkers">
             <summary>
