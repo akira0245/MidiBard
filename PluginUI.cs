@@ -30,6 +30,8 @@ namespace MidiBard
 		private static bool Debug = false;
 		public bool IsVisible;
 
+		private static string searchstring = "";
+
 		//[SecurityPermission(SecurityAction.Demand, ControlThread = true)]
 		//private static void KillTheThread()
 		//{
@@ -37,6 +39,7 @@ namespace MidiBard
 		//}
 		//private static Thread BrowseThread;
 
+		private float playlistScrollY = 0;
 
 		private static void HelpMarker(string desc, bool sameline = true)
 		{
@@ -55,6 +58,13 @@ namespace MidiBard
 				ImGui.PopFont();
 			}
 		}
+		private static bool IconButton(FontAwesomeIcon icon, string id)
+		{
+			ImGui.PushFont(UiBuilder.IconFont);
+			var ret = ImGui.Button($"{icon.ToIconString()}##{id}");
+			ImGui.PopFont();
+			return ret;
+		}
 
 		private static void ToolTip(string desc)
 		{
@@ -69,11 +79,12 @@ namespace MidiBard
 				ImGui.PopFont();
 			}
 		}
+		private const uint ColorRed = 0xFF0000C8;
 		const uint orange = 0xAA00B0E0;
 		const uint red = 0xAA0000D0;
-		const uint grassgreen1 = 0xFF00A0D0;
-		const uint grassgreen2 = 0xFF00A0D0;
-		const uint grassgreen3 = 0xFF00A0D0;
+		const uint grassgreen = 0x9C60FF8E;
+		const uint alphaedgrassgreen = 0x3C60FF8E;
+		const uint darkgreen = 0xAC104020;
 		const uint violet = 0xAAFF888E;
 
 		public unsafe void Draw()
@@ -81,9 +92,6 @@ namespace MidiBard
 			if (!IsVisible)
 				return;
 
-			//var Buttoncolor = *ImGui.GetStyleColorVec4(ImGuiCol.Button);
-			//var ButtonHoveredcolor = *ImGui.GetStyleColorVec4(ImGuiCol.ButtonHovered);
-			//var ButtonActivecolor = *ImGui.GetStyleColorVec4(ImGuiCol.ButtonActive);
 			ImGui.SetNextWindowPos(new Vector2(100, 100), ImGuiCond.FirstUseEver);
 			var scaledWidth = 357 * ImGui.GetIO().FontGlobalScale;
 			ImGui.SetNextWindowSizeConstraints(new Vector2(scaledWidth, 0), new Vector2(scaledWidth, 10000));
@@ -125,7 +133,7 @@ namespace MidiBard
 
 				if (ImGui.Begin("MidiBard", ref IsVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | flag))
 				{
-					void coloredSelectable(uint color, string content)
+					void DrawColoredBanner(uint color, string content)
 					{
 						ImGui.PushStyleColor(ImGuiCol.Button, color);
 						ImGui.PushStyleColor(ImGuiCol.ButtonHovered, color);
@@ -133,25 +141,22 @@ namespace MidiBard
 						ImGui.PopStyleColor(2);
 					}
 
-					ImGui.PushStyleVar(ImGuiStyleVar.SelectableTextAlign, new Vector2(0.5f, 0.5f));
 					if (ensembleModeRunning)
 					{
 						if (ensemblePreparing)
 						{
-							coloredSelectable(orange, "Ensemble Mode Preparing".Localize());
+							DrawColoredBanner(orange, "Ensemble Mode Preparing".Localize());
 						}
 						else
 						{
-							coloredSelectable(red, "Ensemble Mode Running".Localize());
+							DrawColoredBanner(red, "Ensemble Mode Running".Localize());
 						}
 					}
 
 					if (listeningForEvents)
 					{
-						coloredSelectable(violet, "Listening input device: ".Localize() + DeviceManager.CurrentInputDevice.ToDeviceString());
+						DrawColoredBanner(violet, "Listening input device: ".Localize() + DeviceManager.CurrentInputDevice.ToDeviceString());
 					}
-
-					ImGui.PopStyleVar();
 
 					if (!config.miniPlayer)
 					{
@@ -168,27 +173,40 @@ namespace MidiBard
 								DrawImportProgress();
 							}
 
-							if (_hasError) DrawFailedImportMessage();
-
 							//ImGui.SameLine();
 							//if (ImGui.Button("Remove Selected"))
 							//{
 							//	PlaylistManager.Remove(PlaylistManager.currentPlaying);
 							//}
+							ImGui.SameLine();
+							ImGui.PushStyleColor(ImGuiCol.Text, config.enableSearching ? config.themeColor : *ImGui.GetStyleColorVec4(ImGuiCol.Text));
+							if (IconButton(FontAwesomeIcon.Search, "searchbutton"))
+							{
+								config.enableSearching ^= true;
+							}
+							ImGui.PopStyleColor();
+							ToolTip("Search playlist".Localize());
 
 							ImGui.SameLine();
-							if (ImGui.Button("Clear Playlist".Localize())) PlaylistManager.Clear();
+							ImGui.Button("Clear Playlist".Localize());
+							if (ImGui.IsItemHovered())
+							{
+								ImGui.BeginTooltip();
+								ImGui.TextUnformatted("Double click to clear playlist.".Localize());
+								ImGui.EndTooltip();
+								if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+								{
+									PlaylistManager.Clear();
+								}
+							}
+
+
 
 							if (localizer.Language == UILang.CN)
 							{
-								ImGui.PushFont(UiBuilder.IconFont);
-								ImGui.SameLine(ImGui.GetWindowContentRegionWidth() - ImGui.CalcTextSize(FontAwesomeIcon.QuestionCircle.ToIconString()).X - ImGui.GetStyle().FramePadding.X * 2 + ImGui.GetCursorPosX());
-								if (ImGui.Button(FontAwesomeIcon.QuestionCircle.ToIconString()))
-								{
-									//config.showHelpWindow ^= true;
-								}
+								ImGui.SameLine(ImGui.GetWindowContentRegionWidth() - ImGui.CalcTextSize(FontAwesomeIcon.QuestionCircle.ToIconString()).X - ImGui.GetStyle().FramePadding.X * 2 - ImGui.GetCursorPosX());
 
-								ImGui.PopFont();
+								IconButton(FontAwesomeIcon.QuestionCircle, "helpbutton");
 
 								if (ImGui.IsItemHovered())
 								{
@@ -251,27 +269,51 @@ namespace MidiBard
 						if (PlaylistManager.Filelist.Count == 0)
 						{
 							if (ImGui.Button("Import midi files to start performing!".Localize(), new Vector2(-1, ImGui.GetFrameHeight())))
+							{
 								RunImportTask();
+							}
 						}
 						else
 						{
+							if (config.enableSearching)
+							{
+								ImGui.SetNextItemWidth(-1);
+								if (ImGui.InputText("##searchplaylist", ref searchstring, 255, ImGuiInputTextFlags.AutoSelectAll | ImGuiInputTextFlags.EnterReturnsTrue))
+								{
+									config.enableSearching = false;
+								}
+							}
+
 							ImGui.PushStyleColor(ImGuiCol.Button, 0);
 							ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0);
 							ImGui.PushStyleColor(ImGuiCol.ButtonActive, 0);
-							ImGui.PushStyleColor(ImGuiCol.Header, 0x3C60FF8E);
-							if (ImGui.BeginTable("##PlaylistTable", 3,
-								ImGuiTableFlags.RowBg | ImGuiTableFlags.PadOuterX |
-								ImGuiTableFlags.ScrollY | ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.ContextMenuInBody,
-								new Vector2(-1,
-									ImGui.GetTextLineHeightWithSpacing() * Math.Min(10,
-										PlaylistManager.Filelist.Count)
-								)))
+							ImGui.PushStyleColor(ImGuiCol.Header, config.themeColorTransparent);
+							if (ImGui.BeginTable(str_id: "##PlaylistTable", column: 3,
+								flags: ImGuiTableFlags.RowBg | ImGuiTableFlags.PadOuterX | ImGuiTableFlags.ScrollY | ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.ContextMenuInBody,
+								outer_size: new Vector2(x: -1, y: ImGui.GetTextLineHeightWithSpacing() * Math.Min(val1: 10, val2: PlaylistManager.Filelist.Count))))
 							{
 								ImGui.TableSetupColumn("\ue035", ImGuiTableColumnFlags.WidthFixed);
 								ImGui.TableSetupColumn("##delete", ImGuiTableColumnFlags.WidthFixed);
 								ImGui.TableSetupColumn("filename", ImGuiTableColumnFlags.WidthStretch);
 								for (var i = 0; i < PlaylistManager.Filelist.Count; i++)
 								{
+									if (config.enableSearching)
+									{
+										try
+										{
+											var item2 = PlaylistManager.Filelist[i].Item2;
+											if (!item2.ContainsIgnoreCase(searchstring))
+											{
+												continue;
+											}
+										}
+										catch (Exception e)
+										{
+											continue;
+										}
+									}
+
+
 									ImGui.TableNextRow();
 									ImGui.TableSetColumnIndex(0);
 									if (ImGui.Selectable($"{i + 1:000}##plistitem", PlaylistManager.CurrentPlaying == i,
@@ -317,7 +359,13 @@ namespace MidiBard
 									{
 										var item2 = PlaylistManager.Filelist[i].Item2;
 										ImGui.TextUnformatted(item2);
-										ToolTip(item2);
+
+										if (ImGui.IsItemHovered())
+										{
+											ImGui.BeginTooltip();
+											ImGui.TextUnformatted(item2);
+											ImGui.EndTooltip();
+										}
 									}
 									catch (Exception e)
 									{
@@ -331,50 +379,6 @@ namespace MidiBard
 
 							ImGui.PopStyleColor(4);
 						}
-
-						#region old playlist
-
-						//ImGui.BeginListBox("##PlayList1", new Vector2(-1, ImGui.GetTextLineHeightWithSpacing() * maxItems));
-						//{
-						//	var i = 0;
-						//	foreach (var tuple in PlaylistManager.Filelist)
-						//	{
-						//		if (PlaylistManager.currentPlaying == i)
-						//		{
-						//			ImGui.PushStyleColor(ImGuiCol.Text, config.ThemeColor);
-						//		}
-
-						//		if (ImGui.Selectable($"{tuple.Item2}##{i}", PlaylistManager.currentSelected[i], ImGuiSelectableFlags.AllowDoubleClick))
-						//		{
-
-						//		}
-						//		if (PlaylistManager.currentPlaying == i)
-						//		{
-						//			ImGui.PopStyleColor();
-						//		}
-						//		i++;
-						//	}
-						//}
-						//ImGui.EndListBox();
-						//ImGui.Text(sb.ToString());
-
-						//if (ImGui.ListBox("##PlayList", ref PlaylistManager.currentPlaying, items, itemsCount, maxItems))
-						//{
-						//	var wasplaying = IsPlaying;
-						//	currentPlayback?.Dispose();
-
-						//	try
-						//	{
-						//		currentPlayback = PlaylistManager.Filelist[PlaylistManager.currentPlaying].Item1.GetPlayback();
-						//		if (wasplaying) currentPlayback?.Start();
-						//	}
-						//	catch (Exception e)
-						//	{
-
-						//	}
-						//}
-
-						#endregion
 
 						ImGui.Spacing();
 					}
@@ -413,34 +417,8 @@ namespace MidiBard
 						ImGui.Separator();
 						DrawPanelGeneralSettings();
 					}
+
 					if (Debug) DrawDebugWindow();
-
-					var size = ImGui.GetWindowSize();
-					var pos = ImGui.GetWindowPos();
-					var vp = ImGui.GetWindowViewport();
-
-
-
-					////ImGui.SetNextWindowViewport(vp.ID);
-					//ImGui.SetNextWindowPos(pos + new Vector2(size.X + 1, 0));
-					////ImGui.SetNextWindowSizeConstraints(Vector2.Zero, size);
-					//if (config.showInstrumentSwitchWindow && ImGui.Begin("Instrument".Localize(), ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoBringToFrontOnFocus | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.AlwaysAutoResize))
-					//{
-					//	ImGui.SetNextItemWidth(120);
-					//	UIcurrentInstrument = Plugin.CurrentInstrument;
-					//	if (ImGui.ListBox("##instrumentSwitch", ref UIcurrentInstrument,
-					//		InstrumentSheet.Select(i => i.Instrument.ToString()).ToArray(), (int)InstrumentSheet.RowCount,
-					//		(int)InstrumentSheet.RowCount))
-					//	{
-					//		Task.Run(() => SwitchInstrument.SwitchTo((uint)UIcurrentInstrument));
-					//	}
-
-					//	//if (ImGui.Button("Quit"))
-					//	//{
-					//	//	Task.Run(() => SwitchInstrument.SwitchTo(0));
-					//	//}
-					//	ImGui.End();
-					//}
 
 					ImGui.End();
 				}
@@ -457,7 +435,7 @@ namespace MidiBard
 		{
 			try
 			{
-				ImGui.TextColored(new Vector4(0.7f, 1f, 0.5f, 0.9f), $"{PlaylistManager.CurrentPlaying + 1:000} {PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].Item2}");
+				ImGui.TextColored(config.themeColor * new Vector4(1, 1, 1, 1.3f), $"{PlaylistManager.CurrentPlaying + 1:000} {PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].Item2}");
 			}
 			catch (Exception e)
 			{
@@ -472,7 +450,7 @@ namespace MidiBard
 
 		private static unsafe void DrawProgressBar()
 		{
-			ImGui.PushStyleColor(ImGuiCol.PlotHistogram, 0x9C60FF8E);
+			ImGui.PushStyleColor(ImGuiCol.PlotHistogram, config.themeColor);
 			//ImGui.PushStyleColor(ImGuiCol.FrameBg, 0x800000A0);
 
 
@@ -494,7 +472,7 @@ namespace MidiBard
 					//
 				}
 
-				ImGui.PushStyleColor(ImGuiCol.FrameBg, 0xAC104020);
+				ImGui.PushStyleColor(ImGuiCol.FrameBg, config.themeColorDark);
 				ImGui.ProgressBar(progress, new Vector2(-1, 3));
 				ImGui.PopStyleColor();
 			}
@@ -517,7 +495,7 @@ namespace MidiBard
 					currentInstrumentText = InstrumentSheet.GetRow(currentInstrument).Instrument;
 					if (PlayingGuitar && config.OverrideGuitarTones)
 					{
-						currentInstrumentText = currentInstrumentText.Split(':', '：').First()+": Auto";
+						currentInstrumentText = currentInstrumentText.Split(':', '：').First() + ": Auto";
 					}
 				}
 				else
@@ -550,12 +528,8 @@ namespace MidiBard
 
 		private static unsafe void DrawButtonShowPlayerControl()
 		{
-			var Textcolor = *ImGui.GetStyleColorVec4(ImGuiCol.Text);
 			ImGui.SameLine();
-			if (config.showMusicControlPanel)
-				ImGui.PushStyleColor(ImGuiCol.Text, 0x9C60FF8E);
-			else
-				ImGui.PushStyleColor(ImGuiCol.Text, Textcolor);
+			ImGui.PushStyleColor(ImGuiCol.Text, config.showMusicControlPanel ? config.themeColor : *ImGui.GetStyleColorVec4(ImGuiCol.Text));
 
 			if (ImGui.Button((FontAwesomeIcon.Music).ToIconString())) config.showMusicControlPanel ^= true;
 
@@ -565,12 +539,8 @@ namespace MidiBard
 
 		private static unsafe void DrawButtonShowSettingsPanel()
 		{
-			var Textcolor = *ImGui.GetStyleColorVec4(ImGuiCol.Text);
 			ImGui.SameLine();
-			if (config.showSettingsPanel)
-				ImGui.PushStyleColor(ImGuiCol.Text, 0x9C60FF8E);
-			else
-				ImGui.PushStyleColor(ImGuiCol.Text, Textcolor);
+			ImGui.PushStyleColor(ImGuiCol.Text, config.showSettingsPanel ? config.themeColor : *ImGui.GetStyleColorVec4(ImGuiCol.Text));
 
 			if (ImGui.Button(FontAwesomeIcon.Cog.ToIconString())) config.showSettingsPanel ^= true;
 
@@ -681,6 +651,17 @@ namespace MidiBard
 					ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 2f);
 					ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(2, ImGui.GetStyle().ItemSpacing.Y));
 					ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign, new Vector2(0.6f, 0));
+
+					if (ImGui.IsWindowHovered() && !ImGui.IsAnyItemHovered())
+					{
+						ImGui.BeginTooltip();
+						ImGui.PushTextWrapPos(ImGui.GetFontSize() * 20.0f);
+						ImGui.TextUnformatted("Track Selection. \nMidiBard will only perform tracks been selected, which is useful in ensemble.".Localize());
+						ImGui.PopTextWrapPos();
+						ImGui.EndTooltip();
+					}
+
+
 					if (PlayingGuitar && config.OverrideGuitarTones)
 					{
 						ImGui.Columns(2);
@@ -750,7 +731,7 @@ namespace MidiBard
 							const uint colorGreen = 0xee_66bb66;
 							const uint colorYellow = 0xee_66bbbb;
 							const uint colorBlue = 0xee_bb6666;
-							void drawButton(int toneID, uint color, string toneName, int track)
+							void drawToneSelectButton(int toneID, uint color, string toneName, int track)
 							{
 								//ImGui.SameLine(width - (4.85f - toneID) * 3 * spacing);
 								var DrawColor = config.TracksTone[track] == toneID;
@@ -773,15 +754,15 @@ namespace MidiBard
 							}
 
 
-							drawButton(0, colorRed, " I ", i);
+							drawToneSelectButton(0, colorRed, " I ", i);
 							ImGui.SameLine();
-							drawButton(1, colorCyan, " II ", i);
+							drawToneSelectButton(1, colorCyan, " II ", i);
 							ImGui.SameLine();
-							drawButton(2, colorGreen, "III", i);
+							drawToneSelectButton(2, colorGreen, "III", i);
 							ImGui.SameLine();
-							drawButton(3, colorYellow, "IV", i);
+							drawToneSelectButton(3, colorYellow, "IV", i);
 							ImGui.SameLine();
-							drawButton(4, colorBlue, "V", i);
+							drawToneSelectButton(4, colorBlue, "V", i);
 							ImGui.NextColumn();
 						}
 					}
@@ -797,35 +778,6 @@ namespace MidiBard
 
 		private static void DrawPanelMusicControl()
 		{
-
-
-			var inputDevices = DeviceManager.Devices;
-
-			if (ImGui.BeginCombo("Input Device".Localize(), DeviceManager.CurrentInputDevice.ToDeviceString()))
-			{
-				if (ImGui.Selectable("None##device", DeviceManager.CurrentInputDevice is null))
-				{
-					DeviceManager.DisposeDevice();
-				}
-				for (int i = 0; i < inputDevices.Length; i++)
-				{
-					var device = inputDevices[i];
-					if (ImGui.Selectable($"{device.Name}##{i}", device.Id == DeviceManager.CurrentInputDevice?.Id))
-					{
-						DeviceManager.SetDevice(device);
-					}
-				}
-				ImGui.EndCombo();
-			}
-			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
-			{
-				DeviceManager.DisposeDevice();
-			}
-			ToolTip("Choose external midi input device. right click to reset.".Localize());
-
-
-
-
 			UIcurrentInstrument = Plugin.CurrentInstrument;
 			if (ImGui.Combo("Instrument".Localize(), ref UIcurrentInstrument, InstrumentStrings, InstrumentStrings.Length, 20))
 			{
@@ -962,6 +914,29 @@ namespace MidiBard
 			//	//CurrentInputDevice.Connect(CurrentOutputDevice);
 			//}
 
+			var inputDevices = DeviceManager.Devices;
+
+			if (ImGui.BeginCombo("Input Device".Localize(), DeviceManager.CurrentInputDevice.ToDeviceString()))
+			{
+				if (ImGui.Selectable("None##device", DeviceManager.CurrentInputDevice is null))
+				{
+					DeviceManager.DisposeDevice();
+				}
+				for (int i = 0; i < inputDevices.Length; i++)
+				{
+					var device = inputDevices[i];
+					if (ImGui.Selectable($"{device.Name}##{i}", device.Id == DeviceManager.CurrentInputDevice?.Id))
+					{
+						DeviceManager.SetDevice(device);
+					}
+				}
+				ImGui.EndCombo();
+			}
+			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+			{
+				DeviceManager.DisposeDevice();
+			}
+			ToolTip("Choose external midi input device. right click to reset.".Localize());
 
 
 			if (ImGui.Combo("UI Language".Localize(), ref config.uiLang, uilangStrings, 2))
@@ -976,23 +951,23 @@ namespace MidiBard
 			//if (localizer.Language == UILang.CN) HelpMarker("在收到合奏准备确认时自动选择确认。");
 
 			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
+
 			ImGui.Checkbox("Monitor ensemble".Localize(), ref config.MonitorOnEnsemble);
 			HelpMarker("Auto start ensemble when entering in-game party ensemble mode.".Localize());
 
-
 			ImGui.Checkbox("Auto transpose".Localize(), ref config.autoPitchShift);
 			HelpMarker("Auto transpose notes on demand. If you need this, \nplease add #transpose number# before file name.\nE.g. #-12#demo.mid".Localize());
+
 			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
 
 			ImGui.Checkbox("Auto switch instrument".Localize(), ref config.autoSwitchInstrument);
 			HelpMarker("Auto switch instrument on demand. If you need this, \nplease add #instrument name# before file name.\nE.g. #harp#demo.mid".Localize());
-			ImGui.Checkbox("Override Guitar Tones".Localize(), ref config.OverrideGuitarTones);
+
+			ImGui.Checkbox("Override guitar tones".Localize(), ref config.OverrideGuitarTones);
+			HelpMarker("Assign different guitar tones for each midi tracks".Localize());
+
 			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
 			if (ImGui.Button("Debug info", new Vector2(-1, ImGui.GetFrameHeight()))) Debug = !Debug;
-			//if (ImGui.ColorPicker4("Theme Color", ref config.ThemeColor, ImGuiColorEditFlags.AlphaBar))
-			//{
-
-			//}
 		}
 		private static void DrawDebugWindow()
 		{
@@ -1146,6 +1121,18 @@ namespace MidiBard
 					PluginLog.Error(e.ToString());
 				}
 
+				if (ImGui.ColorEdit4("Theme color".Localize(), ref config.themeColor, ImGuiColorEditFlags.AlphaPreview | ImGuiColorEditFlags.AlphaBar | ImGuiColorEditFlags.NoInputs))
+				{
+					config.themeColorDark = config.themeColor * new Vector4(0.25f, 0.25f, 0.25f, 1);
+					config.themeColorTransparent = config.themeColor * new Vector4(1, 1, 1, 0.33f);
+				}
+
+				if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
+				{
+					config.themeColor = ImGui.ColorConvertU32ToFloat4(0x9C60FF8E);
+					config.themeColorDark = config.themeColor * new Vector4(0.25f, 0.25f, 0.25f, 1);
+					config.themeColorTransparent = config.themeColor * new Vector4(1, 1, 1, 0.33f);
+				}
 				#region Generator
 
 				//ImGui.Separator();
@@ -1374,7 +1361,6 @@ namespace MidiBard
 		private static readonly string FailedImport =
 			"One or more of your modpacks failed to import.\nPlease submit a bug report.".Localize();
 
-		private const uint ColorRed = 0xFF0000C8;
 
 		private void DrawImportButton()
 		{
@@ -1388,13 +1374,6 @@ namespace MidiBard
 			{
 				ImGui.PopFont();
 			}
-		}
-
-		private static void DrawFailedImportMessage()
-		{
-			ImGui.PushStyleColor(ImGuiCol.Text, ColorRed);
-			ImGui.TextUnformatted(FailedImport);
-			ImGui.PopStyleColor();
 		}
 
 		private void DrawImportProgress()

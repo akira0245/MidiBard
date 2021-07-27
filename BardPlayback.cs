@@ -11,8 +11,9 @@ namespace MidiBard
 {
 	public sealed class BardPlayback : Playback
 	{
-		public BardPlayback(IEnumerable<ITimedObject> timedObjects, TempoMap tempoMap, MidiClockSettings clockSettings) : base(timedObjects, tempoMap, clockSettings)
+		public BardPlayback(IEnumerable<ITimedObject> timedObjects, TempoMap tempoMap, MidiClockSettings clockSettings) : base(timedObjects, tempoMap, new PlaybackSettings(){ ClockSettings = clockSettings})
 		{
+
 		}
 
 		protected override bool TryPlayEvent(MidiEvent midiEvent, object metadata)
@@ -22,5 +23,4 @@ namespace MidiBard
 			return Plugin.CurrentOutputDevice.SendEventWithMetadata(midiEvent, metadata);
 		}
 	}
-
 }

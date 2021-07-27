@@ -90,11 +90,10 @@ namespace MidiBard
 			localizer = new Localizer((UILang)config.uiLang);
 
 			commandManager = new PluginCommandManager<Plugin>(this, pluginInterface);
+			
+			playlib.initialize(pluginInterface, this);
 
-			playlib.initialize(pluginInterface);
 			CurrentOutputDevice = new BardPlayDevice();
-			//CurrentInputDevice = InputDevice.GetAll().First();
-			//CurrentInputDevice.EventReceived += CurrentInputDeviceOnEventReceived;
 
 			AgentManager.Initialize();
 
@@ -152,8 +151,7 @@ namespace MidiBard
 					{
 						try
 						{
-							config.Save();
-							PluginLog.Debug("config saved.");
+							Task.Run(() => config.Save());
 						}
 						catch (Exception e)
 						{
@@ -205,14 +203,7 @@ namespace MidiBard
 				}
 				else
 				{
-					//if (config.AutoConfirmEnsembleReadyCheck)
-					{
-						var confirmWindow = pluginInterface.Framework.Gui.GetAddonByName("PerformanceReadyCheckReceive", 1);
-						if (confirmWindow != null)
-						{
-							playlib.ConfirmReadyCheck(confirmWindow.Address);
-						}
-					}
+					playlib.ConfirmReadyCheck();
 
 					if (wasEnsembleModeRunning && IsPlaying)
 					{

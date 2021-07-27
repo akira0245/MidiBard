@@ -10,7 +10,7 @@ namespace MidiBard
 {
 	class BardPlayDevice : IOutputDevice
 	{
-		
+
 		public void PrepareForEventsSending()
 		{
 
@@ -18,28 +18,19 @@ namespace MidiBard
 
 		public bool SendEventWithMetadata(MidiEvent midiEvent, object metadata)
 		{
-			// Place your logic here
-			// Return true if event sent to plug-in; false otherwise
-			var trackIndex = (int)metadata;
+			if (!Plugin.InPerformanceMode) return false;
 
+			var trackIndex = (int)metadata;
 			if (!Plugin.config.EnabledTracks[trackIndex])
 			{
 				return false;
 			}
 
-			var keyboard = Plugin.pluginInterface.Framework.Gui.GetAddonByName("PerformanceModeWide", 1);
-			if (keyboard == null) return false;
-
 			if (midiEvent is NoteOnEvent noteOnEvent)
 			{
 				if (Plugin.PlayingGuitar && Plugin.config.OverrideGuitarTones)
 				{
-					var tone = Plugin.config.TracksTone[trackIndex];
-					var PerformanceToneChange = Plugin.pluginInterface.Framework.Gui.GetAddonByName("PerformanceToneChange", 1);
-					if (PerformanceToneChange != null)
-					{
-						playlib.GuitarSwitchTone(PerformanceToneChange.Address, tone);
-					}
+					playlib.GuitarSwitchTone(Plugin.config.TracksTone[trackIndex]);
 				}
 
 				var noteNum = noteOnEvent.NoteNumber - 48 + Plugin.config.NoteNumberOffset;
@@ -70,7 +61,7 @@ namespace MidiBard
 				PluginLog.Verbose(s);
 
 				if (noteNum < 0 || noteNum > 36) return false;
-				playlib.PressKey(keyboard.Address, noteNum);
+				return playlib.PressKey(noteNum);
 			}
 			else if (midiEvent is NoteOffEvent noteOffEvent)
 			{
@@ -90,17 +81,16 @@ namespace MidiBard
 					}
 				}
 				if (noteNum < 0 || noteNum > 36) return false;
-				playlib.ReleaseKey(keyboard.Address, noteNum);
+				return playlib.ReleaseKey(noteNum);
 			}
 
-			return true;
+			return false;
 		}
 
 
 		public void SendEvent(MidiEvent midiEvent)
 		{
-			var keyboard = Plugin.pluginInterface.Framework.Gui.GetAddonByName("PerformanceModeWide", 1);
-			if (keyboard == null) return;
+			if (!Plugin.InPerformanceMode) return;
 
 			if (midiEvent is NoteOnEvent noteOnEvent)
 			{
@@ -132,7 +122,7 @@ namespace MidiBard
 				PluginLog.Verbose(s);
 
 				if (noteNum < 0 || noteNum > 36) return;
-				playlib.PressKey(keyboard.Address, noteNum);
+				playlib.PressKey(noteNum);
 			}
 			else if (midiEvent is NoteOffEvent noteOffEvent)
 			{
@@ -152,7 +142,7 @@ namespace MidiBard
 					}
 				}
 				if (noteNum < 0 || noteNum > 36) return;
-				playlib.ReleaseKey(keyboard.Address, noteNum);
+				playlib.ReleaseKey(noteNum);
 			}
 		}
 

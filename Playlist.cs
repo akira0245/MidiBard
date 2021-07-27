@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Documents;
 using Dalamud.Plugin;
 using Melanchall.DryWetMidi.Common;
 using Melanchall.DryWetMidi.Core;

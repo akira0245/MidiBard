@@ -3,9 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30621.155
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MidiBard", "MidiBard.csproj", "{D4FF1D53-CA5E-4734-A5FA-C8538A8992F1}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "playlib", "..\playlib\playlib.csproj", "{9A52620F-0F55-415C-917E-98EDABB3BEFE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MidiBard", "MidiBard.csproj", "{D4FF1D53-CA5E-4734-A5FA-C8538A8992F1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +15,6 @@ Global
 		{D4FF1D53-CA5E-4734-A5FA-C8538A8992F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D4FF1D53-CA5E-4734-A5FA-C8538A8992F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D4FF1D53-CA5E-4734-A5FA-C8538A8992F1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9A52620F-0F55-415C-917E-98EDABB3BEFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9A52620F-0F55-415C-917E-98EDABB3BEFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9A52620F-0F55-415C-917E-98EDABB3BEFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9A52620F-0F55-415C-917E-98EDABB3BEFE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

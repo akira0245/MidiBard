@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Windows.Documents;
 using Dalamud;
 using Dalamud.Configuration;
 using Dalamud.Plugin;
+using ImGuiNET;
 using Newtonsoft.Json;
 
 namespace MidiBard
@@ -47,10 +47,15 @@ namespace MidiBard
 		public bool showSettingsPanel = true;
 		public int playlistSizeY = 10;
 		public bool miniPlayer;
+		public bool enableSearching;
 
 		public bool autoSwitchInstrument = true;
 		public bool autoPitchShift = true;
 		public bool OverrideGuitarTones = true;
+
+		public Vector4 themeColor = ImGui.ColorConvertU32ToFloat4(0x9C60FF8E);
+		public Vector4 themeColorDark = ImGui.ColorConvertU32ToFloat4(0x9C60FF8E) * new Vector4(0.25f, 0.25f, 0.25f, 1);
+		public Vector4 themeColorTransparent = ImGui.ColorConvertU32ToFloat4(0x9C60FF8E) * new Vector4(1, 1, 1, 0.33f);
 
 		//public int testLength = 40;
 		//public int testInterval;
@@ -69,6 +74,7 @@ namespace MidiBard
 		public void Save()
 		{
 			this.pluginInterface.SavePluginConfig(this);
+			PluginLog.Debug("config saved.");
 		}
 	}
 }

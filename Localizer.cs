@@ -96,10 +96,14 @@ namespace MidiBard
 	            "设置Midi事件的播放速度倍数。\n例如将其设为0.5会使播放速度减半。\n右键点击来将它重置回1。");
             zh.Add("Set the playing progress. \nRight click to restart current playback.", "乐曲播放进度，右键点击回到乐曲开头。");
             zh.Add("Select current instrument. \nRight click to quit performance mode.", "设置和切换当前乐器，右键点击会退出演奏模式。");
-            zh.Add("Override Guitar Tones", "自动电吉他音色");
+            zh.Add("Override guitar tones", "自动电吉他音色");
             zh.Add("Listening input device: ", "正在监听MIDI输入：");
             zh.Add("Input Device", "输入设备");
             zh.Add("Choose external midi input device. right click to reset.", "选择当前的外部midi输入设备，例如虚拟midi接口或midi键盘。\n右键点击来停止使用外部输入。");
+            zh.Add("Double click to clear playlist.", "双击来清空播放列表");
+            zh.Add("Search playlist", "搜索播放列表");
+            zh.Add("Assign different guitar tones for each midi tracks.", "为每个Midi轨道分别指定电吉他音色。");
+            zh.Add("Theme color", "主题颜色");
 
 
         }

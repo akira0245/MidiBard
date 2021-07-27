@@ -16,40 +16,35 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Melanchall.DryWetMidi" Version="5.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="Dalamud">
-      <HintPath>..\..\..\AppData\Roaming\XIVLauncher\addon\Hooks\5.2.5.8\Dalamud.dll</HintPath>
+      <HintPath>..\..\..\Downloads\Compressed\Dalamud_v5.2.3.3_beta1\dalamud5261\Dalamud.dll</HintPath>
     </Reference>
     <Reference Include="ImGui.NET">
-      <HintPath>..\..\..\AppData\Roaming\XIVLauncher\addon\Hooks\5.2.5.8\ImGui.NET.dll</HintPath>
+      <HintPath>..\..\..\Downloads\Compressed\Dalamud_v5.2.3.3_beta1\dalamud5261\ImGui.NET.dll</HintPath>
     </Reference>
     <Reference Include="ImGuiScene">
-      <HintPath>..\..\..\AppData\Roaming\XIVLauncher\addon\Hooks\5.2.5.8\ImGuiScene.dll</HintPath>
+      <HintPath>..\..\..\Downloads\Compressed\Dalamud_v5.2.3.3_beta1\dalamud5261\ImGuiScene.dll</HintPath>
     </Reference>
     <Reference Include="Lumina">
-      <HintPath>..\..\..\Downloads\Compressed\Dalamud_v5.2.3.3_beta1\dalamudnew\Lumina.dll</HintPath>
+      <HintPath>..\..\..\Downloads\Compressed\Dalamud_v5.2.3.3_beta1\dalamud5261\Lumina.dll</HintPath>
     </Reference>
     <Reference Include="Lumina.Excel">
-      <HintPath>..\..\..\Downloads\Compressed\Dalamud_v5.2.3.3_beta1\dalamudnew\Lumina.Excel.dll</HintPath>
-    </Reference>
-    <Reference Include="Melanchall.DryWetMidi">
-      <HintPath>lib\Melanchall.DryWetMidi.dll</HintPath>
+      <HintPath>..\..\..\Downloads\Compressed\Dalamud_v5.2.3.3_beta1\dalamud5261\Lumina.Excel.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\..\Downloads\Compressed\Dalamud_v5.2.3.3_beta1\dalamudnew\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\..\Downloads\Compressed\Dalamud_v5.2.3.3_beta1\dalamud5261\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="playlib">
-      <HintPath>..\playlib\bin\Release\Confused\playlib.dll</HintPath>
+      <HintPath>..\LootMaster\playlib\bin\Release\playlib.dll</HintPath>
     </Reference>
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
     <Reference Include="SDL2-CS">
       <HintPath>..\..\..\Downloads\Compressed\Dalamud_v5.2.3.3_beta1\Dalamud_v5.2.3.3\SDL2-CS.dll</HintPath>
     </Reference>
     <Reference Include="System.Windows.Forms" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="lib\" />
   </ItemGroup>
 
 </Project>
