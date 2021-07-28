@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using Dalamud;
@@ -32,6 +33,7 @@ namespace MidiBard
 		public List<string> Playlist = new List<string>();
 
 		public float playSpeed = 1f;
+		public float secondsBetweenTracks = 3;
 		public int PlayMode = 0;
 		public int NoteNumberOffset = 0;
 		public bool AdaptNotesOOR = true;
@@ -73,8 +75,9 @@ namespace MidiBard
 
 		public void Save()
 		{
+			var startNew = Stopwatch.StartNew();
 			this.pluginInterface.SavePluginConfig(this);
-			PluginLog.Debug("config saved.");
+			PluginLog.Verbose($"config saved in {startNew.Elapsed.TotalMilliseconds}.");
 		}
 	}
 }

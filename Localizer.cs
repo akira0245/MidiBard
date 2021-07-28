@@ -91,7 +91,7 @@ namespace MidiBard
             zh.Add("Auto transpose notes on demand. If you need this, \nplease add #transpose number# before file name.\nE.g. #-12#demo.mid",
 	            "根据要求自动移调。如果需要自动移调，请在文件开头添加 #要移调的半音数量#。\n例如：#-12#demo.mid");
 
-            zh.Add("Transpose, measured by semitone. \nRight click to reset.", "移调，以半音数计算。\n右键点击来将它重置回0。");
+            zh.Add("Transpose, measured by semitone. \nRight click to reset.", "移调，以半音数计算。\n点击+或-键升高或降低一个八度，右键点击来将它重置回0。");
             zh.Add("Set the speed of events playing. 1 means normal speed.\nFor example, to play events twice slower this property should be set to 0.5.\nRight Click to reset back to 1.",
 	            "设置Midi事件的播放速度倍数。\n例如将其设为0.5会使播放速度减半。\n右键点击来将它重置回1。");
             zh.Add("Set the playing progress. \nRight click to restart current playback.", "乐曲播放进度，右键点击回到乐曲开头。");
@@ -104,6 +104,9 @@ namespace MidiBard
             zh.Add("Search playlist", "搜索播放列表");
             zh.Add("Assign different guitar tones for each midi tracks.", "为每个Midi轨道分别指定电吉他音色。");
             zh.Add("Theme color", "主题颜色");
+            zh.Add("Enter to start the search", "输入开始搜索");
+            zh.Add("Delay", "间隔时间");
+            zh.Add("Delay time before play next track.", "在连续播放时每首乐曲播放结束后的等待时间。");
 
 
         }

@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using Dalamud.Game.Internal.Gui.Addon;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface;
+using Dalamud.Interface.Colors;
 using Dalamud.Plugin;
 using ImGuiNET;
 using Melanchall.DryWetMidi.Composing;
@@ -24,7 +25,7 @@ using Note = Melanchall.DryWetMidi.MusicTheory.Note;
 
 namespace MidiBard
 {
-	public class PluginUI
+	public partial class PluginUI
 	{
 		private readonly string[] uilangStrings = { "EN", "ZH" };
 		private static bool Debug = false;
@@ -32,61 +33,7 @@ namespace MidiBard
 
 		private static string searchstring = "";
 
-		//[SecurityPermission(SecurityAction.Demand, ControlThread = true)]
-		//private static void KillTheThread()
-		//{
-		//	BrowseThread.Abort();
-		//}
-		//private static Thread BrowseThread;
-
 		private float playlistScrollY = 0;
-
-		private static void HelpMarker(string desc, bool sameline = true)
-		{
-			if (sameline) ImGui.SameLine();
-			//ImGui.PushFont(UiBuilder.IconFont);
-			ImGui.TextDisabled("(?)");
-			//ImGui.PopFont();
-			if (ImGui.IsItemHovered())
-			{
-				ImGui.PushFont(UiBuilder.DefaultFont);
-				ImGui.BeginTooltip();
-				ImGui.PushTextWrapPos(ImGui.GetFontSize() * 35.0f);
-				ImGui.TextUnformatted(desc);
-				ImGui.PopTextWrapPos();
-				ImGui.EndTooltip();
-				ImGui.PopFont();
-			}
-		}
-		private static bool IconButton(FontAwesomeIcon icon, string id)
-		{
-			ImGui.PushFont(UiBuilder.IconFont);
-			var ret = ImGui.Button($"{icon.ToIconString()}##{id}");
-			ImGui.PopFont();
-			return ret;
-		}
-
-		private static void ToolTip(string desc)
-		{
-			if (ImGui.IsItemHovered())
-			{
-				ImGui.PushFont(UiBuilder.DefaultFont);
-				ImGui.BeginTooltip();
-				ImGui.PushTextWrapPos(ImGui.GetFontSize() * 35.0f);
-				ImGui.TextUnformatted(desc);
-				ImGui.PopTextWrapPos();
-				ImGui.EndTooltip();
-				ImGui.PopFont();
-			}
-		}
-		private const uint ColorRed = 0xFF0000C8;
-		const uint orange = 0xAA00B0E0;
-		const uint red = 0xAA0000D0;
-		const uint grassgreen = 0x9C60FF8E;
-		const uint alphaedgrassgreen = 0x3C60FF8E;
-		const uint darkgreen = 0xAC104020;
-		const uint violet = 0xAAFF888E;
-
 		public unsafe void Draw()
 		{
 			if (!IsVisible)
@@ -94,7 +41,7 @@ namespace MidiBard
 
 			ImGui.SetNextWindowPos(new Vector2(100, 100), ImGuiCond.FirstUseEver);
 			var scaledWidth = 357 * ImGui.GetIO().FontGlobalScale;
-			ImGui.SetNextWindowSizeConstraints(new Vector2(scaledWidth, 0), new Vector2(scaledWidth, 10000));
+			//ImGui.SetNextWindowSizeConstraints(new Vector2(scaledWidth, 0), new Vector2(scaledWidth, 10000));
 
 			//ImGui.PushStyleVar(ImGuiStyleVar.WindowTitleAlign, new Vector2(0.5f, 0.5f));
 
@@ -131,16 +78,8 @@ namespace MidiBard
 				var flag = config.miniPlayer ? ImGuiWindowFlags.NoDecoration : ImGuiWindowFlags.None;
 				ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(5, 5));
 
-				if (ImGui.Begin("MidiBard", ref IsVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | flag))
+				if (ImGui.Begin("MidiBard###MIDIBARD", ref IsVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | flag))
 				{
-					void DrawColoredBanner(uint color, string content)
-					{
-						ImGui.PushStyleColor(ImGuiCol.Button, color);
-						ImGui.PushStyleColor(ImGuiCol.ButtonHovered, color);
-						ImGui.Button(content, new Vector2(-1, ImGui.GetFrameHeight()));
-						ImGui.PopStyleColor(2);
-					}
-
 					if (ensembleModeRunning)
 					{
 						if (ensemblePreparing)
@@ -164,99 +103,26 @@ namespace MidiBard
 						ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(15, 4));
 						{
 							if (!_isImportRunning)
-							{
-								DrawImportButton();
-								ToolTip("Import midi file.".Localize());
-							}
+								ButtonImport();
 							else
-							{
-								DrawImportProgress();
-							}
-
-							//ImGui.SameLine();
-							//if (ImGui.Button("Remove Selected"))
-							//{
-							//	PlaylistManager.Remove(PlaylistManager.currentPlaying);
-							//}
-							ImGui.SameLine();
-							ImGui.PushStyleColor(ImGuiCol.Text, config.enableSearching ? config.themeColor : *ImGui.GetStyleColorVec4(ImGuiCol.Text));
-							if (IconButton(FontAwesomeIcon.Search, "searchbutton"))
-							{
-								config.enableSearching ^= true;
-							}
-							ImGui.PopStyleColor();
-							ToolTip("Search playlist".Localize());
+								ButtonImportInProgress();
 
 							ImGui.SameLine();
-							ImGui.Button("Clear Playlist".Localize());
-							if (ImGui.IsItemHovered())
-							{
-								ImGui.BeginTooltip();
-								ImGui.TextUnformatted("Double click to clear playlist.".Localize());
-								ImGui.EndTooltip();
-								if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
-								{
-									PlaylistManager.Clear();
-								}
-							}
-
+							ButtonSearch();
+							ImGui.SameLine();
+							ButtonClearPlaylist();
 
 
 							if (localizer.Language == UILang.CN)
 							{
-								ImGui.SameLine(ImGui.GetWindowContentRegionWidth() - ImGui.CalcTextSize(FontAwesomeIcon.QuestionCircle.ToIconString()).X - ImGui.GetStyle().FramePadding.X * 2 - ImGui.GetCursorPosX());
+								ImGui.SameLine(ImGui.GetWindowContentRegionWidth() - ImGui.CalcTextSize(FontAwesomeIcon.QuestionCircle.ToIconString()).X - ImGui.GetStyle().FramePadding.X * 2 - ImGui.GetCursorPosX() - 2);
 
 								IconButton(FontAwesomeIcon.QuestionCircle, "helpbutton");
 
 								if (ImGui.IsItemHovered())
 								{
-									var currentwindowpos = ImGui.GetWindowPos();
-									ImGui.SetNextWindowPos(currentwindowpos + new Vector2(0,
-										ImGui.GetTextLineHeightWithSpacing() + ImGui.GetFrameHeightWithSpacing() +
-										ImGui.GetStyle().WindowPadding.Y));
-									ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(4, 4));
-									if (ImGui.Begin("HelpWindow",
-										ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.Tooltip |
-										ImGuiWindowFlags.AlwaysAutoResize))
-									{
-										ImGui.BulletText(
-											"如何开始使用MIDIBARD演奏？" +
-											"\n　MIDIBARD窗口默认在角色进入演奏模式后自动弹出。" +
-											"\n　点击窗口左上角的“+”按钮来将乐曲文件导入到播放列表，仅支持.mid格式的乐曲。" +
-											"\n　导入时按Ctrl或Shift可以选择多个文件一同导入。" +
-											"\n　双击播放列表中要演奏的乐曲后点击播放按钮开始演奏。\n");
-										ImGui.BulletText(
-											"为什么点击播放之后没有正常演奏？" +
-											"\n　MIDIBARD仅使用37键演奏模式。" +
-											"\n　请在游戏“乐器演奏操作设置”的“键盘操作”类别下启用“全音阶一同显示、设置按键”的选项。\n");
-										ImGui.BulletText(
-											"如何使用MIDIBARD进行多人合奏？" +
-											"\n　MIDIBARD使用游戏中的合奏助手来完成合奏，请在合奏时打开游戏的节拍器窗口。" +
-											"\n　合奏前在播放列表中双击要合奏的乐曲，播放器下方会出现可供演奏的所有音轨，请为每位合奏成员分别选择其需要演奏的音轨。" +
-											"\n　选择音轨后队长点击节拍器窗口的“合奏准备确认”按钮，" +
-											"\n　并确保合奏准备确认窗口中已勾选“使用合奏助手”选项后点击开始即可开始合奏。" +
-											"\n　※节拍器前两小节为准备时间，从第1小节开始会正式开始合奏。" +
-											"\n　　考虑到不同使用环境乐曲加载速度可能不一致，为了避免切换乐曲导致的不同步，在乐曲结束时合奏会自动停止。\n");
-										ImGui.BulletText(
-											"如何让MIDIBARD为不同乐曲自动切换音调和乐器？" +
-											"\n　在导入前把要指定乐器和移调的乐曲文件名前加入“#<乐器名><移调的半音数量>#”。" +
-											"\n　例如：原乐曲文件名为“demo.mid”" +
-											"\n　将其重命名为“#中提琴+12#demo.mid”可在演奏到该乐曲时自动切换到中提琴并升调1个八度演奏。" +
-											"\n　将其重命名为“#长笛-24#demo.mid”可在演奏到该乐曲时切换到长笛并降调2个八度演奏。" +
-											"\n　※可以只添加#+12#或#竖琴#或#harp#，也会有对应的升降调或切换乐器效果。");
-										ImGui.BulletText(
-											"如何为MIDIBARD配置外部Midi输入（如虚拟Midi接口或Midi键盘）？" +
-											"\n　在“输入设备”下拉菜单中选择你的Midi设备，窗口顶端出现“正在监听Midi输入”信息后即可使用外部输入。\n");
-										ImGui.BulletText(
-											"后台演奏时有轻微卡顿不流畅怎么办？" +
-											"\n　在游戏内“系统设置→显示设置→帧数限制”中取消勾选 “程序在游戏窗口处于非激活状态时限制帧数” 的选项并应用设置。\n");
-										ImGui.BulletText("讨论及BUG反馈群：260985966");
-										ImGui.Spacing();
-
-										ImGui.End();
-									}
-
-									ImGui.PopStyleVar();
+									ImGui.SetNextWindowPos(ImGui.GetWindowPos() + ImGui.GetCursorPos());
+									TooltipHelp();
 								}
 							}
 
@@ -265,6 +131,10 @@ namespace MidiBard
 
 						ImGui.PopStyleVar(2);
 
+						if (config.enableSearching)
+						{
+							TextBoxSearch();
+						}
 
 						if (PlaylistManager.Filelist.Count == 0)
 						{
@@ -275,109 +145,7 @@ namespace MidiBard
 						}
 						else
 						{
-							if (config.enableSearching)
-							{
-								ImGui.SetNextItemWidth(-1);
-								if (ImGui.InputText("##searchplaylist", ref searchstring, 255, ImGuiInputTextFlags.AutoSelectAll | ImGuiInputTextFlags.EnterReturnsTrue))
-								{
-									config.enableSearching = false;
-								}
-							}
-
-							ImGui.PushStyleColor(ImGuiCol.Button, 0);
-							ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0);
-							ImGui.PushStyleColor(ImGuiCol.ButtonActive, 0);
-							ImGui.PushStyleColor(ImGuiCol.Header, config.themeColorTransparent);
-							if (ImGui.BeginTable(str_id: "##PlaylistTable", column: 3,
-								flags: ImGuiTableFlags.RowBg | ImGuiTableFlags.PadOuterX | ImGuiTableFlags.ScrollY | ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.ContextMenuInBody,
-								outer_size: new Vector2(x: -1, y: ImGui.GetTextLineHeightWithSpacing() * Math.Min(val1: 10, val2: PlaylistManager.Filelist.Count))))
-							{
-								ImGui.TableSetupColumn("\ue035", ImGuiTableColumnFlags.WidthFixed);
-								ImGui.TableSetupColumn("##delete", ImGuiTableColumnFlags.WidthFixed);
-								ImGui.TableSetupColumn("filename", ImGuiTableColumnFlags.WidthStretch);
-								for (var i = 0; i < PlaylistManager.Filelist.Count; i++)
-								{
-									if (config.enableSearching)
-									{
-										try
-										{
-											var item2 = PlaylistManager.Filelist[i].Item2;
-											if (!item2.ContainsIgnoreCase(searchstring))
-											{
-												continue;
-											}
-										}
-										catch (Exception e)
-										{
-											continue;
-										}
-									}
-
-
-									ImGui.TableNextRow();
-									ImGui.TableSetColumnIndex(0);
-									if (ImGui.Selectable($"{i + 1:000}##plistitem", PlaylistManager.CurrentPlaying == i,
-										ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowDoubleClick |
-										ImGuiSelectableFlags.AllowItemOverlap))
-									{
-										if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
-										{
-											PlaylistManager.CurrentPlaying = i;
-
-											try
-											{
-												var wasplaying = IsPlaying;
-												currentPlayback?.Dispose();
-												currentPlayback = null;
-
-												currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].GetFilePlayback();
-												if (wasplaying) currentPlayback?.Start();
-												Task.Run(SwitchInstrument.WaitSwitchInstrument);
-											}
-											catch (Exception e)
-											{
-												//
-											}
-										}
-										else
-										{
-											PlaylistManager.CurrentSelected = i;
-										}
-									}
-
-									ImGui.TableNextColumn();
-									ImGui.PushFont(UiBuilder.IconFont);
-									ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
-									if (ImGui.Button($"{((FontAwesomeIcon)0xF2ED).ToIconString()}##{i}", new Vector2(ImGui.GetTextLineHeight(), ImGui.GetTextLineHeight())))
-									{
-										PlaylistManager.Remove(i);
-									}
-									ImGui.PopStyleVar();
-									ImGui.PopFont();
-									ImGui.TableNextColumn();
-									try
-									{
-										var item2 = PlaylistManager.Filelist[i].Item2;
-										ImGui.TextUnformatted(item2);
-
-										if (ImGui.IsItemHovered())
-										{
-											ImGui.BeginTooltip();
-											ImGui.TextUnformatted(item2);
-											ImGui.EndTooltip();
-										}
-									}
-									catch (Exception e)
-									{
-										ImGui.TextUnformatted("deleted");
-									}
-
-								}
-
-								ImGui.EndTable();
-							}
-
-							ImGui.PopStyleColor(4);
+							DrawPlayList();
 						}
 
 						ImGui.Spacing();
@@ -428,14 +196,228 @@ namespace MidiBard
 				ImGui.PopStyleVar();
 				//ImGui.PopStyleColor();
 			}
+		}
 
+		private static unsafe void ButtonSearch()
+		{
+			ImGui.PushStyleColor(ImGuiCol.Text,
+				config.enableSearching ? config.themeColor : *ImGui.GetStyleColorVec4(ImGuiCol.Text));
+			if (IconButton(FontAwesomeIcon.Search, "searchbutton"))
+			{
+				config.enableSearching ^= true;
+			}
+
+			ImGui.PopStyleColor();
+			ToolTip("Search playlist".Localize());
+		}
+
+		private static void TooltipHelp()
+		{
+			ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(4, 4));
+			ImGui.BeginTooltip();
+			ImGui.BulletText(
+				"如何开始使用MIDIBARD演奏？" +
+				"\n　MIDIBARD窗口默认在角色进入演奏模式后自动弹出。" +
+				"\n　点击窗口左上角的“+”按钮来将乐曲文件导入到播放列表，仅支持.mid格式的乐曲。" +
+				"\n　导入时按Ctrl或Shift可以选择多个文件一同导入。" +
+				"\n　双击播放列表中要演奏的乐曲后点击播放按钮开始演奏。\n");
+			ImGui.BulletText(
+				"为什么点击播放之后没有正常演奏？" +
+				"\n　MIDIBARD仅使用37键演奏模式。" +
+				"\n　请在游戏“乐器演奏操作设置”的“键盘操作”类别下启用“全音阶一同显示、设置按键”的选项。\n");
+			ImGui.BulletText(
+				"如何使用MIDIBARD进行多人合奏？" +
+				"\n　MIDIBARD使用游戏中的合奏助手来完成合奏，请在合奏时打开游戏的节拍器窗口。" +
+				"\n　合奏前在播放列表中双击要合奏的乐曲，播放器下方会出现可供演奏的所有音轨，请为每位合奏成员分别选择其需要演奏的音轨。" +
+				"\n　选择音轨后队长点击节拍器窗口的“合奏准备确认”按钮，" +
+				"\n　并确保合奏准备确认窗口中已勾选“使用合奏助手”选项后点击开始即可开始合奏。" +
+				"\n　※节拍器前两小节为准备时间，从第1小节开始会正式开始合奏。" +
+				"\n　　考虑到不同使用环境乐曲加载速度可能不一致，为了避免切换乐曲导致的不同步，在乐曲结束时合奏会自动停止。\n");
+			ImGui.BulletText(
+				"如何让MIDIBARD为不同乐曲自动切换音调和乐器？" +
+				"\n　在导入前把要指定乐器和移调的乐曲文件名前加入“#<乐器名><移调的半音数量>#”。" +
+				"\n　例如：原乐曲文件名为“demo.mid”" +
+				"\n　将其重命名为“#中提琴+12#demo.mid”可在演奏到该乐曲时自动切换到中提琴并升调1个八度演奏。" +
+				"\n　将其重命名为“#长笛-24#demo.mid”可在演奏到该乐曲时切换到长笛并降调2个八度演奏。" +
+				"\n　※可以只添加#+12#或#竖琴#或#harp#，也会有对应的升降调或切换乐器效果。");
+			ImGui.BulletText(
+				"如何为MIDIBARD配置外部Midi输入（如虚拟Midi接口或Midi键盘）？" +
+				"\n　在“输入设备”下拉菜单中选择你的Midi设备，窗口顶端出现“正在监听Midi输入”信息后即可使用外部输入。\n");
+			ImGui.BulletText(
+				"后台演奏时有轻微卡顿不流畅怎么办？" +
+				"\n　在游戏内“系统设置→显示设置→帧数限制”中取消勾选 “程序在游戏窗口处于非激活状态时限制帧数” 的选项并应用设置。\n");
+			ImGui.BulletText("讨论及BUG反馈群：260985966");
+			ImGui.Spacing();
+
+			ImGui.EndTooltip();
+			ImGui.PopStyleVar();
+		}
+
+		private static void ButtonClearPlaylist()
+		{
+			ImGui.Button("Clear Playlist".Localize());
+			if (ImGui.IsItemHovered())
+			{
+				ImGui.BeginTooltip();
+				ImGui.TextUnformatted("Double click to clear playlist.".Localize());
+				ImGui.EndTooltip();
+				if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+				{
+					PlaylistManager.Clear();
+				}
+			}
+		}
+
+		private static void TextBoxSearch()
+		{
+			ImGui.SetNextItemWidth(-1);
+			if (ImGui.InputTextWithHint("##searchplaylist", "Enter to start the search".Localize(), ref searchstring, 255,
+				ImGuiInputTextFlags.AutoSelectAll | ImGuiInputTextFlags.EnterReturnsTrue))
+			{
+				config.enableSearching = false;
+			}
+		}
+
+		private static void DrawPlayList()
+		{
+			ImGui.PushStyleColor(ImGuiCol.Button, 0);
+			ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0);
+			ImGui.PushStyleColor(ImGuiCol.ButtonActive, 0);
+			ImGui.PushStyleColor(ImGuiCol.Header, config.themeColorTransparent);
+			if (ImGui.BeginChild("child", new Vector2(x: -1, y: ImGui.GetTextLineHeightWithSpacing() * Math.Min(val1: 10, val2: PlaylistManager.Filelist.Count))))
+			{
+				if (ImGui.BeginTable(str_id: "##PlaylistTable", column: 3,
+					flags: ImGuiTableFlags.RowBg | ImGuiTableFlags.PadOuterX |
+						   ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.BordersInnerV))
+				{
+					ImGui.TableSetupColumn("\ue035", ImGuiTableColumnFlags.WidthFixed);
+					ImGui.TableSetupColumn("##deleteColumn", ImGuiTableColumnFlags.WidthFixed);
+					ImGui.TableSetupColumn("filenameColumn", ImGuiTableColumnFlags.WidthStretch);
+					for (var i = 0; i < PlaylistManager.Filelist.Count; i++)
+					{
+						if (config.enableSearching)
+						{
+							try
+							{
+								var item2 = PlaylistManager.Filelist[i].Item2;
+								if (!item2.ContainsIgnoreCase(searchstring))
+								{
+									continue;
+								}
+							}
+							catch (Exception e)
+							{
+								continue;
+							}
+						}
+
+
+						ImGui.TableNextRow();
+						ImGui.TableSetColumnIndex(0);
+
+						DrawPlaylistItemSelectable(i);
+
+						ImGui.TableNextColumn();
+
+						DrawPlaylistDeleteButton(i);
+
+						ImGui.TableNextColumn();
+
+						DrawPlaylistTrackName(i);
+					}
+
+					ImGui.EndTable();
+				}
+				ImGui.EndChild();
+			}
+
+
+			ImGui.PopStyleColor(4);
+		}
+
+		private static void DrawPlaylistTrackName(int i)
+		{
+			try
+			{
+				var item2 = PlaylistManager.Filelist[i].Item2;
+				ImGui.TextUnformatted(item2);
+
+				if (ImGui.IsItemHovered())
+				{
+					ImGui.BeginTooltip();
+					ImGui.TextUnformatted(item2);
+					ImGui.EndTooltip();
+				}
+			}
+			catch (Exception e)
+			{
+				ImGui.TextUnformatted("deleted");
+			}
+		}
+
+		private static void DrawPlaylistItemSelectable(int i)
+		{
+			if (ImGui.Selectable($"{i + 1:000}##plistitem", PlaylistManager.CurrentPlaying == i,
+				ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowDoubleClick |
+				ImGuiSelectableFlags.AllowItemOverlap))
+			{
+				if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+				{
+					PlaylistManager.CurrentPlaying = i;
+
+					try
+					{
+						var wasplaying = IsPlaying;
+						currentPlayback?.Dispose();
+						currentPlayback = null;
+
+						currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].GetFilePlayback();
+						if (wasplaying) currentPlayback?.Start();
+						Task.Run(SwitchInstrument.WaitSwitchInstrument);
+					}
+					catch (Exception e)
+					{
+						//
+					}
+				}
+				else
+				{
+					PlaylistManager.CurrentSelected = i;
+				}
+			}
+		}
+
+		private static void DrawPlaylistDeleteButton(int i)
+		{
+			ImGui.PushFont(UiBuilder.IconFont);
+			ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
+			if (ImGui.Button($"{((FontAwesomeIcon)0xF2ED).ToIconString()}##{i}",
+				new Vector2(ImGui.GetTextLineHeight(), ImGui.GetTextLineHeight())))
+			{
+				PlaylistManager.Remove(i);
+			}
+
+			ImGui.PopStyleVar();
+			ImGui.PopFont();
+		}
+
+		private unsafe void DrawColoredBanner(uint color, string content)
+		{
+			ImGui.PushStyleColor(ImGuiCol.Button, color);
+			ImGui.PushStyleColor(ImGuiCol.ButtonHovered, color);
+			ImGui.Button(content, new Vector2(-1, ImGui.GetFrameHeight()));
+			ImGui.PopStyleColor(2);
 		}
 
 		private static unsafe void DrawCurrentPlaying()
 		{
 			try
 			{
-				ImGui.TextColored(config.themeColor * new Vector4(1, 1, 1, 1.3f), $"{PlaylistManager.CurrentPlaying + 1:000} {PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].Item2}");
+				var fmt = $"{PlaylistManager.CurrentPlaying + 1:000} {PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].Item2}";
+				ImGui.PushStyleColor(ImGuiCol.Text, config.themeColor * new Vector4(1, 1, 1, 1.3f));
+				ImGui.TextWrapped(fmt);
+				ImGui.PopStyleColor();
+
 			}
 			catch (Exception e)
 			{
@@ -446,11 +428,11 @@ namespace MidiBard
 					: $"{PlaylistManager.Filelist.Count} " +
 					  "track in playlist.".Localize());
 			}
+
 		}
 
 		private static unsafe void DrawProgressBar()
 		{
-			ImGui.PushStyleColor(ImGuiCol.PlotHistogram, config.themeColor);
 			//ImGui.PushStyleColor(ImGuiCol.FrameBg, 0x800000A0);
 
 
@@ -459,27 +441,40 @@ namespace MidiBard
 			MetricTimeSpan duration = new MetricTimeSpan(0);
 			float progress = 0;
 
-			if (currentPlayback != null)
+			if (PlaybackExtension.isWaiting)
 			{
-				currentTime = currentPlayback.GetCurrentTime<MetricTimeSpan>();
-				duration = currentPlayback.GetDuration<MetricTimeSpan>();
-				try
-				{
-					progress = (float)currentTime.Divide(duration);
-				}
-				catch (Exception e)
-				{
-					//
-				}
-
-				ImGui.PushStyleColor(ImGuiCol.FrameBg, config.themeColorDark);
-				ImGui.ProgressBar(progress, new Vector2(-1, 3));
+				ImGui.PushStyleColor(ImGuiCol.PlotHistogram, ImGui.GetColorU32(ImGuiCol.PlotHistogram));
+				ImGui.PushStyleColor(ImGuiCol.FrameBg, ImGui.GetColorU32(ImGuiCol.FrameBg));
+				ImGui.ProgressBar(PlaybackExtension.waitProgress, new Vector2(-1, 3));
 				ImGui.PopStyleColor();
 			}
 			else
 			{
-				ImGui.ProgressBar(progress, new Vector2(-1, 3));
+				ImGui.PushStyleColor(ImGuiCol.PlotHistogram, config.themeColor);
+				if (currentPlayback != null)
+				{
+					currentTime = currentPlayback.GetCurrentTime<MetricTimeSpan>();
+					duration = currentPlayback.GetDuration<MetricTimeSpan>();
+					try
+					{
+						progress = (float)currentTime.Divide(duration);
+					}
+					catch (Exception e)
+					{
+						//
+					}
+
+					ImGui.PushStyleColor(ImGuiCol.FrameBg, config.themeColorDark);
+					ImGui.ProgressBar(progress, new Vector2(-1, 3));
+					ImGui.PopStyleColor();
+				}
+				else
+				{
+					ImGui.ProgressBar(progress, new Vector2(-1, 3));
+				}
 			}
+
+
 
 			ImGui.TextUnformatted($"{currentTime.Hours}:{currentTime.Minutes:00}:{currentTime.Seconds:00}");
 			var durationText = $"{duration.Hours}:{duration.Minutes:00}:{duration.Seconds:00}";
@@ -514,81 +509,6 @@ namespace MidiBard
 			ImGui.PopStyleColor();
 		}
 
-		private static unsafe void DrawButtonMiniPlayer()
-		{
-			//mini player
-
-			ImGui.SameLine();
-			if (ImGui.Button(((FontAwesomeIcon)(config.miniPlayer ? 0xF424 : 0xF422)).ToIconString()))
-				config.miniPlayer ^= true;
-
-			ToolTip("Toggle mini player".Localize());
-		}
-
-
-		private static unsafe void DrawButtonShowPlayerControl()
-		{
-			ImGui.SameLine();
-			ImGui.PushStyleColor(ImGuiCol.Text, config.showMusicControlPanel ? config.themeColor : *ImGui.GetStyleColorVec4(ImGuiCol.Text));
-
-			if (ImGui.Button((FontAwesomeIcon.Music).ToIconString())) config.showMusicControlPanel ^= true;
-
-			ImGui.PopStyleColor();
-			ToolTip("Toggle player control panel".Localize());
-		}
-
-		private static unsafe void DrawButtonShowSettingsPanel()
-		{
-			ImGui.SameLine();
-			ImGui.PushStyleColor(ImGuiCol.Text, config.showSettingsPanel ? config.themeColor : *ImGui.GetStyleColorVec4(ImGuiCol.Text));
-
-			if (ImGui.Button(FontAwesomeIcon.Cog.ToIconString())) config.showSettingsPanel ^= true;
-
-			ImGui.PopStyleColor();
-			ToolTip("Toggle settings panel".Localize());
-		}
-
-
-		private static unsafe void DrawButtonPlayPause()
-		{
-			var PlayPauseIcon =
-				IsPlaying ? FontAwesomeIcon.Pause.ToIconString() : FontAwesomeIcon.Play.ToIconString();
-			if (ImGui.Button(PlayPauseIcon))
-			{
-				PluginLog.Debug($"PlayPause pressed. wasplaying: {IsPlaying}");
-				if (IsPlaying)
-				{
-					PlayerControl.Pause();
-				}
-				else
-				{
-					PlayerControl.Play();
-				}
-			}
-		}
-
-		private static unsafe void DrawButtonStop()
-		{
-			ImGui.SameLine();
-			if (ImGui.Button(FontAwesomeIcon.Stop.ToIconString()))
-			{
-				PlayerControl.Stop();
-			}
-		}
-
-		private static unsafe void DrawButtonFastForward()
-		{
-			ImGui.SameLine();
-			if (ImGui.Button(FontAwesomeIcon.FastForward.ToIconString()))
-			{
-				PlayerControl.Next();
-			}
-
-			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
-			{
-				PlayerControl.Last();
-			}
-		}
 
 		private static unsafe void DrawButtonPlayMode()
 		{
@@ -634,7 +554,7 @@ namespace MidiBard
 					$"{(PlayMode)config.PlayMode}".Localize());
 		}
 
-		private static unsafe void DrawTrackTrunkSelectionWindow()
+		private unsafe void DrawTrackTrunkSelectionWindow()
 		{
 			if (CurrentTracks?.Any() == true)
 			{
@@ -644,7 +564,7 @@ namespace MidiBard
 				//ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new Vector2(-10, -10));
 				//ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(-10, -10));
 				if (ImGui.BeginChild("TrackTrunkSelection",
-					new Vector2(ImGui.GetWindowWidth(), Math.Min(CurrentTracks.Count, 6.6f) * ImGui.GetFrameHeightWithSpacing() - ImGui.GetStyle().ItemSpacing.Y),
+					new Vector2(ImGui.GetWindowContentRegionWidth() - 1, Math.Min(CurrentTracks.Count, 6.6f) * ImGui.GetFrameHeightWithSpacing() - ImGui.GetStyle().ItemSpacing.Y),
 					false, ImGuiWindowFlags.NoDecoration))
 				{
 
@@ -778,56 +698,75 @@ namespace MidiBard
 
 		private static void DrawPanelMusicControl()
 		{
-			UIcurrentInstrument = Plugin.CurrentInstrument;
-			if (ImGui.Combo("Instrument".Localize(), ref UIcurrentInstrument, InstrumentStrings, InstrumentStrings.Length, 20))
+			ComboBoxSwitchInstrument();
+
+			SliderProgress();
+
+
+
+
+
+
+			if (ImGui.DragFloat("Speed".Localize(), ref config.playSpeed, 0.003f, 0.1f, 10f, GetBpmString(), ImGuiSliderFlags.Logarithmic))
 			{
-				Task.Run(() => SwitchInstrument.SwitchTo((uint)UIcurrentInstrument, true));
+				SetSpeed();
 			}
-			ToolTip("Select current instrument. \nRight click to quit performance mode.".Localize());
+			ToolTip("Set the speed of events playing. 1 means normal speed.\nFor example, to play events twice slower this property should be set to 0.5.\nRight Click to reset back to 1.".Localize());
 
 			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
 			{
-				Task.Run(() => SwitchInstrument.SwitchTo(0));
-				PlayerControl.Pause();
+				config.playSpeed = 1;
+				SetSpeed();
 			}
 
-
-
-			if (currentPlayback != null)
+			static void SetSpeed()
 			{
-				var currentTime = currentPlayback.GetCurrentTime<MetricTimeSpan>();
-				var duration = currentPlayback.GetDuration<MetricTimeSpan>();
-				float progress;
 				try
 				{
-					progress = (float)currentTime.Divide(duration);
+					config.playSpeed = Math.Max(0.1f, config.playSpeed);
+					var currenttime = currentPlayback.GetCurrentTime(TimeSpanType.Midi);
+					currentPlayback.Speed = config.playSpeed;
+					currentPlayback.MoveToTime(currenttime);
 				}
 				catch (Exception e)
 				{
-					progress = 0;
-				}
-
-				if (ImGui.SliderFloat("Progress".Localize(), ref progress, 0, 1,
-					$"{currentTime.Minutes}:{currentTime.Seconds:00}",
-					ImGuiSliderFlags.AlwaysClamp | ImGuiSliderFlags.NoRoundToFormat))
-				{
-					currentPlayback.MoveToTime(duration.Multiply(progress));
-				}
-
-				if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
-				{
-					currentPlayback.MoveToTime(duration.Multiply(0));
 				}
 			}
-			else
-			{
-				float zeroprogress = 0;
-				ImGui.SliderFloat("Progress".Localize(), ref zeroprogress, 0, 1, "0:00", ImGuiSliderFlags.NoInput);
-			}
-			ToolTip("Set the playing progress. \nRight click to restart current playback.".Localize());
 
-			#region bpm
 
+			ImGui.DragFloat("Delay".Localize(), ref config.secondsBetweenTracks, 0.01f, 0, 60,
+				$"{config.secondsBetweenTracks:f2} s", ImGuiSliderFlags.AlwaysClamp | ImGuiSliderFlags.NoRoundToFormat);
+			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right)) config.secondsBetweenTracks = 0;
+			ToolTip("Delay time before play next track.".Localize());
+
+
+			ImGui.SetNextItemWidth(ImGui.GetWindowWidth()*0.75f-ImGui.CalcTextSize("Transpose".Localize()).X-50);
+			ImGui.InputInt("Transpose".Localize(), ref config.NoteNumberOffset, 12);
+			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right)) config.NoteNumberOffset = 0;
+			ToolTip("Transpose, measured by semitone. \nRight click to reset.".Localize());
+
+			//if (ImGui.Button("Octave+".Localize())) config.NoteNumberOffset += 12;
+			//ToolTip("Add 1 octave(+12 semitones) to all notes.".Localize());
+
+			//ImGui.SameLine();
+			//if (ImGui.Button("Octave-".Localize())) config.NoteNumberOffset -= 12;
+			//ToolTip("Subtract 1 octave(-12 semitones) to all notes.".Localize());
+
+			//ImGui.SameLine();
+			//if (ImGui.Button("Reset##note".Localize())) config.NoteNumberOffset = 0;
+
+			ImGui.SameLine();
+			ImGui.Checkbox("Auto Adapt".Localize(), ref config.AdaptNotesOOR);
+			HelpMarker("Adapt high/low pitch notes which are out of range\r\ninto 3 octaves we can play".Localize());
+
+
+
+			//ImGui.SliderFloat("secbetweensongs", ref config.timeBetweenSongs, 0, 10,
+			//	$"{config.timeBetweenSongs:F2} [{500000 * config.timeBetweenSongs:F0}]", ImGuiSliderFlags.AlwaysClamp);
+		}
+
+		private static string GetBpmString()
+		{
 			Tempo bpm = null;
 			try
 			{
@@ -843,58 +782,61 @@ namespace MidiBard
 			var label = $"{config.playSpeed:F2}";
 
 			if (bpm != null) label += $" ({bpm.BeatsPerMinute * config.playSpeed:F1} bpm)";
+			return label;
+		}
 
-			#endregion
-
-			if (ImGui.DragFloat("Speed".Localize(), ref config.playSpeed, 0.003f, 0.1f, 10f, label, ImGuiSliderFlags.Logarithmic))
+		private static void SliderProgress()
+		{
+			if (currentPlayback != null)
 			{
-				SetSpeed();
-			}
-			ToolTip("Set the speed of events playing. 1 means normal speed.\nFor example, to play events twice slower this property should be set to 0.5.\nRight Click to reset back to 1.".Localize());
-
-			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
-			{
-				config.playSpeed = 1;
-				SetSpeed();
-			}
-
-			void SetSpeed()
-			{
+				var currentTime = currentPlayback.GetCurrentTime<MetricTimeSpan>();
+				var duration = currentPlayback.GetDuration<MetricTimeSpan>();
+				float progress;
 				try
 				{
-					config.playSpeed = Math.Max(0.1f, config.playSpeed);
-					var currenttime = currentPlayback.GetCurrentTime(TimeSpanType.Midi);
-					currentPlayback.Speed = config.playSpeed;
-					currentPlayback.MoveToTime(currenttime);
+					progress = (float)currentTime.Divide(duration);
 				}
 				catch (Exception e)
 				{
+					progress = 0;
+				}
+
+				if (ImGui.SliderFloat("Progress".Localize(), ref progress, 0, 1,
+					$"{(currentTime.Hours != 0 ? currentTime.Hours + ":" : "")}{currentTime.Minutes:00}:{currentTime.Seconds:00}",
+					ImGuiSliderFlags.AlwaysClamp | ImGuiSliderFlags.NoRoundToFormat))
+				{
+					currentPlayback.MoveToTime(duration.Multiply(progress));
+				}
+
+				if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+				{
+					currentPlayback.MoveToTime(duration.Multiply(0));
 				}
 			}
+			else
+			{
+				float zeroprogress = 0;
+				ImGui.SliderFloat("Progress".Localize(), ref zeroprogress, 0, 1, "0:00", ImGuiSliderFlags.NoInput);
+			}
 
-			ImGui.InputInt("Transpose".Localize(), ref config.NoteNumberOffset, 12);
-			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right)) config.NoteNumberOffset = 0;
-			ToolTip("Transpose, measured by semitone. \nRight click to reset.".Localize());
+			ToolTip("Set the playing progress. \nRight click to restart current playback.".Localize());
+		}
 
+		private static void ComboBoxSwitchInstrument()
+		{
+			UIcurrentInstrument = Plugin.CurrentInstrument;
+			if (ImGui.Combo("Instrument".Localize(), ref UIcurrentInstrument, InstrumentStrings, InstrumentStrings.Length, 20))
+			{
+				Task.Run(() => SwitchInstrument.SwitchTo((uint)UIcurrentInstrument, true));
+			}
 
-			if (ImGui.Button("Octave+".Localize())) config.NoteNumberOffset += 12;
-			ToolTip("Add 1 octave(+12 semitones) to all notes.".Localize());
+			ToolTip("Select current instrument. \nRight click to quit performance mode.".Localize());
 
-			ImGui.SameLine();
-			if (ImGui.Button("Octave-".Localize())) config.NoteNumberOffset -= 12;
-			ToolTip("Subtract 1 octave(-12 semitones) to all notes.".Localize());
-
-			ImGui.SameLine();
-			if (ImGui.Button("Reset##note".Localize())) config.NoteNumberOffset = 0;
-
-			ImGui.SameLine();
-			ImGui.Checkbox("Auto Adapt".Localize(), ref config.AdaptNotesOOR);
-			HelpMarker("Adapt high/low pitch notes which are out of range\r\ninto 3 octaves we can play".Localize());
-
-
-
-			//ImGui.SliderFloat("secbetweensongs", ref config.timeBetweenSongs, 0, 10,
-			//	$"{config.timeBetweenSongs:F2} [{500000 * config.timeBetweenSongs:F0}]", ImGuiSliderFlags.AlwaysClamp);
+			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+			{
+				Task.Run(() => SwitchInstrument.SwitchTo(0));
+				PlayerControl.Pause();
+			}
 		}
 
 		private void DrawPanelGeneralSettings()
@@ -967,7 +909,7 @@ namespace MidiBard
 			HelpMarker("Assign different guitar tones for each midi tracks".Localize());
 
 			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
-			if (ImGui.Button("Debug info", new Vector2(-1, ImGui.GetFrameHeight()))) Debug = !Debug;
+			if (ImGui.Button("Debug info", new Vector2(-2, ImGui.GetFrameHeight()))) Debug = !Debug;
 		}
 		private static void DrawDebugWindow()
 		{
@@ -1362,21 +1304,16 @@ namespace MidiBard
 			"One or more of your modpacks failed to import.\nPlease submit a bug report.".Localize();
 
 
-		private void DrawImportButton()
+		private void ButtonImport()
 		{
-			ImGui.PushFont(UiBuilder.IconFont);
-			if (ImGui.Button(FontAwesomeIcon.Plus.ToIconString()))
+			if (IconButton(FontAwesomeIcon.Plus, "buttonimport"))
 			{
-				ImGui.PopFont();
 				RunImportTask();
 			}
-			else
-			{
-				ImGui.PopFont();
-			}
+			ToolTip("Import midi file.".Localize());
 		}
 
-		private void DrawImportProgress()
+		private void ButtonImportInProgress()
 		{
 			ImGui.Button(LabelFileImportRunning);
 

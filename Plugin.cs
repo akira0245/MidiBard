@@ -90,7 +90,7 @@ namespace MidiBard
 			localizer = new Localizer((UILang)config.uiLang);
 
 			commandManager = new PluginCommandManager<Plugin>(this, pluginInterface);
-			
+
 			playlib.initialize(pluginInterface, this);
 
 			CurrentOutputDevice = new BardPlayDevice();
@@ -129,35 +129,42 @@ namespace MidiBard
 			pluginInterface.UiBuilder.OnBuildUi += ui.Draw;
 			pluginInterface.Framework.OnUpdateEvent += Tick;
 			pluginInterface.UiBuilder.OnOpenConfigUi += (sender, args) => ui.IsVisible ^= true;
+
+			if (pluginInterface.Reason == PluginLoadReason.Unknown) ui.IsVisible = true;
 		}
 
+		private bool wasInPerformance = false;
 		private void Tick(Dalamud.Game.Internal.Framework framework)
 		{
 			if (config.AutoOpenPlayerWhenPerforming)
 			{
-				if (!ui.IsVisible && InPerformanceMode)
+				if (!wasInPerformance && InPerformanceMode)
 				{
-					ui.IsVisible = true;
+					if (!ui.IsVisible)
+					{
+						ui.IsVisible = true;
+					}
 				}
+
+				wasInPerformance = InPerformanceMode;
 			}
 
 			if (ui.IsVisible)
 			{
-				configSaverTick++;
-				if (configSaverTick == 60 * 60)
+				if (configSaverTick++ == 3600)
 				{
 					configSaverTick = 0;
-					if (!EnsembleModeRunning)
+					Task.Run(() =>
 					{
 						try
 						{
-							Task.Run(() => config.Save());
+							config.Save();
 						}
 						catch (Exception e)
 						{
-							PluginLog.Debug(e, "error when auto save settings.");
+							PluginLog.Warning(e, "error when auto save settings.");
 						}
-					}
+					});
 				}
 			}
 
@@ -167,7 +174,6 @@ namespace MidiBard
 			{
 				if (EnsembleModeRunning)
 				{
-					wasEnsembleModeRunning = true;
 					if (currentPlayback != null)
 					{
 						if (MetronomeBeatsElapsed < 0)
@@ -209,8 +215,9 @@ namespace MidiBard
 					{
 						currentPlayback?.Stop();
 					}
-					wasEnsembleModeRunning = false;
 				}
+
+				wasEnsembleModeRunning = EnsembleModeRunning;
 			}
 		}
 
