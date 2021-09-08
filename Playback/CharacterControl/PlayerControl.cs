@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Dalamud.Logging;
 using Dalamud.Plugin;
 using Melanchall.DryWetMidi.Interaction;
-using static MidiBard.Plugin;
+using static MidiBard.MidiBard;
 
 namespace MidiBard
 {
@@ -54,6 +55,15 @@ namespace MidiBard
 		internal static void Pause()
 		{
 			currentPlayback?.Stop();
+		}
+
+		
+		internal static void PlayPause()
+		{
+			if (currentPlayback?.IsRunning == false)
+				Play();
+			else
+				Pause();
 		}
 
 		internal static void Stop()

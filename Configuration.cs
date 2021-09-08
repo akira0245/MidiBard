@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
+using System.Text.Json.Serialization;
 using Dalamud;
 using Dalamud.Configuration;
+using Dalamud.Logging;
 using Dalamud.Plugin;
 using ImGuiNET;
-using Newtonsoft.Json;
 
 namespace MidiBard
 {
@@ -44,7 +45,7 @@ namespace MidiBard
 		//public bool TrimEnd;
 		public bool[] EnabledTracks = Enumerable.Repeat(true, 100).ToArray();
 		public int[] TracksTone = new int[100];
-		public int uiLang = Plugin.pluginInterface.UiLanguage == "zh" ? 1 : 0;
+		public int uiLang = DalamudApi.PluginInterface.UiLanguage == "zh" ? 1 : 0;
 		public bool showMusicControlPanel = true;
 		public bool showSettingsPanel = true;
 		public int playlistSizeY = 10;
@@ -66,17 +67,13 @@ namespace MidiBard
 		//public float timeBetweenSongs = 0;
 
 		// Add any other properties or methods here.
-		[JsonIgnore] private DalamudPluginInterface pluginInterface;
 
-		public void Initialize(DalamudPluginInterface pluginInterface)
-		{
-			this.pluginInterface = pluginInterface;
-		}
+		public void Initialize() { }
 
 		public void Save()
 		{
 			var startNew = Stopwatch.StartNew();
-			this.pluginInterface.SavePluginConfig(this);
+			DalamudApi.PluginInterface.SavePluginConfig(this);
 			PluginLog.Verbose($"config saved in {startNew.Elapsed.TotalMilliseconds}.");
 		}
 	}

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Dalamud.Logging;
 using Dalamud.Plugin;
 using Melanchall.DryWetMidi.Devices;
 
@@ -89,7 +90,7 @@ namespace MidiBard
 		private static void InputDevice_EventReceived(object sender, MidiEventReceivedEventArgs e)
 		{
 			//PluginLog.Verbose(e.Event.ToString());
-			Plugin.CurrentOutputDevice.SendEvent(e.Event);
+			MidiBard.CurrentOutputDevice.SendEvent(e.Event);
 		}
 	}
 }

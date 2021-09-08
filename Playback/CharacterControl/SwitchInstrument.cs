@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Dalamud.Logging;
 using Dalamud.Plugin;
 using Lumina.Excel.GeneratedSheets;
 
@@ -16,24 +17,24 @@ namespace MidiBard
 
 		internal static async Task<bool> SwitchTo(uint instrumentId, bool pauseWhileSwitching = false)
 		{
-			if (Plugin.CurrentInstrument == instrumentId) return true;
-
+			if (MidiBard.CurrentInstrument == instrumentId) return true;
+			DalamudApi.ChatGui.Print(instrumentId == 0 ? "Cancel perform mode." : $"Switching to {MidiBard.InstrumentSheet.GetRow(instrumentId)?.Instrument?.RawString}.");
 			bool ret = true;
 
 			var timeout = DateTime.UtcNow.AddSeconds(3);
-			var wasplaying = Plugin.IsPlaying;
+			var wasplaying = MidiBard.IsPlaying;
 
 			Switching = true;
-			if (wasplaying && pauseWhileSwitching) Plugin.currentPlayback?.Stop();
+			if (wasplaying && pauseWhileSwitching) MidiBard.currentPlayback?.Stop();
 
 			var sw = Stopwatch.StartNew();
 
-			if (Plugin.CurrentInstrument != 0)
+			if (MidiBard.CurrentInstrument != 0)
 			{
-				Plugin.DoPerformAction(Plugin.PerformInfos, 0);
+				MidiBard.DoPerformAction(MidiBard.PerformInfos, 0);
 			}
 
-			while (Plugin.CurrentInstrument != 0)
+			while (MidiBard.CurrentInstrument != 0)
 			{
 				if (DateTime.UtcNow > timeout)
 				{
@@ -43,9 +44,9 @@ namespace MidiBard
 				await Task.Delay(1);
 			}
 
-			Plugin.DoPerformAction(Plugin.PerformInfos, instrumentId);
+			MidiBard.DoPerformAction(MidiBard.PerformInfos, instrumentId);
 
-			while (Plugin.CurrentInstrument != instrumentId && Plugin.pluginInterface.Framework.Gui.GetAddonByName("PerformanceModeWide", 1) != null)
+			while (MidiBard.CurrentInstrument != instrumentId && DalamudApi.GameGui.GetAddonByName("PerformanceModeWide", 1) != IntPtr.Zero)
 			{
 				if (DateTime.UtcNow > timeout)
 				{
@@ -59,16 +60,11 @@ namespace MidiBard
 
 
 			sw.Stop();
-			if (ret)
-			{
-				PluginLog.Debug($"instrument switching succeeded in {sw.Elapsed.TotalMilliseconds:F4}ms.");
-			}
-			else
-			{
-				PluginLog.Debug($"instrument switching failed in {sw.Elapsed.TotalMilliseconds:F4}ms.");
-			}
+			PluginLog.Debug(ret
+				? $"instrument switching succeeded in {sw.Elapsed.TotalMilliseconds:F4}ms."
+				: $"instrument switching failed in {sw.Elapsed.TotalMilliseconds:F4}ms.");
 			Switching = false;
-			if (wasplaying && pauseWhileSwitching) Plugin.currentPlayback?.Start();
+			if (wasplaying && pauseWhileSwitching) MidiBard.currentPlayback?.Start();
 
 			return ret;
 		}
@@ -77,14 +73,14 @@ namespace MidiBard
 		internal static async Task WaitSwitchInstrument()
 		{
 			var match = regex.Match(PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].Item2);
-			if (Plugin.config.autoSwitchInstrument && match.Success)
+			if (MidiBard.config.autoSwitchInstrument && match.Success)
 			{
-				var wasplaying = Plugin.IsPlaying;
-				Plugin.currentPlayback?.Stop();
+				var wasplaying = MidiBard.IsPlaying;
+				MidiBard.currentPlayback?.Stop();
 				var captured = match.Groups[1].Value.ToLowerInvariant();
 
-				Perform possibleInstrument = Plugin.InstrumentSheet.FirstOrDefault(i => i.Instrument.RawString.ToLowerInvariant() == captured);
-				Perform possibleGMName = Plugin.InstrumentSheet.FirstOrDefault(i => i.Name.RawString.ToLowerInvariant().Contains(captured));
+				Perform possibleInstrument = MidiBard.InstrumentSheet.FirstOrDefault(i => i.Instrument.RawString.ToLowerInvariant() == captured);
+				Perform possibleGMName = MidiBard.InstrumentSheet.FirstOrDefault(i => i.Name.RawString.ToLowerInvariant().Contains(captured));
 
 				PluginLog.Debug($"{captured} {possibleInstrument} {possibleGMName} {(possibleInstrument ?? possibleGMName)?.Instrument} {(possibleInstrument ?? possibleGMName)?.Name}");
 
@@ -108,7 +104,7 @@ namespace MidiBard
 
 				if (wasplaying)
 				{
-					Plugin.currentPlayback?.Start();
+					MidiBard.currentPlayback?.Start();
 				}
 
 				//PluginLog.Debug($"groups {match.Groups.Count}; captures {match.Captures.Count}");

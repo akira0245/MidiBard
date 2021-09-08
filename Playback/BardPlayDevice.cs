@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Dalamud.Logging;
 using Dalamud.Plugin;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Devices;
@@ -18,24 +19,24 @@ namespace MidiBard
 
 		public bool SendEventWithMetadata(MidiEvent midiEvent, object metadata)
 		{
-			if (!Plugin.InPerformanceMode) return false;
+			if (!MidiBard.InPerformanceMode) return false;
 
 			var trackIndex = (int)metadata;
-			if (!Plugin.config.EnabledTracks[trackIndex])
+			if (!MidiBard.config.EnabledTracks[trackIndex])
 			{
 				return false;
 			}
 
 			if (midiEvent is NoteOnEvent noteOnEvent)
 			{
-				if (Plugin.PlayingGuitar && Plugin.config.OverrideGuitarTones)
+				if (MidiBard.PlayingGuitar && MidiBard.config.OverrideGuitarTones)
 				{
-					playlib.GuitarSwitchTone(Plugin.config.TracksTone[trackIndex]);
+					playlib.GuitarSwitchTone(MidiBard.config.TracksTone[trackIndex]);
 				}
 
-				var noteNum = noteOnEvent.NoteNumber - 48 + Plugin.config.NoteNumberOffset;
+				var noteNum = noteOnEvent.NoteNumber - 48 + MidiBard.config.NoteNumberOffset;
 				var adaptedOctave = 0;
-				if (Plugin.config.AdaptNotesOOR)
+				if (MidiBard.config.AdaptNotesOOR)
 				{
 					while (noteNum < 0)
 					{
@@ -65,9 +66,9 @@ namespace MidiBard
 			}
 			else if (midiEvent is NoteOffEvent noteOffEvent)
 			{
-				var noteNum = noteOffEvent.NoteNumber - 48 + Plugin.config.NoteNumberOffset;
+				var noteNum = noteOffEvent.NoteNumber - 48 + MidiBard.config.NoteNumberOffset;
 				var adaptedOctave = 0;
-				if (Plugin.config.AdaptNotesOOR)
+				if (MidiBard.config.AdaptNotesOOR)
 				{
 					while (noteNum < 0)
 					{
@@ -90,13 +91,13 @@ namespace MidiBard
 
 		public void SendEvent(MidiEvent midiEvent)
 		{
-			if (!Plugin.InPerformanceMode) return;
+			if (!MidiBard.InPerformanceMode) return;
 
 			if (midiEvent is NoteOnEvent noteOnEvent)
 			{
-				var noteNum = noteOnEvent.NoteNumber - 48 + Plugin.config.NoteNumberOffset;
+				var noteNum = noteOnEvent.NoteNumber - 48 + MidiBard.config.NoteNumberOffset;
 				var adaptedOctave = 0;
-				if (Plugin.config.AdaptNotesOOR)
+				if (MidiBard.config.AdaptNotesOOR)
 				{
 					while (noteNum < 0)
 					{
@@ -126,9 +127,9 @@ namespace MidiBard
 			}
 			else if (midiEvent is NoteOffEvent noteOffEvent)
 			{
-				var noteNum = noteOffEvent.NoteNumber - 48 + Plugin.config.NoteNumberOffset;
+				var noteNum = noteOffEvent.NoteNumber - 48 + MidiBard.config.NoteNumberOffset;
 				var adaptedOctave = 0;
-				if (Plugin.config.AdaptNotesOOR)
+				if (MidiBard.config.AdaptNotesOOR)
 				{
 					while (noteNum < 0)
 					{

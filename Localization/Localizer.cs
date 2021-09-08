@@ -10,7 +10,7 @@ namespace MidiBard
 	{
 		internal static string Localize(this string message)
 		{
-			return Plugin.localizer.Localize(message);
+			return MidiBard.localizer.Localize(message);
 		}
 	}
     class Localizer

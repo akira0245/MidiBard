@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Dalamud.Logging;
 using Dalamud.Plugin;
 using Melanchall.DryWetMidi.Common;
 using Melanchall.DryWetMidi.Core;
@@ -14,7 +15,7 @@ using Melanchall.DryWetMidi.Interaction;
 
 namespace MidiBard
 {
-	class PlaylistManager
+	static class PlaylistManager
 	{
 		public static List<(MidiFile, string)> Filelist { get; set; } = new List<(MidiFile, string)>();
 
@@ -40,7 +41,7 @@ namespace MidiBard
 
 		public static void Clear()
 		{
-			Plugin.config.Playlist.Clear();
+			MidiBard.config.Playlist.Clear();
 			Filelist.Clear();
 			CurrentPlaying = -1;
 		}
@@ -49,7 +50,7 @@ namespace MidiBard
 		{
 			try
 			{
-				Plugin.config.Playlist.RemoveAt(index);
+				MidiBard.config.Playlist.RemoveAt(index);
 				Filelist.RemoveAt(index);
 				PluginLog.Information($"removing {index}");
 				if (index < currentPlaying)
@@ -171,7 +172,7 @@ namespace MidiBard
 
 						if (addToSavedConfigFileList)
 						{
-							Plugin.config.Playlist.Add(fileName);
+							MidiBard.config.Playlist.Add(fileName);
 						}
 					}
 

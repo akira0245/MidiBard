@@ -1,50 +1,79 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net5.0-windows</TargetFramework>
     <LangVersion>9.0</LangVersion>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
+    <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-
   <ItemGroup>
+    <PackageReference Include="ILRepack" Version="2.0.18" />
     <PackageReference Include="Melanchall.DryWetMidi" Version="5.2.1" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
   <ItemGroup>
     <Reference Include="Dalamud">
-      <HintPath>..\..\..\Downloads\Compressed\Dalamud_v5.2.3.3_beta1\dalamud5261\Dalamud.dll</HintPath>
+      <HintPath>..\Dalamud\bin\Debug\Dalamud.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="FFXIVClientStructs">
+      <HintPath>..\Dalamud\bin\Debug\FFXIVClientStructs.dll</HintPath>
+      <Private>false</Private>
     </Reference>
     <Reference Include="ImGui.NET">
-      <HintPath>..\..\..\Downloads\Compressed\Dalamud_v5.2.3.3_beta1\dalamud5261\ImGui.NET.dll</HintPath>
+      <HintPath>..\Dalamud\bin\Debug\ImGui.NET.dll</HintPath>
+      <Private>false</Private>
     </Reference>
     <Reference Include="ImGuiScene">
-      <HintPath>..\..\..\Downloads\Compressed\Dalamud_v5.2.3.3_beta1\dalamud5261\ImGuiScene.dll</HintPath>
+      <HintPath>..\Dalamud\bin\Debug\ImGuiScene.dll</HintPath>
+      <Private>false</Private>
     </Reference>
     <Reference Include="Lumina">
-      <HintPath>..\..\..\Downloads\Compressed\Dalamud_v5.2.3.3_beta1\dalamud5261\Lumina.dll</HintPath>
+      <HintPath>..\Dalamud\bin\Debug\Lumina.dll</HintPath>
+      <Private>false</Private>
     </Reference>
     <Reference Include="Lumina.Excel">
-      <HintPath>..\..\..\Downloads\Compressed\Dalamud_v5.2.3.3_beta1\dalamud5261\Lumina.Excel.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\..\Downloads\Compressed\Dalamud_v5.2.3.3_beta1\dalamud5261\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\Dalamud\bin\Debug\Lumina.Excel.dll</HintPath>
+      <Private>false</Private>
     </Reference>
     <Reference Include="playlib">
-      <HintPath>..\LootMaster\playlib\bin\Release\playlib.dll</HintPath>
+      <HintPath>..\playlib\bin\Release\netstandard2.0\playlib.dll</HintPath>
+      <Private>true</Private>
     </Reference>
-    <Reference Include="SDL2-CS">
-      <HintPath>..\..\..\Downloads\Compressed\Dalamud_v5.2.3.3_beta1\Dalamud_v5.2.3.3\SDL2-CS.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Windows.Forms" />
   </ItemGroup>
 
+  <!--<Target Name="ILRepack" AfterTargets="Build">
+    <ItemGroup>
+      <InputAssemblies Include="$(TargetPath)"/>
+      <InputAssemblies Include="$(TargetDir)*.dll" Exclude="$(TargetPath)"/>
+    </ItemGroup>
+    <Exec Command="$(ILRepack) /out:$(TargetDir)$(TargetFileName) $(TargetDir)Melanchall.DryWetMidi.dll $(TargetDir)playlib.dll"/>
+  </Target>-->
+
+  <!--<Target Name="CleanOutDir" AfterTargets="ILRepack">
+    <ItemGroup>
+      <DeleteAssemblies Include="$(TargetDir)*.dll" Exclude="$(TargetPath)"/>
+    </ItemGroup>
+    <Message Text="Deleting @(DeleteAssemblies)" Importance="high"/>
+    <Delete Files="@(DeleteAssemblies)"/>
+  </Target>-->
+
+  <!--<ItemGroup>
+    <None Include="MidiBard.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>-->
+
+  <!--<Target Name="PackagePlugin" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
+    <DalamudPackager ProjectDir="$(ProjectDir)" OutputPath="$(OutputPath)" AssemblyName="$(AssemblyName)" MakeZip="true" />
+  </Target>-->
 </Project>

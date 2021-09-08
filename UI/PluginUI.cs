@@ -8,10 +8,10 @@ using System.Security.Permissions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Dalamud.Game.Internal.Gui.Addon;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
+using Dalamud.Logging;
 using Dalamud.Plugin;
 using ImGuiNET;
 using Melanchall.DryWetMidi.Composing;
@@ -19,7 +19,7 @@ using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
-using static MidiBard.Plugin;
+using static MidiBard.MidiBard;
 using Chord = Melanchall.DryWetMidi.MusicTheory.Chord;
 using Note = Melanchall.DryWetMidi.MusicTheory.Note;
 
@@ -187,12 +187,11 @@ namespace MidiBard
 					}
 
 					if (Debug) DrawDebugWindow();
-
-					ImGui.End();
 				}
 			}
 			finally
 			{
+				ImGui.End();
 				ImGui.PopStyleVar();
 				//ImGui.PopStyleColor();
 			}
@@ -328,8 +327,8 @@ namespace MidiBard
 
 					ImGui.EndTable();
 				}
-				ImGui.EndChild();
 			}
+			ImGui.EndChild();
 
 
 			ImGui.PopStyleColor(4);
@@ -740,7 +739,7 @@ namespace MidiBard
 			ToolTip("Delay time before play next track.".Localize());
 
 
-			ImGui.SetNextItemWidth(ImGui.GetWindowWidth()*0.75f-ImGui.CalcTextSize("Transpose".Localize()).X-50);
+			ImGui.SetNextItemWidth(ImGui.GetWindowWidth() * 0.75f - ImGui.CalcTextSize("Transpose".Localize()).X - 50);
 			ImGui.InputInt("Transpose".Localize(), ref config.NoteNumberOffset, 12);
 			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right)) config.NoteNumberOffset = 0;
 			ToolTip("Transpose, measured by semitone. \nRight click to reset.".Localize());
@@ -824,7 +823,7 @@ namespace MidiBard
 
 		private static void ComboBoxSwitchInstrument()
 		{
-			UIcurrentInstrument = Plugin.CurrentInstrument;
+			UIcurrentInstrument = MidiBard.CurrentInstrument;
 			if (ImGui.Combo("Instrument".Localize(), ref UIcurrentInstrument, InstrumentStrings, InstrumentStrings.Length, 20))
 			{
 				Task.Run(() => SwitchInstrument.SwitchTo((uint)UIcurrentInstrument, true));
@@ -911,20 +910,16 @@ namespace MidiBard
 			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
 			if (ImGui.Button("Debug info", new Vector2(-2, ImGui.GetFrameHeight()))) Debug = !Debug;
 		}
-		private static void DrawDebugWindow()
+		private static unsafe void DrawDebugWindow()
 		{
 			//ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(5, 0));
 			if (ImGui.Begin("MIDIBARD DEBUG", ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.AlwaysAutoResize))
 			{
 				try
 				{
-					ImGui.TextUnformatted($"AgentModule: {AgentManager.AgentModule.ToInt64():X}");
+					ImGui.TextUnformatted($"AgentModule: {(long)AgentManager.AgentModule:X}");
 					ImGui.SameLine();
-					if (ImGui.SmallButton("C##AgentModule")) ImGui.SetClipboardText($"{AgentManager.AgentModule.ToInt64():X}");
-
-					ImGui.TextUnformatted($"UiModule: {AgentManager.UiModule.ToInt64():X}");
-					ImGui.SameLine();
-					if (ImGui.SmallButton("C##4")) ImGui.SetClipboardText($"{AgentManager.UiModule.ToInt64():X}");
+					if (ImGui.SmallButton("C##AgentModule")) ImGui.SetClipboardText($"{(long)AgentManager.AgentModule:X}");
 					ImGui.TextUnformatted($"AgentCount:{AgentManager.Agents.Count}");
 				}
 				catch (Exception e)
@@ -999,7 +994,7 @@ namespace MidiBard
 				ImGui.TextUnformatted($"currentPlaying: {PlaylistManager.CurrentPlaying}");
 				ImGui.TextUnformatted($"currentSelected: {PlaylistManager.CurrentSelected}");
 				ImGui.TextUnformatted($"FilelistCount: {PlaylistManager.Filelist.Count}");
-				ImGui.TextUnformatted($"currentUILanguage: {pluginInterface.UiLanguage}");
+				ImGui.TextUnformatted($"currentUILanguage: {DalamudApi.PluginInterface.UiLanguage}");
 
 				ImGui.Separator();
 				try
@@ -1283,9 +1278,8 @@ namespace MidiBard
 				//}
 
 				#endregion
-
-				ImGui.End();
 			}
+			ImGui.End();
 			//ImGui.PopStyleVar();
 
 		}

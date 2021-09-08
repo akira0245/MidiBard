@@ -6,7 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using Dalamud.Game.Internal.Network;
+using Dalamud.Logging;
 using Dalamud.Plugin;
 using Lumina.Data;
 using Lumina.Data.Files;
@@ -17,18 +17,16 @@ using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
-using MidiBard.Attributes;
 using playlibnamespace;
+using static MidiBard.DalamudApi;
 
 namespace MidiBard
 {
-	public class Plugin : IDalamudPlugin
+	public class MidiBard : IDalamudPlugin
 	{
-		internal static DalamudPluginInterface pluginInterface;
-		internal static PluginCommandManager<Plugin> commandManager;
-		internal static Configuration config;
+		public static MidiBard Plugin { get; private set; }
+		public static Configuration config { get; private set; }
 		internal static PluginUI ui;
-		//internal static int InputDeviceID;
 
 		internal static BardPlayDevice CurrentOutputDevice;
 
@@ -77,44 +75,48 @@ namespace MidiBard
 
 		internal static bool IsPlaying => currentPlayback?.IsRunning == true;
 		internal static Playback testplayback = null;
+
 		public string Name => "MidiBard";
 
-
-
-		public void Initialize(DalamudPluginInterface pi)
+		public unsafe MidiBard(DalamudPluginInterface pi)
 		{
-			pluginInterface = pi;
-			config = (Configuration)pluginInterface.GetPluginConfig() ?? new Configuration();
-			config.Initialize(pluginInterface);
+			Plugin = this;
+			DalamudApi.Initialize(this, pi);
+			config = (Configuration)PluginInterface.GetPluginConfig() ?? new();
+			config.Initialize();
 
+			Initialize();
+		}
+
+		public void Initialize()
+		{
+			var scanner = DalamudApi.SigScanner;
 			localizer = new Localizer((UILang)config.uiLang);
 
-			commandManager = new PluginCommandManager<Plugin>(this, pluginInterface);
-
-			playlib.initialize(pluginInterface, this);
+			playlibnamespace.playlib.init(DalamudApi.GameGui, DalamudApi.SigScanner);
 
 			CurrentOutputDevice = new BardPlayDevice();
 
 			AgentManager.Initialize();
 
-			MetronomeAgent = AgentManager.FindAgentInterfaceByVtable(pi.TargetModuleScanner.GetStaticAddressFromSig("48 8D 05 ?? ?? ?? ?? 48 89 03 48 8D 4B 40"));
-			PerformanceAgent = AgentManager.FindAgentInterfaceByVtable(pi.TargetModuleScanner.GetStaticAddressFromSig(
+			MetronomeAgent = AgentManager.FindAgentInterfaceByVtable(scanner.GetStaticAddressFromSig("48 8D 05 ?? ?? ?? ?? 48 89 03 48 8D 4B 40"));
+			PerformanceAgent = AgentManager.FindAgentInterfaceByVtable(scanner.GetStaticAddressFromSig(
 				"48 8D 05 ?? ?? ?? ?? 48 8B F9 48 89 01 48 8D 05 ?? ?? ?? ?? 48 89 41 28 48 8B 49 48"));
 
-			PerformInfos = pi.TargetModuleScanner.GetStaticAddressFromSig("48 8B 15 ?? ?? ?? ?? F6 C2 ??");
-			DoPerformAction = Marshal.GetDelegateForFunctionPointer<DoPerformActionDelegate>(pi.TargetModuleScanner.ScanText(
+			PerformInfos = scanner.GetStaticAddressFromSig("48 8B 15 ?? ?? ?? ?? F6 C2 ??");
+			DoPerformAction = Marshal.GetDelegateForFunctionPointer<DoPerformActionDelegate>(scanner.ScanText(
 				"48 89 6C 24 10 48 89 74 24 18 57 48 83 EC ?? 48 83 3D ?? ?? ?? ?? ?? 41 8B E8"));
 
 			try
 			{
-				instrumentoffset55 = Marshal.ReadByte(pi.TargetModuleScanner.ScanText("40 88 ?? ?? 66 89 ?? ?? 40 84") + 3);
+				instrumentoffset55 = Marshal.ReadByte(scanner.ScanText("40 88 ?? ?? 66 89 ?? ?? 40 84") + 3);
 			}
 			catch (Exception e)
 			{
 				instrumentoffset55 = 0x9;
 			}
 
-			InstrumentSheet = pi.Data.Excel.GetSheet<Perform>();
+			InstrumentSheet = DalamudApi.DataManager.Excel.GetSheet<Perform>();
 			InstrumentStrings = InstrumentSheet.Where(i => !string.IsNullOrWhiteSpace(i.Instrument) || i.RowId == 0)
 				.Select(i => $"{(i.RowId == 0 ? "None" : $"{i.RowId:00} {i.Instrument.RawString} ({i.Name})")}").ToArray();
 
@@ -126,15 +128,15 @@ namespace MidiBard
 
 
 			ui = new PluginUI();
-			pluginInterface.UiBuilder.OnBuildUi += ui.Draw;
-			pluginInterface.Framework.OnUpdateEvent += Tick;
-			pluginInterface.UiBuilder.OnOpenConfigUi += (sender, args) => ui.IsVisible ^= true;
+			PluginInterface.UiBuilder.Draw += ui.Draw;
+			Framework.Update += Tick;
+			PluginInterface.UiBuilder.OpenConfigUi += () => ui.IsVisible ^= true;
 
-			if (pluginInterface.Reason == PluginLoadReason.Unknown) ui.IsVisible = true;
+			if (PluginInterface.Reason == PluginLoadReason.Unknown) ui.IsVisible = true;
 		}
 
 		private bool wasInPerformance = false;
-		private void Tick(Dalamud.Game.Internal.Framework framework)
+		private void Tick(Dalamud.Game.Framework framework)
 		{
 			if (config.AutoOpenPlayerWhenPerforming)
 			{
@@ -221,15 +223,12 @@ namespace MidiBard
 			}
 		}
 
-		//[Command("/midibard")]
-		//[HelpMessage("toggle config window.")]
-		//public void Command1(string command, string args)
-		//{
-		//	OnCommand(command, args);
-		//}
+		[Command("/midibard")]
+		[HelpMessage("Toggle MidiBard window.")]
+		public void Command1(string command, string args) => OnCommand(command, args);
 
 		[Command("/mbard")]
-		[HelpMessage("Toggle config window.\n/mbard perform <instrument name/instrument ID> → Start playing with the specified instrument.\n/mbard quit → Quit performance mode.\n/mbard <play/pause/stop/next/last> → Player control.")]
+		[HelpMessage("Toggle MidiBard window.\n/mbard perform <instrument name/instrument ID> → Start playing with the specified instrument.\n/mbard perform cancel → Quit performance mode.\n/mbard <play/pause/playpause/stop/next/last> → Player control.")]
 		public void Command2(string command, string args)
 		{
 			OnCommand(command, args);
@@ -237,56 +236,53 @@ namespace MidiBard
 
 		void OnCommand(string command, string args)
 		{
-			PluginLog.Debug($"{command}, {args}");
+			PluginLog.Debug($"command: {command}, {args}");
 
-			var argStrings = args.Split(' ').Select(i => i.ToLower().Trim()).Where(i => !string.IsNullOrWhiteSpace(i)).ToList();
+			var argStrings = args.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Select(i => i.Trim()).ToList();
 			if (argStrings.Any())
 			{
-				if (argStrings[0] == "perform" && !InPerformanceMode)
+				if (argStrings[0] == "perform")
 				{
 					try
 					{
-						if (uint.TryParse(argStrings[1], out var instrumentId) && instrumentId > 0 && instrumentId < InstrumentStrings.Length)
+						var instrumentInput = argStrings[1];
+						if (instrumentInput == "cancel")
 						{
-							DoPerformAction(PerformInfos, instrumentId);
-							if (localizer.Language == UILang.CN)
-								pluginInterface.Framework.Gui.Toast.ShowQuest($"使用{InstrumentSheet.GetRow(instrumentId).Instrument}开始演奏。");
-							//else
-							//	pluginInterface.Framework.Gui.Toast.ShowQuest($"Start playing with the {InstrumentSheet.GetRow(uint.Parse(argStrings[1])).Instrument}.");
+							DoPerformAction(PerformInfos, 0);
+						}
+						else
+						{
+							if (uint.TryParse(instrumentInput, out var instrumentId) && instrumentId < InstrumentStrings.Length)
+							{
+								Task.Run(async () => await SwitchInstrument.SwitchTo(instrumentId));
+							}
+							else
+							{
+								Perform possibleInstrumentName = InstrumentSheet.FirstOrDefault(i => i.Instrument?.RawString.ToLowerInvariant() == instrumentInput);
+								Perform possibleGMName = InstrumentSheet.FirstOrDefault(i => i.Name.RawString.ToLowerInvariant().Contains(instrumentInput));
+
+								var possibleInstrument = possibleInstrumentName ?? possibleGMName;
+								if (possibleInstrument != null)
+								{
+									Task.Run(async () => await SwitchInstrument.SwitchTo(possibleInstrument.RowId));
+								}
+								else
+								{
+									throw new ArgumentException();
+								}
+							}
 						}
 					}
 					catch (Exception e)
 					{
-						try
-						{
-							var name = argStrings[1].ToLowerInvariant();
-							Perform possibleInstrument = Plugin.InstrumentSheet.FirstOrDefault(i => i.Instrument.RawString.ToLowerInvariant() == name);
-							Perform possibleGMName = Plugin.InstrumentSheet.FirstOrDefault(i => i.Name.RawString.ToLowerInvariant().Contains(name));
-
-							PluginLog.Debug($"{name} {possibleInstrument} {possibleGMName} {(possibleInstrument ?? possibleGMName)?.Instrument} {(possibleInstrument ?? possibleGMName)?.Name}");
-
-							var key = possibleInstrument ?? possibleGMName;
-							DoPerformAction(PerformInfos, key.RowId);
-							if (localizer.Language == UILang.CN)
-								pluginInterface.Framework.Gui.Toast.ShowQuest($"使用{(possibleInstrument ?? possibleGMName).Instrument}开始演奏。");
-							//else
-							//	pluginInterface.Framework.Gui.Toast.ShowQuest($"Start playing with the {(possiblekey ?? possiblekey2).Instrument}.");
-
-						}
-						catch (Exception exception)
-						{
-							//
-						}
-						//
+						PluginLog.Warning(e, "error when parsing or finding instrument strings");
+						ChatGui.PrintError($"failed parsing command argument \"{args}\"");
 					}
 				}
-				else if (argStrings[0] == "quit" && InPerformanceMode)
+
+				else if (argStrings[0] == "playpause")
 				{
-					DoPerformAction(PerformInfos, 0);
-					if (localizer.Language == UILang.CN)
-						pluginInterface.Framework.Gui.Toast.ShowQuest("停止了演奏。");
-					//else
-					//	pluginInterface.Framework.Gui.Toast.ShowQuest("Stopped playing.");
+					PlayerControl.PlayPause();
 				}
 
 				else if (argStrings[0] == "play")
@@ -313,8 +309,6 @@ namespace MidiBard
 				{
 					PlayerControl.Last();
 				}
-
-
 			}
 			else
 			{
@@ -322,40 +316,12 @@ namespace MidiBard
 			}
 		}
 
-
-
-		//[Command("/play")]
-		//[HelpMessage("Example help message.")]
-		//public void PressNote(string command, string args)
-		//{
-		//	var num = int.Parse(args.Trim());
-		//	var addon = pluginInterface.Framework.Gui.GetAddonByName("PerformanceModeWide", 1);
-		//	if (addon is { })
-		//	{
-		//		playlib.PressKey(addon.Address, num);
-		//	}
-		//}
-
-		//[Command("/release")]
-		//[HelpMessage("Example help message.")]
-		//public void ReleaseNote(string command, string args)
-		//{
-		//	var num = int.Parse(args.Trim());
-		//	var addon = pluginInterface.Framework.Gui.GetAddonByName("PerformanceModeWide", 1);
-		//	if (addon is { })
-		//	{
-		//		playlib.ReleaseKey(addon.Address, num);
-		//	}
-		//}
-
 		#region IDisposable Support
 		protected virtual void Dispose(bool disposing)
 		{
 			if (!disposing) return;
-
 			DeviceManager.DisposeDevice();
-			pluginInterface.Framework.OnUpdateEvent -= Tick;
-			//CurrentInputDevice.EventReceived -= CurrentInputDeviceOnEventReceived;
+			DalamudApi.Framework.Update -= Tick;
 
 			try
 			{
@@ -368,15 +334,10 @@ namespace MidiBard
 				PluginLog.Error($"{e}");
 			}
 
-			AgentManager.Agents.Clear();
+			PluginInterface.SavePluginConfig(config);
 
-			commandManager.Dispose();
-
-			pluginInterface.SavePluginConfig(config);
-
-			pluginInterface.UiBuilder.OnBuildUi -= ui.Draw;
-
-			pluginInterface.Dispose();
+			PluginInterface.UiBuilder.Draw -= ui.Draw;
+			DalamudApi.Dispose();
 		}
 
 		public void Dispose()

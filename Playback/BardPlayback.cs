@@ -20,7 +20,7 @@ namespace MidiBard
 		{
 			// Place your logic here
 			// Return true if event played (sent to plug-in); false otherwise
-			return Plugin.CurrentOutputDevice.SendEventWithMetadata(midiEvent, metadata);
+			return MidiBard.CurrentOutputDevice.SendEventWithMetadata(midiEvent, metadata);
 		}
 	}
 }
