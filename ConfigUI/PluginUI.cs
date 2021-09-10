@@ -801,14 +801,18 @@ namespace MidiBard
 				return;
 			}
 
-			config.playDeltaTime += delta;
 			var currentTime = currentPlayback.GetCurrentTime<MetricTimeSpan>();
 			long msTime = currentTime.TotalMicroseconds;
-			PluginLog.LogDebug("curTime:" + msTime);
+			//PluginLog.LogDebug("curTime:" + msTime);
+			if (msTime + delta * 1000 < 0)
+			{
+				return;
+			}
 			msTime += delta * 1000;
 			MetricTimeSpan newTime = new MetricTimeSpan(msTime);
-			PluginLog.LogDebug("newTime:" + newTime.TotalMicroseconds);
+			//PluginLog.LogDebug("newTime:" + newTime.TotalMicroseconds);
 			currentPlayback.MoveToTime(newTime);
+			config.playDeltaTime += delta;
 		}
 
 		private static string GetBpmString()
