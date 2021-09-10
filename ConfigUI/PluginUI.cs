@@ -112,7 +112,6 @@ namespace MidiBard
 							ImGui.SameLine();
 							ButtonClearPlaylist();
 
-
 							if (localizer.Language == UILang.CN)
 							{
 								ImGui.SameLine(ImGui.GetWindowContentRegionWidth() - ImGui.CalcTextSize(FontAwesomeIcon.QuestionCircle.ToIconString()).X - ImGui.GetStyle().FramePadding.X * 2 - ImGui.GetCursorPosX() - 2);
@@ -125,8 +124,6 @@ namespace MidiBard
 									TooltipHelp();
 								}
 							}
-
-
 						}
 
 						ImGui.PopStyleVar(2);
@@ -186,7 +183,8 @@ namespace MidiBard
 						DrawPanelGeneralSettings();
 					}
 
-					if (Debug) DrawDebugWindow();
+					if (Debug)
+						DrawDebugWindow();
 
 					ImGui.End();
 				}
@@ -201,7 +199,7 @@ namespace MidiBard
 		private static unsafe void ButtonSearch()
 		{
 			ImGui.PushStyleColor(ImGuiCol.Text,
-				config.enableSearching ? config.themeColor : *ImGui.GetStyleColorVec4(ImGuiCol.Text));
+			  config.enableSearching ? config.themeColor : *ImGui.GetStyleColorVec4(ImGuiCol.Text));
 			if (IconButton(FontAwesomeIcon.Search, "searchbutton"))
 			{
 				config.enableSearching ^= true;
@@ -216,36 +214,36 @@ namespace MidiBard
 			ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(4, 4));
 			ImGui.BeginTooltip();
 			ImGui.BulletText(
-				"如何开始使用MIDIBARD演奏？" +
-				"\n　MIDIBARD窗口默认在角色进入演奏模式后自动弹出。" +
-				"\n　点击窗口左上角的“+”按钮来将乐曲文件导入到播放列表，仅支持.mid格式的乐曲。" +
-				"\n　导入时按Ctrl或Shift可以选择多个文件一同导入。" +
-				"\n　双击播放列表中要演奏的乐曲后点击播放按钮开始演奏。\n");
+			  "如何开始使用MIDIBARD演奏？" +
+			  "\n　MIDIBARD窗口默认在角色进入演奏模式后自动弹出。" +
+			  "\n　点击窗口左上角的“+”按钮来将乐曲文件导入到播放列表，仅支持.mid格式的乐曲。" +
+			  "\n　导入时按Ctrl或Shift可以选择多个文件一同导入。" +
+			  "\n　双击播放列表中要演奏的乐曲后点击播放按钮开始演奏。\n");
 			ImGui.BulletText(
-				"为什么点击播放之后没有正常演奏？" +
-				"\n　MIDIBARD仅使用37键演奏模式。" +
-				"\n　请在游戏“乐器演奏操作设置”的“键盘操作”类别下启用“全音阶一同显示、设置按键”的选项。\n");
+			  "为什么点击播放之后没有正常演奏？" +
+			  "\n　MIDIBARD仅使用37键演奏模式。" +
+			  "\n　请在游戏“乐器演奏操作设置”的“键盘操作”类别下启用“全音阶一同显示、设置按键”的选项。\n");
 			ImGui.BulletText(
-				"如何使用MIDIBARD进行多人合奏？" +
-				"\n　MIDIBARD使用游戏中的合奏助手来完成合奏，请在合奏时打开游戏的节拍器窗口。" +
-				"\n　合奏前在播放列表中双击要合奏的乐曲，播放器下方会出现可供演奏的所有音轨，请为每位合奏成员分别选择其需要演奏的音轨。" +
-				"\n　选择音轨后队长点击节拍器窗口的“合奏准备确认”按钮，" +
-				"\n　并确保合奏准备确认窗口中已勾选“使用合奏助手”选项后点击开始即可开始合奏。" +
-				"\n　※节拍器前两小节为准备时间，从第1小节开始会正式开始合奏。" +
-				"\n　　考虑到不同使用环境乐曲加载速度可能不一致，为了避免切换乐曲导致的不同步，在乐曲结束时合奏会自动停止。\n");
+			  "如何使用MIDIBARD进行多人合奏？" +
+			  "\n　MIDIBARD使用游戏中的合奏助手来完成合奏，请在合奏时打开游戏的节拍器窗口。" +
+			  "\n　合奏前在播放列表中双击要合奏的乐曲，播放器下方会出现可供演奏的所有音轨，请为每位合奏成员分别选择其需要演奏的音轨。" +
+			  "\n　选择音轨后队长点击节拍器窗口的“合奏准备确认”按钮，" +
+			  "\n　并确保合奏准备确认窗口中已勾选“使用合奏助手”选项后点击开始即可开始合奏。" +
+			  "\n　※节拍器前两小节为准备时间，从第1小节开始会正式开始合奏。" +
+			  "\n　　考虑到不同使用环境乐曲加载速度可能不一致，为了避免切换乐曲导致的不同步，在乐曲结束时合奏会自动停止。\n");
 			ImGui.BulletText(
-				"如何让MIDIBARD为不同乐曲自动切换音调和乐器？" +
-				"\n　在导入前把要指定乐器和移调的乐曲文件名前加入“#<乐器名><移调的半音数量>#”。" +
-				"\n　例如：原乐曲文件名为“demo.mid”" +
-				"\n　将其重命名为“#中提琴+12#demo.mid”可在演奏到该乐曲时自动切换到中提琴并升调1个八度演奏。" +
-				"\n　将其重命名为“#长笛-24#demo.mid”可在演奏到该乐曲时切换到长笛并降调2个八度演奏。" +
-				"\n　※可以只添加#+12#或#竖琴#或#harp#，也会有对应的升降调或切换乐器效果。");
+			  "如何让MIDIBARD为不同乐曲自动切换音调和乐器？" +
+			  "\n　在导入前把要指定乐器和移调的乐曲文件名前加入“#<乐器名><移调的半音数量>#”。" +
+			  "\n　例如：原乐曲文件名为“demo.mid”" +
+			  "\n　将其重命名为“#中提琴+12#demo.mid”可在演奏到该乐曲时自动切换到中提琴并升调1个八度演奏。" +
+			  "\n　将其重命名为“#长笛-24#demo.mid”可在演奏到该乐曲时切换到长笛并降调2个八度演奏。" +
+			  "\n　※可以只添加#+12#或#竖琴#或#harp#，也会有对应的升降调或切换乐器效果。");
 			ImGui.BulletText(
-				"如何为MIDIBARD配置外部Midi输入（如虚拟Midi接口或Midi键盘）？" +
-				"\n　在“输入设备”下拉菜单中选择你的Midi设备，窗口顶端出现“正在监听Midi输入”信息后即可使用外部输入。\n");
+			  "如何为MIDIBARD配置外部Midi输入（如虚拟Midi接口或Midi键盘）？" +
+			  "\n　在“输入设备”下拉菜单中选择你的Midi设备，窗口顶端出现“正在监听Midi输入”信息后即可使用外部输入。\n");
 			ImGui.BulletText(
-				"后台演奏时有轻微卡顿不流畅怎么办？" +
-				"\n　在游戏内“系统设置→显示设置→帧数限制”中取消勾选 “程序在游戏窗口处于非激活状态时限制帧数” 的选项并应用设置。\n");
+			  "后台演奏时有轻微卡顿不流畅怎么办？" +
+			  "\n　在游戏内“系统设置→显示设置→帧数限制”中取消勾选 “程序在游戏窗口处于非激活状态时限制帧数” 的选项并应用设置。\n");
 			ImGui.BulletText("讨论及BUG反馈群：260985966");
 			ImGui.Spacing();
 
@@ -272,7 +270,7 @@ namespace MidiBard
 		{
 			ImGui.SetNextItemWidth(-1);
 			if (ImGui.InputTextWithHint("##searchplaylist", "Enter to start the search".Localize(), ref searchstring, 255,
-				ImGuiInputTextFlags.AutoSelectAll | ImGuiInputTextFlags.EnterReturnsTrue))
+			  ImGuiInputTextFlags.AutoSelectAll | ImGuiInputTextFlags.EnterReturnsTrue))
 			{
 				config.enableSearching = false;
 			}
@@ -287,8 +285,8 @@ namespace MidiBard
 			if (ImGui.BeginChild("child", new Vector2(x: -1, y: ImGui.GetTextLineHeightWithSpacing() * Math.Min(val1: 10, val2: PlaylistManager.Filelist.Count))))
 			{
 				if (ImGui.BeginTable(str_id: "##PlaylistTable", column: 3,
-					flags: ImGuiTableFlags.RowBg | ImGuiTableFlags.PadOuterX |
-						   ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.BordersInnerV))
+				  flags: ImGuiTableFlags.RowBg | ImGuiTableFlags.PadOuterX |
+					   ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.BordersInnerV))
 				{
 					ImGui.TableSetupColumn("\ue035", ImGuiTableColumnFlags.WidthFixed);
 					ImGui.TableSetupColumn("##deleteColumn", ImGuiTableColumnFlags.WidthFixed);
@@ -311,7 +309,6 @@ namespace MidiBard
 							}
 						}
 
-
 						ImGui.TableNextRow();
 						ImGui.TableSetColumnIndex(0);
 
@@ -330,7 +327,6 @@ namespace MidiBard
 				}
 				ImGui.EndChild();
 			}
-
 
 			ImGui.PopStyleColor(4);
 		}
@@ -358,13 +354,13 @@ namespace MidiBard
 		private static void DrawPlaylistItemSelectable(int i)
 		{
 			if (ImGui.Selectable($"{i + 1:000}##plistitem", PlaylistManager.CurrentPlaying == i,
-				ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowDoubleClick |
-				ImGuiSelectableFlags.AllowItemOverlap))
+			  ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowDoubleClick |
+			  ImGuiSelectableFlags.AllowItemOverlap))
 			{
 				if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
 				{
 					PlaylistManager.CurrentPlaying = i;
-
+					config.playDeltaTime = 0;
 					try
 					{
 						var wasplaying = IsPlaying;
@@ -372,7 +368,8 @@ namespace MidiBard
 						currentPlayback = null;
 
 						currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].GetFilePlayback();
-						if (wasplaying) currentPlayback?.Start();
+						if (wasplaying)
+							currentPlayback?.Start();
 						Task.Run(SwitchInstrument.WaitSwitchInstrument);
 					}
 					catch (Exception e)
@@ -392,7 +389,7 @@ namespace MidiBard
 			ImGui.PushFont(UiBuilder.IconFont);
 			ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
 			if (ImGui.Button($"{((FontAwesomeIcon)0xF2ED).ToIconString()}##{i}",
-				new Vector2(ImGui.GetTextLineHeight(), ImGui.GetTextLineHeight())))
+			  new Vector2(ImGui.GetTextLineHeight(), ImGui.GetTextLineHeight())))
 			{
 				PlaylistManager.Remove(i);
 			}
@@ -417,25 +414,21 @@ namespace MidiBard
 				ImGui.PushStyleColor(ImGuiCol.Text, config.themeColor * new Vector4(1, 1, 1, 1.3f));
 				ImGui.TextWrapped(fmt);
 				ImGui.PopStyleColor();
-
 			}
 			catch (Exception e)
 			{
 				var c = PlaylistManager.Filelist.Count;
 				ImGui.TextUnformatted(c > 1
-					? $"{PlaylistManager.Filelist.Count} " +
-					  "tracks in playlist.".Localize()
-					: $"{PlaylistManager.Filelist.Count} " +
-					  "track in playlist.".Localize());
+				  ? $"{PlaylistManager.Filelist.Count} " +
+					"tracks in playlist.".Localize()
+				  : $"{PlaylistManager.Filelist.Count} " +
+					"track in playlist.".Localize());
 			}
-
 		}
 
 		private static unsafe void DrawProgressBar()
 		{
 			//ImGui.PushStyleColor(ImGuiCol.FrameBg, 0x800000A0);
-
-
 
 			MetricTimeSpan currentTime = new MetricTimeSpan(0);
 			MetricTimeSpan duration = new MetricTimeSpan(0);
@@ -474,8 +467,6 @@ namespace MidiBard
 				}
 			}
 
-
-
 			ImGui.TextUnformatted($"{currentTime.Hours}:{currentTime.Minutes:00}:{currentTime.Seconds:00}");
 			var durationText = $"{duration.Hours}:{duration.Minutes:00}:{duration.Seconds:00}";
 			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() - ImGui.CalcTextSize(durationText).X);
@@ -509,10 +500,8 @@ namespace MidiBard
 			ImGui.PopStyleColor();
 		}
 
-
 		private static unsafe void DrawButtonPlayMode()
 		{
-
 			//playmode button
 
 			ImGui.SameLine();
@@ -522,18 +511,23 @@ namespace MidiBard
 				case PlayMode.Single:
 					icon = (FontAwesomeIcon)0xf3e5;
 					break;
+
 				case PlayMode.ListOrdered:
 					icon = (FontAwesomeIcon)0xf884;
 					break;
+
 				case PlayMode.ListRepeat:
 					icon = (FontAwesomeIcon)0xf021;
 					break;
+
 				case PlayMode.SingleRepeat:
 					icon = (FontAwesomeIcon)0xf01e;
 					break;
+
 				case PlayMode.Random:
 					icon = (FontAwesomeIcon)0xf074;
 					break;
+
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
@@ -551,7 +545,7 @@ namespace MidiBard
 			}
 
 			ToolTip("Playmode: ".Localize() +
-					$"{(PlayMode)config.PlayMode}".Localize());
+				$"{(PlayMode)config.PlayMode}".Localize());
 		}
 
 		private unsafe void DrawTrackTrunkSelectionWindow()
@@ -564,10 +558,9 @@ namespace MidiBard
 				//ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new Vector2(-10, -10));
 				//ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(-10, -10));
 				if (ImGui.BeginChild("TrackTrunkSelection",
-					new Vector2(ImGui.GetWindowContentRegionWidth() - 1, Math.Min(CurrentTracks.Count, 6.6f) * ImGui.GetFrameHeightWithSpacing() - ImGui.GetStyle().ItemSpacing.Y),
-					false, ImGuiWindowFlags.NoDecoration))
+				  new Vector2(ImGui.GetWindowContentRegionWidth() - 1, Math.Min(CurrentTracks.Count, 6.6f) * ImGui.GetFrameHeightWithSpacing() - ImGui.GetStyle().ItemSpacing.Y),
+				  false, ImGuiWindowFlags.NoDecoration))
 				{
-
 					ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 2f);
 					ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(2, ImGui.GetStyle().ItemSpacing.Y));
 					ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign, new Vector2(0.6f, 0));
@@ -580,7 +573,6 @@ namespace MidiBard
 						ImGui.PopTextWrapPos();
 						ImGui.EndTooltip();
 					}
-
 
 					if (PlayingGuitar && config.OverrideGuitarTones)
 					{
@@ -606,7 +598,6 @@ namespace MidiBard
 							//	currentPlayback?.Dispose();
 							//	//if (wasplaying)
 							//	//{
-
 							//	//}
 							//}
 							//catch (Exception e)
@@ -673,7 +664,6 @@ namespace MidiBard
 								}
 							}
 
-
 							drawToneSelectButton(0, colorRed, " I ", i);
 							ImGui.SameLine();
 							drawToneSelectButton(1, colorCyan, " II ", i);
@@ -695,17 +685,11 @@ namespace MidiBard
 			}
 		}
 
-
 		private static void DrawPanelMusicControl()
 		{
 			ComboBoxSwitchInstrument();
 
 			SliderProgress();
-
-
-
-
-
 
 			if (ImGui.DragFloat("Speed".Localize(), ref config.playSpeed, 0.003f, 0.1f, 10f, GetBpmString(), ImGuiSliderFlags.Logarithmic))
 			{
@@ -733,16 +717,43 @@ namespace MidiBard
 				}
 			}
 
-
 			ImGui.DragFloat("Delay".Localize(), ref config.secondsBetweenTracks, 0.01f, 0, 60,
-				$"{config.secondsBetweenTracks:f2} s", ImGuiSliderFlags.AlwaysClamp | ImGuiSliderFlags.NoRoundToFormat);
-			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right)) config.secondsBetweenTracks = 0;
+			  $"{config.secondsBetweenTracks:f2} s", ImGuiSliderFlags.AlwaysClamp | ImGuiSliderFlags.NoRoundToFormat);
+			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+				config.secondsBetweenTracks = 0;
 			ToolTip("Delay time before play next track.".Localize());
 
+			if (ImGui.Button("-10"))
+			{
+				ChangeDeltaTime(-10);
+			}
+			ImGui.SameLine();
+			if (ImGui.Button("+10"))
+			{
+				ChangeDeltaTime(10);
+			}
+			ImGui.SameLine();
+			if (ImGui.Button("-50"))
+			{
+				ChangeDeltaTime(-50);
+			}
+			ImGui.SameLine();
+			if (ImGui.Button("+50"))
+			{
+				ChangeDeltaTime(50);
+			}
+			ImGui.SameLine();
+			ImGui.TextUnformatted("DeltaTime(ms): " + $"{config.playDeltaTime} ");
+			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+			{
+				ChangeDeltaTime(-config.playDeltaTime);
+			}
+			ToolTip("Delay time(ms) add on top of current progress to help sync between bards.");
 
-			ImGui.SetNextItemWidth(ImGui.GetWindowWidth()*0.75f-ImGui.CalcTextSize("Transpose".Localize()).X-50);
+			ImGui.SetNextItemWidth(ImGui.GetWindowWidth() * 0.75f - ImGui.CalcTextSize("Transpose".Localize()).X - 50);
 			ImGui.InputInt("Transpose".Localize(), ref config.NoteNumberOffset, 12);
-			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right)) config.NoteNumberOffset = 0;
+			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+				config.NoteNumberOffset = 0;
 			ToolTip("Transpose, measured by semitone. \nRight click to reset.".Localize());
 
 			//if (ImGui.Button("Octave+".Localize())) config.NoteNumberOffset += 12;
@@ -759,10 +770,26 @@ namespace MidiBard
 			ImGui.Checkbox("Auto Adapt".Localize(), ref config.AdaptNotesOOR);
 			HelpMarker("Adapt high/low pitch notes which are out of range\r\ninto 3 octaves we can play".Localize());
 
-
-
 			//ImGui.SliderFloat("secbetweensongs", ref config.timeBetweenSongs, 0, 10,
 			//	$"{config.timeBetweenSongs:F2} [{500000 * config.timeBetweenSongs:F0}]", ImGuiSliderFlags.AlwaysClamp);
+		}
+
+		private static void ChangeDeltaTime(int delta)
+		{
+			if (currentPlayback == null)
+			{
+				config.playDeltaTime = 0;
+				return;
+			}
+
+			config.playDeltaTime += delta;
+			var currentTime = currentPlayback.GetCurrentTime<MetricTimeSpan>();
+			long msTime = currentTime.TotalMicroseconds;
+			PluginLog.LogDebug("curTime:" + msTime);
+			msTime += delta * 1000;
+			MetricTimeSpan newTime = new MetricTimeSpan(msTime);
+			PluginLog.LogDebug("newTime:" + newTime.TotalMicroseconds);
+			currentPlayback.MoveToTime(newTime);
 		}
 
 		private static string GetBpmString()
@@ -781,7 +808,8 @@ namespace MidiBard
 
 			var label = $"{config.playSpeed:F2}";
 
-			if (bpm != null) label += $" ({bpm.BeatsPerMinute * config.playSpeed:F1} bpm)";
+			if (bpm != null)
+				label += $" ({bpm.BeatsPerMinute * config.playSpeed:F1} bpm)";
 			return label;
 		}
 
@@ -802,14 +830,16 @@ namespace MidiBard
 				}
 
 				if (ImGui.SliderFloat("Progress".Localize(), ref progress, 0, 1,
-					$"{(currentTime.Hours != 0 ? currentTime.Hours + ":" : "")}{currentTime.Minutes:00}:{currentTime.Seconds:00}",
-					ImGuiSliderFlags.AlwaysClamp | ImGuiSliderFlags.NoRoundToFormat))
+				  $"{(currentTime.Hours != 0 ? currentTime.Hours + ":" : "")}{currentTime.Minutes:00}:{currentTime.Seconds:00}",
+				  ImGuiSliderFlags.AlwaysClamp | ImGuiSliderFlags.NoRoundToFormat))
 				{
+					config.playDeltaTime = 0;
 					currentPlayback.MoveToTime(duration.Multiply(progress));
 				}
 
 				if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
 				{
+					config.playDeltaTime = 0;
 					currentPlayback.MoveToTime(duration.Multiply(0));
 				}
 			}
@@ -880,12 +910,10 @@ namespace MidiBard
 			}
 			ToolTip("Choose external midi input device. right click to reset.".Localize());
 
-
 			if (ImGui.Combo("UI Language".Localize(), ref config.uiLang, uilangStrings, 2))
 			{
 				localizer = new Localizer((UILang)config.uiLang);
 			}
-
 
 			ImGui.Checkbox("Auto open MidiBard".Localize(), ref config.AutoOpenPlayerWhenPerforming);
 			HelpMarker("Open MidiBard window automatically when entering performance mode".Localize());
@@ -909,8 +937,10 @@ namespace MidiBard
 			HelpMarker("Assign different guitar tones for each midi tracks".Localize());
 
 			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
-			if (ImGui.Button("Debug info", new Vector2(-2, ImGui.GetFrameHeight()))) Debug = !Debug;
+			if (ImGui.Button("Debug info", new Vector2(-2, ImGui.GetFrameHeight())))
+				Debug = !Debug;
 		}
+
 		private static void DrawDebugWindow()
 		{
 			//ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(5, 0));
@@ -920,11 +950,13 @@ namespace MidiBard
 				{
 					ImGui.TextUnformatted($"AgentModule: {AgentManager.AgentModule.ToInt64():X}");
 					ImGui.SameLine();
-					if (ImGui.SmallButton("C##AgentModule")) ImGui.SetClipboardText($"{AgentManager.AgentModule.ToInt64():X}");
+					if (ImGui.SmallButton("C##AgentModule"))
+						ImGui.SetClipboardText($"{AgentManager.AgentModule.ToInt64():X}");
 
 					ImGui.TextUnformatted($"UiModule: {AgentManager.UiModule.ToInt64():X}");
 					ImGui.SameLine();
-					if (ImGui.SmallButton("C##4")) ImGui.SetClipboardText($"{AgentManager.UiModule.ToInt64():X}");
+					if (ImGui.SmallButton("C##4"))
+						ImGui.SetClipboardText($"{AgentManager.UiModule.ToInt64():X}");
 					ImGui.TextUnformatted($"AgentCount:{AgentManager.Agents.Count}");
 				}
 				catch (Exception e)
@@ -937,7 +969,8 @@ namespace MidiBard
 				{
 					ImGui.TextUnformatted($"AgentPerformance: {PerformanceAgent.Pointer.ToInt64():X}");
 					ImGui.SameLine();
-					if (ImGui.SmallButton("C##AgentPerformance")) ImGui.SetClipboardText($"{PerformanceAgent.Pointer.ToInt64():X}");
+					if (ImGui.SmallButton("C##AgentPerformance"))
+						ImGui.SetClipboardText($"{PerformanceAgent.Pointer.ToInt64():X}");
 
 					ImGui.TextUnformatted($"AgentID: {PerformanceAgent.Id}");
 
@@ -958,9 +991,9 @@ namespace MidiBard
 				{
 					ImGui.TextUnformatted($"AgentMetronome: {MetronomeAgent.Pointer.ToInt64():X}");
 					ImGui.SameLine();
-					if (ImGui.SmallButton("C##AgentMetronome")) ImGui.SetClipboardText($"{MetronomeAgent.Pointer.ToInt64():X}");
+					if (ImGui.SmallButton("C##AgentMetronome"))
+						ImGui.SetClipboardText($"{MetronomeAgent.Pointer.ToInt64():X}");
 					ImGui.TextUnformatted($"AgentID: {MetronomeAgent.Id}");
-
 
 					ImGui.TextUnformatted($"Running: {MetronomeRunning}");
 					ImGui.TextUnformatted($"Ensemble: {EnsembleModeRunning}");
@@ -975,14 +1008,13 @@ namespace MidiBard
 					ImGui.TextUnformatted(e.ToString());
 				}
 
-
-
 				ImGui.Separator();
 				try
 				{
 					ImGui.TextUnformatted($"PerformInfos: {PerformInfos.ToInt64() + 3:X}");
 					ImGui.SameLine();
-					if (ImGui.SmallButton("C##PerformInfos")) ImGui.SetClipboardText($"{PerformInfos.ToInt64() + 3:X}");
+					if (ImGui.SmallButton("C##PerformInfos"))
+						ImGui.SetClipboardText($"{PerformInfos.ToInt64() + 3:X}");
 					ImGui.TextUnformatted($"CurrentInstrumentKey: {CurrentInstrument}");
 					ImGui.TextUnformatted($"Instrument: {InstrumentSheet.GetRow(CurrentInstrument).Instrument}");
 					ImGui.TextUnformatted($"Name: {InstrumentSheet.GetRow(CurrentInstrument).Name.RawString}");
@@ -1006,7 +1038,6 @@ namespace MidiBard
 				{
 					//var devicesList = DeviceManager.Devices.Select(i => i.ToDeviceString()).ToArray();
 
-
 					//var inputDevices = DeviceManager.Devices;
 					////ImGui.BeginListBox("##auofhiao", new Vector2(-1, ImGui.GetTextLineHeightWithSpacing()* (inputDevices.Length + 1)));
 					//if (ImGui.BeginCombo("Input Device", DeviceManager.CurrentInputDevice.ToDeviceString()))
@@ -1025,8 +1056,6 @@ namespace MidiBard
 					//	}
 					//	ImGui.EndCombo();
 					//}
-
-
 
 					//ImGui.EndListBox();
 
@@ -1075,6 +1104,7 @@ namespace MidiBard
 					config.themeColorDark = config.themeColor * new Vector4(0.25f, 0.25f, 0.25f, 1);
 					config.themeColorTransparent = config.themeColor * new Vector4(1, 1, 1, 0.33f);
 				}
+
 				#region Generator
 
 				//ImGui.Separator();
@@ -1282,15 +1312,15 @@ namespace MidiBard
 				//	ImGui.EndChild();
 				//}
 
-				#endregion
+				#endregion Generator
 
 				ImGui.End();
 			}
 			//ImGui.PopStyleVar();
-
 		}
 
 		private static int UIcurrentInstrument;
+
 		#region import
 
 		private const string LabelTab = "Import Mods";
@@ -1301,8 +1331,7 @@ namespace MidiBard
 		private const string TooltipModpack1 = "Writing modpack to disk before extracting...";
 
 		private static readonly string FailedImport =
-			"One or more of your modpacks failed to import.\nPlease submit a bug report.".Localize();
-
+	  "One or more of your modpacks failed to import.\nPlease submit a bug report.".Localize();
 
 		private void ButtonImport()
 		{
@@ -1352,22 +1381,20 @@ namespace MidiBard
 			return _isImportRunning;
 		}
 
-
-
 		private void RunImportTask()
 		{
 			if (!_isImportRunning)
 			{
 				_isImportRunning = true;
 				var b = new Browse((result, filePath) =>
-				{
-					if (result == DialogResult.OK)
-					{
-						PlaylistManager.ImportMidiFile(filePath, true);
-					}
+		{
+			if (result == DialogResult.OK)
+			{
+				PlaylistManager.ImportMidiFile(filePath, true);
+			}
 
-					_isImportRunning = false;
-				});
+			_isImportRunning = false;
+		});
 
 				var t = new Thread(b.BrowseDLL);
 				t.SetApartmentState(ApartmentState.STA);
@@ -1399,12 +1426,8 @@ namespace MidiBard
 
 			//	_isImportRunning = false;
 			//});
-
-
 		}
 
-
-
-		#endregion
+		#endregion import
 	}
 }

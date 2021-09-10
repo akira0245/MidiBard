@@ -34,15 +34,18 @@ namespace MidiBard
 
 		public float playSpeed = 1f;
 		public float secondsBetweenTracks = 3;
+		public int playDeltaTime = 0; // add delta time to help with sync(in ms)
 		public int PlayMode = 0;
 		public int NoteNumberOffset = 0;
 		public bool AdaptNotesOOR = true;
 
 		public bool MonitorOnEnsemble = true;
 		public bool AutoOpenPlayerWhenPerforming = true;
+
 		//public bool TrimStart;
 		//public bool TrimEnd;
 		public bool[] EnabledTracks = Enumerable.Repeat(true, 100).ToArray();
+
 		public int[] TracksTone = new int[100];
 		public int uiLang = Plugin.pluginInterface.UiLanguage == "zh" ? 1 : 0;
 		public bool showMusicControlPanel = true;
