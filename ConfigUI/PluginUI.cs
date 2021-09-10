@@ -852,14 +852,12 @@ namespace MidiBard
 				  $"{(currentTime.Hours != 0 ? currentTime.Hours + ":" : "")}{currentTime.Minutes:00}:{currentTime.Seconds:00}",
 				  ImGuiSliderFlags.AlwaysClamp | ImGuiSliderFlags.NoRoundToFormat))
 				{
-					config.playDeltaTime = 0;
-					currentPlayback.MoveToTime(duration.Multiply(progress));
+					PlayerControl.SkipTo(duration.Multiply(progress));
 				}
 
 				if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
 				{
-					config.playDeltaTime = 0;
-					currentPlayback.MoveToTime(duration.Multiply(0));
+					PlayerControl.SkipTo(duration.Multiply(0));
 				}
 			}
 			else
