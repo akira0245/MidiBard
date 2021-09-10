@@ -360,28 +360,38 @@ namespace MidiBard
 			{
 				if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
 				{
-					PlaylistManager.CurrentPlaying = i;
-					config.playDeltaTime = 0;
-					try
-					{
-						var wasplaying = IsPlaying;
-						currentPlayback?.Dispose();
-						currentPlayback = null;
-
-						currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].GetFilePlayback();
-						if (wasplaying)
-							currentPlayback?.Start();
-						Task.Run(SwitchInstrument.WaitSwitchInstrument);
-					}
-					catch (Exception e)
-					{
-						//
-					}
+					SwitchSong(i, true);
 				}
 				else
 				{
 					PlaylistManager.CurrentSelected = i;
 				}
+			}
+		}
+
+		public static void SwitchSong(int number, bool startPlaying = false)
+		{
+			if (number < 0 || number >= PlaylistManager.Filelist.Count)
+			{
+				return;
+			}
+
+			PlaylistManager.CurrentPlaying = number;
+			config.playDeltaTime = 0;
+			try
+			{
+				var wasplaying = IsPlaying;
+				currentPlayback?.Dispose();
+				currentPlayback = null;
+
+				currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].GetFilePlayback();
+				if (wasplaying && startPlaying)
+					currentPlayback?.Start();
+				Task.Run(SwitchInstrument.WaitSwitchInstrument);
+			}
+			catch (Exception e)
+			{
+				//
 			}
 		}
 

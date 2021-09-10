@@ -89,6 +89,8 @@ namespace MidiBard
 			config = (Configuration)pluginInterface.GetPluginConfig() ?? new Configuration();
 			config.Initialize(pluginInterface);
 
+			pluginInterface.Framework.Gui.Chat.OnChatMessage += ChatCommand.OnChatMessage;
+
 			localizer = new Localizer((UILang)config.uiLang);
 
 			commandManager = new PluginCommandManager<Plugin>(this, pluginInterface);
@@ -359,6 +361,8 @@ namespace MidiBard
 		{
 			if (!disposing)
 				return;
+
+			pluginInterface.Framework.Gui.Chat.OnChatMessage -= ChatCommand.OnChatMessage;
 
 			DeviceManager.DisposeDevice();
 			pluginInterface.Framework.OnUpdateEvent -= Tick;
