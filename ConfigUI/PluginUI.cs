@@ -34,6 +34,7 @@ namespace MidiBard
 		private static string searchstring = "";
 
 		private float playlistScrollY = 0;
+
 		public unsafe void Draw()
 		{
 			if (!IsVisible)
@@ -590,6 +591,14 @@ namespace MidiBard
 
 						if (ImGui.Checkbox($"[{i + 1:00}] {CurrentTracks[i].Item2}", ref config.EnabledTracks[i]))
 						{
+							if (config.autoSwitchInstrumentByTrackName)
+							{
+								SwitchInstrument.AutoSwitchInstrumentByTrackName();
+								if (config.EnabledTracks[i])
+								{
+									PluginLog.LogDebug("Enable track name: " + CurrentTracks[i].Item2.GetTrackName());
+								}
+							}
 							//try
 							//{
 							//	//var progress = currentPlayback.GetCurrentTime<MidiTimeSpan>();
@@ -723,27 +732,27 @@ namespace MidiBard
 				config.secondsBetweenTracks = 0;
 			ToolTip("Delay time before play next track.".Localize());
 
-			if (ImGui.Button("-10"))
-			{
-				ChangeDeltaTime(-10);
-			}
-			ImGui.SameLine();
-			if (ImGui.Button("+10"))
-			{
-				ChangeDeltaTime(10);
-			}
-			ImGui.SameLine();
-			if (ImGui.Button("-50"))
+			if (ImGui.Button("-50ms"))
 			{
 				ChangeDeltaTime(-50);
 			}
 			ImGui.SameLine();
-			if (ImGui.Button("+50"))
+			if (ImGui.Button("-10ms"))
+			{
+				ChangeDeltaTime(-10);
+			}
+			ImGui.SameLine();
+			if (ImGui.Button("+10ms"))
+			{
+				ChangeDeltaTime(10);
+			}
+			ImGui.SameLine();
+			if (ImGui.Button("+50ms"))
 			{
 				ChangeDeltaTime(50);
 			}
 			ImGui.SameLine();
-			ImGui.TextUnformatted("DeltaTime(ms): " + $"{config.playDeltaTime} ");
+			ImGui.TextUnformatted("Manual Sync: " + $"{config.playDeltaTime} ms");
 			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
 			{
 				ChangeDeltaTime(-config.playDeltaTime);
@@ -932,6 +941,9 @@ namespace MidiBard
 
 			ImGui.Checkbox("Auto switch instrument".Localize(), ref config.autoSwitchInstrument);
 			HelpMarker("Auto switch instrument on demand. If you need this, \nplease add #instrument name# before file name.\nE.g. #harp#demo.mid".Localize());
+
+			ImGui.Checkbox("Auto switch instrument by track name", ref config.autoSwitchInstrumentByTrackName);
+			HelpMarker("Auto switch instrument by track name, compatible with any BMP ready MIDI files. Has no effect when playing or if the ensemble mode is active.");
 
 			ImGui.Checkbox("Override guitar tones".Localize(), ref config.OverrideGuitarTones);
 			HelpMarker("Assign different guitar tones for each midi tracks".Localize());

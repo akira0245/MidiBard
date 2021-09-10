@@ -55,6 +55,7 @@ namespace MidiBard
 		public bool enableSearching;
 
 		public bool autoSwitchInstrument = true;
+		public bool autoSwitchInstrumentByTrackName = true;
 		public bool autoPitchShift = true;
 		public bool OverrideGuitarTones = true;
 
@@ -81,6 +82,23 @@ namespace MidiBard
 			var startNew = Stopwatch.StartNew();
 			this.pluginInterface.SavePluginConfig(this);
 			PluginLog.Verbose($"config saved in {startNew.Elapsed.TotalMilliseconds}.");
+		}
+
+		// if ret lowestIdx >= CurrentTracks.Count(defined in PluginUI.cs), which means no track is being enabled.
+		// ALWAYS need to check return value against CurrentTracks.Count to avoid exception.
+
+		public int GetFirstEnabledTrack()
+		{
+			int lowestIdx = EnabledTracks.Count();
+
+			for (int i = 0; i < EnabledTracks.Count(); i++)
+			{
+				if (EnabledTracks[i] && i < lowestIdx)
+				{
+					lowestIdx = i;
+				}
+			}
+			return lowestIdx;
 		}
 	}
 }
