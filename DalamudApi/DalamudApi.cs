@@ -26,7 +26,7 @@ using Dalamud.Plugin;
 // ReSharper disable UnusedAutoPropertyAccessor.Local
 // https://github.com/UnknownX7/DalamudRepoBrowser/blob/master/DalamudApi.cs
 
-namespace MidiBard
+namespace MidiBard.DalamudApi
 {
     public class DalamudApi
     {

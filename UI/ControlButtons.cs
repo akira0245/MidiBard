@@ -59,11 +59,11 @@ namespace MidiBard
 				{
 					if (MidiBard.IsPlaying)
 					{
-						PlayerControl.Pause();
+						MidiPlayerControl.Pause();
 					}
 					else
 					{
-						PlayerControl.Play();
+						MidiPlayerControl.Play();
 					}
 				}
 			}
@@ -80,7 +80,7 @@ namespace MidiBard
 				}
 				else
 				{
-					PlayerControl.Stop();
+					MidiPlayerControl.Stop();
 				}
 			}
 		}
@@ -90,12 +90,12 @@ namespace MidiBard
 			ImGui.SameLine();
 			if (ImGui.Button(((FontAwesomeIcon)0xf050).ToIconString()))
 			{
-				PlayerControl.Next();
+				MidiPlayerControl.Next();
 			}
 
 			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
 			{
-				PlayerControl.Last();
+				MidiPlayerControl.Last();
 			}
 		}
 	}

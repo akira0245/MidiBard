@@ -1,12 +1,13 @@
 {
   "Author": "akira0245",
   "Name": "MidiBard",
-  "Punchline": "",
+  "Punchline": "Bard performance using midi files.",
   "Description": "",
   "RepoUrl": "https://github.com/akira0245/MidiBard",
-  "IconUrl": "",
-  "ImageUrls": [
-    "",
-    ""
-  ]
+  "Tags": [
+    "akira",
+    "perform",
+    "instrument"
+  ],
+  "IconUrl": "https://i.loli.net/2021/09/09/L1fkrwElUKYMtN3.png"
 }

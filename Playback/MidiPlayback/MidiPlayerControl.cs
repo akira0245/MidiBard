@@ -10,10 +10,14 @@ using static MidiBard.MidiBard;
 
 namespace MidiBard
 {
-	internal static class PlayerControl
+	internal static class MidiPlayerControl
 	{
 		internal static void Play()
 		{
+			if (DalamudApi.DalamudApi.GameGui.GetAddonByName("PerformanceMode", 1) != IntPtr.Zero)
+			{
+				
+			}
 			if (currentPlayback == null)
 			{
 				if (!PlaylistManager.Filelist.Any()) PluginLog.Information("empty playlist");

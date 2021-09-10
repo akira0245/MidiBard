@@ -100,8 +100,6 @@ namespace MidiBard
 						//PluginLog.Log(f.Name);
 						//PluginLog.LogDebug($"{loaded.OriginalFormat}, {loaded.TimeDivision}, Duration: {loaded.GetDuration<MetricTimeSpan>().Hours:00}:{loaded.GetDuration<MetricTimeSpan>().Minutes:00}:{loaded.GetDuration<MetricTimeSpan>().Seconds:00}:{loaded.GetDuration<MetricTimeSpan>().Milliseconds:000}");
 						//foreach (var chunk in loaded.Chunks) PluginLog.LogDebug($"{chunk}");
-						var substring = f.Name.Substring(f.Name.LastIndexOf('\\') + 1);
-
 						#region processing channels
 
 						//var channelStopwatch = Stopwatch.StartNew();
@@ -144,7 +142,7 @@ namespace MidiBard
 										}
 
 
-										i += 1;
+										i++;
 
 										//PluginLog.Verbose($"[{i}]{chordNote} [{starttime}/{chordNote.GetTimedNoteOnEvent().Time} {offtime}/{chordNote.GetTimedNoteOffEvent().Time}]");
 									}
@@ -165,10 +163,10 @@ namespace MidiBard
 						}
 						catch (Exception e)
 						{
-							PluginLog.Error($"error when processing chords on {fileName}\n{e.Message}");
+							PluginLog.Error(e, $"error when processing chords on {fileName}");
 						}
-
-						Filelist.Add((loaded, substring.Substring(0, substring.LastIndexOf('.'))));
+						
+						Filelist.Add((loaded, Path.GetFileNameWithoutExtension(fileName)));
 
 						if (addToSavedConfigFileList)
 						{

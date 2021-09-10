@@ -18,7 +18,7 @@ namespace MidiBard
 		internal static async Task<bool> SwitchTo(uint instrumentId, bool pauseWhileSwitching = false)
 		{
 			if (MidiBard.CurrentInstrument == instrumentId) return true;
-			DalamudApi.ChatGui.Print(instrumentId == 0 ? "Cancel perform mode." : $"Switching to {MidiBard.InstrumentSheet.GetRow(instrumentId)?.Instrument?.RawString}.");
+			DalamudApi.DalamudApi.ChatGui.Print(instrumentId == 0 ? "Cancel performance mode" : $"Switching to {MidiBard.InstrumentSheet.GetRow(instrumentId)?.Instrument?.RawString}");
 			bool ret = true;
 
 			var timeout = DateTime.UtcNow.AddSeconds(3);
@@ -30,7 +30,7 @@ namespace MidiBard
 			var sw = Stopwatch.StartNew();
 
 			if (MidiBard.CurrentInstrument != 0)
-			{
+			{ 
 				MidiBard.DoPerformAction(MidiBard.PerformInfos, 0);
 			}
 
@@ -46,7 +46,7 @@ namespace MidiBard
 
 			MidiBard.DoPerformAction(MidiBard.PerformInfos, instrumentId);
 
-			while (MidiBard.CurrentInstrument != instrumentId && DalamudApi.GameGui.GetAddonByName("PerformanceModeWide", 1) != IntPtr.Zero)
+			while (MidiBard.CurrentInstrument != instrumentId && DalamudApi.DalamudApi.GameGui.GetAddonByName("PerformanceModeWide", 1) != IntPtr.Zero)
 			{
 				if (DateTime.UtcNow > timeout)
 				{

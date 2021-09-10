@@ -104,7 +104,7 @@ namespace MidiBard
             zh.Add("Search playlist", "搜索播放列表");
             zh.Add("Assign different guitar tones for each midi tracks.", "为每个Midi轨道分别指定电吉他音色。");
             zh.Add("Theme color", "主题颜色");
-            zh.Add("Enter to start the search", "输入开始搜索");
+            zh.Add("Enter to search", "输入开始搜索");
             zh.Add("Delay", "间隔时间");
             zh.Add("Delay time before play next track.", "在连续播放时每首乐曲播放结束后的等待时间。");
 

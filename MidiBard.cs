@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,8 +18,10 @@ using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
+using MidiBard.DalamudApi;
+using MidiBard.Managers;
 using playlibnamespace;
-using static MidiBard.DalamudApi;
+using static MidiBard.DalamudApi.DalamudApi;
 
 namespace MidiBard
 {
@@ -49,8 +52,8 @@ namespace MidiBard
 		internal delegate void DoPerformActionDelegate(IntPtr performInfoPtr, uint instrumentId, int a3 = 0);
 		internal static DoPerformActionDelegate DoPerformAction;
 
-		internal static byte instrumentoffset55;
-		internal static byte CurrentInstrument => Marshal.ReadByte(PerformInfos + 3 + instrumentoffset55);
+		internal static byte InstrumentOffset;
+		internal static byte CurrentInstrument => Marshal.ReadByte(PerformInfos + 3 + InstrumentOffset);
 		//internal static byte UnkByte1 => Marshal.ReadByte(PerformInfos + 3 + 8);
 		//internal static float UnkFloat => Marshal.PtrToStructure<float>(PerformInfos + 3);
 
@@ -81,42 +84,24 @@ namespace MidiBard
 		public unsafe MidiBard(DalamudPluginInterface pi)
 		{
 			Plugin = this;
-			DalamudApi.Initialize(this, pi);
+			DalamudApi.DalamudApi.Initialize(this, pi);
 			config = (Configuration)PluginInterface.GetPluginConfig() ?? new();
 			config.Initialize();
 
-			Initialize();
-		}
-
-		public void Initialize()
-		{
-			var scanner = DalamudApi.SigScanner;
 			localizer = new Localizer((UILang)config.uiLang);
-
-			playlibnamespace.playlib.init(DalamudApi.GameGui, DalamudApi.SigScanner);
+			playlib.init(this);
 
 			CurrentOutputDevice = new BardPlayDevice();
 
 			AgentManager.Initialize();
 
-			MetronomeAgent = AgentManager.FindAgentInterfaceByVtable(scanner.GetStaticAddressFromSig("48 8D 05 ?? ?? ?? ?? 48 89 03 48 8D 4B 40"));
-			PerformanceAgent = AgentManager.FindAgentInterfaceByVtable(scanner.GetStaticAddressFromSig(
-				"48 8D 05 ?? ?? ?? ?? 48 8B F9 48 89 01 48 8D 05 ?? ?? ?? ?? 48 89 41 28 48 8B 49 48"));
+			MetronomeAgent = AgentManager.FindAgentInterfaceByVtable(AddressManager.Instance.MetronomeAgent);
+			PerformanceAgent = AgentManager.FindAgentInterfaceByVtable(AddressManager.Instance.PerformanceAgent);
+			PerformInfos = AddressManager.Instance.PerformInfos;
+			DoPerformAction = Marshal.GetDelegateForFunctionPointer<DoPerformActionDelegate>(AddressManager.Instance.DoPerformAction);
+			InstrumentOffset = Marshal.ReadByte(AddressManager.Instance.InstrumentOffset);
 
-			PerformInfos = scanner.GetStaticAddressFromSig("48 8B 15 ?? ?? ?? ?? F6 C2 ??");
-			DoPerformAction = Marshal.GetDelegateForFunctionPointer<DoPerformActionDelegate>(scanner.ScanText(
-				"48 89 6C 24 10 48 89 74 24 18 57 48 83 EC ?? 48 83 3D ?? ?? ?? ?? ?? 41 8B E8"));
-
-			try
-			{
-				instrumentoffset55 = Marshal.ReadByte(scanner.ScanText("40 88 ?? ?? 66 89 ?? ?? 40 84") + 3);
-			}
-			catch (Exception e)
-			{
-				instrumentoffset55 = 0x9;
-			}
-
-			InstrumentSheet = DalamudApi.DataManager.Excel.GetSheet<Perform>();
+			InstrumentSheet = DalamudApi.DalamudApi.DataManager.Excel.GetSheet<Perform>();
 			InstrumentStrings = InstrumentSheet.Where(i => !string.IsNullOrWhiteSpace(i.Instrument) || i.RowId == 0)
 				.Select(i => $"{(i.RowId == 0 ? "None" : $"{i.RowId:00} {i.Instrument.RawString} ({i.Name})")}").ToArray();
 
@@ -136,6 +121,7 @@ namespace MidiBard
 		}
 
 		private bool wasInPerformance = false;
+
 		private void Tick(Dalamud.Game.Framework framework)
 		{
 			if (config.AutoOpenPlayerWhenPerforming)
@@ -228,7 +214,7 @@ namespace MidiBard
 		public void Command1(string command, string args) => OnCommand(command, args);
 
 		[Command("/mbard")]
-		[HelpMessage("Toggle MidiBard window.\n/mbard perform <instrument name/instrument ID> → Start playing with the specified instrument.\n/mbard perform cancel → Quit performance mode.\n/mbard <play/pause/playpause/stop/next/last> → Player control.")]
+		[HelpMessage("Toggle MidiBard window.\n/mbard perform <instrument name/instrument ID> → Switch to specified instrument.\n/mbard perform cancel → Quit performance mode.\n/mbard <play/pause/playpause/stop/next/last> → Player control.")]
 		public void Command2(string command, string args)
 		{
 			OnCommand(command, args);
@@ -282,32 +268,32 @@ namespace MidiBard
 
 				else if (argStrings[0] == "playpause")
 				{
-					PlayerControl.PlayPause();
+					MidiPlayerControl.PlayPause();
 				}
 
 				else if (argStrings[0] == "play")
 				{
-					PlayerControl.Play();
+					MidiPlayerControl.Play();
 				}
 
 				else if (argStrings[0] == "pause")
 				{
-					PlayerControl.Pause();
+					MidiPlayerControl.Pause();
 				}
 
 				else if (argStrings[0] == "stop")
 				{
-					PlayerControl.Stop();
+					MidiPlayerControl.Stop();
 				}
 
 				else if (argStrings[0] == "next")
 				{
-					PlayerControl.Next();
+					MidiPlayerControl.Next();
 				}
 
 				else if (argStrings[0] == "last")
 				{
-					PlayerControl.Last();
+					MidiPlayerControl.Last();
 				}
 			}
 			else
@@ -321,7 +307,7 @@ namespace MidiBard
 		{
 			if (!disposing) return;
 			DeviceManager.DisposeDevice();
-			DalamudApi.Framework.Update -= Tick;
+			DalamudApi.DalamudApi.Framework.Update -= Tick;
 
 			try
 			{
@@ -337,7 +323,7 @@ namespace MidiBard
 			PluginInterface.SavePluginConfig(config);
 
 			PluginInterface.UiBuilder.Draw -= ui.Draw;
-			DalamudApi.Dispose();
+			DalamudApi.DalamudApi.Dispose();
 		}
 
 		public void Dispose()

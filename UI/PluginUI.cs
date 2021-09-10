@@ -270,7 +270,7 @@ namespace MidiBard
 		private static void TextBoxSearch()
 		{
 			ImGui.SetNextItemWidth(-1);
-			if (ImGui.InputTextWithHint("##searchplaylist", "Enter to start the search".Localize(), ref searchstring, 255,
+			if (ImGui.InputTextWithHint("##searchplaylist", "Enter to search".Localize(), ref searchstring, 255,
 				ImGuiInputTextFlags.AutoSelectAll | ImGuiInputTextFlags.EnterReturnsTrue))
 			{
 				config.enableSearching = false;
@@ -834,7 +834,7 @@ namespace MidiBard
 			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
 			{
 				Task.Run(() => SwitchInstrument.SwitchTo(0));
-				PlayerControl.Pause();
+				MidiPlayerControl.Pause();
 			}
 		}
 
@@ -994,7 +994,7 @@ namespace MidiBard
 				ImGui.TextUnformatted($"currentPlaying: {PlaylistManager.CurrentPlaying}");
 				ImGui.TextUnformatted($"currentSelected: {PlaylistManager.CurrentSelected}");
 				ImGui.TextUnformatted($"FilelistCount: {PlaylistManager.Filelist.Count}");
-				ImGui.TextUnformatted($"currentUILanguage: {DalamudApi.PluginInterface.UiLanguage}");
+				ImGui.TextUnformatted($"currentUILanguage: {DalamudApi.DalamudApi.PluginInterface.UiLanguage}");
 
 				ImGui.Separator();
 				try

@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0-windows</TargetFramework>
     <LangVersion>9.0</LangVersion>
-    <AssemblyVersion>1.6.0.0</AssemblyVersion>
+    <AssemblyVersion>1.6.0.2</AssemblyVersion>
     <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -51,13 +51,21 @@
     </Reference>
   </ItemGroup>
 
-  <!--<ItemGroup>
-    <None Include="MidiBard.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>-->
+  <ItemGroup>
+    <Folder Include="lib\" />
+  </ItemGroup>
 
-  <Target Name="PackagePlugin" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
-    <DalamudPackager ProjectDir="$(ProjectDir)" OutputPath="$(OutputPath)" AssemblyName="$(AssemblyName)"/>
+  <Target Name="CleanOutDir" AfterTargets="Build">
+    <ItemGroup>
+      <DeleteAssemblies Include="$(TargetDir)*.pdb" />
+      <DeleteAssemblies Include="$(TargetDir)MidiBard.deps.json" />
+    </ItemGroup>
+    <Message Text="Deleting @(DeleteAssemblies)" Importance="high" />
+    <Delete Files="@(DeleteAssemblies)" />
+    <RemoveDir Directories="$(TargetDir)\ref\" />
+  </Target>
+
+  <Target Name="PackagePlugin" AfterTargets="CleanOutDir" Condition="'$(Configuration)' == 'Release'">
+    <DalamudPackager ProjectDir="$(ProjectDir)" OutputPath="$(OutputPath)" Exclude="*.pdb;" AssemblyName="$(AssemblyName)" />
   </Target>
 </Project>
