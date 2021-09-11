@@ -152,14 +152,6 @@ namespace MidiBard
 
 		public static uint GetInstrumentIDByName(string name)
 		{
-			for (uint i = 0; i < Plugin.InstrumentStrings.Length; i++)
-			{
-				if (name == Plugin.InstrumentStrings[i])
-				{
-					return i;
-				}
-			}
-
 			if (Plugin.InstrumentIDDict.ContainsKey(name))
 			{
 				return Plugin.InstrumentIDDict[name];
