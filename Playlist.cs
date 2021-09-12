@@ -14,16 +14,17 @@ using Melanchall.DryWetMidi.Interaction;
 
 namespace MidiBard
 {
-	class PlaylistManager
+	internal class PlaylistManager
 	{
-		public static List<(MidiFile, string)> Filelist { get; set; } = new List<(MidiFile, string)>();
+		public static List<(string, string)> Filelist { get; set; } = new List<(string, string)>();
 
 		public static int CurrentPlaying
 		{
 			get => currentPlaying;
 			set
 			{
-				if (value < -1) value = -1;
+				if (value < -1)
+					value = -1;
 				currentPlaying = value;
 			}
 		}
@@ -33,7 +34,8 @@ namespace MidiBard
 			get => currentSelected;
 			set
 			{
-				if (value < -1) value = -1;
+				if (value < -1)
+					value = -1;
 				currentSelected = value;
 			}
 		}
@@ -82,107 +84,138 @@ namespace MidiBard
 			InvalidSystemCommonEventParameterValuePolicy = InvalidSystemCommonEventParameterValuePolicy.SnapToLimits
 		};
 
-		internal static void ImportMidiFile(IEnumerable<string> pickerFileNames, bool addToSavedConfigFileList)
+		internal static List<string> LoadMidiFileList(string[] fileName, bool addToSavedConfigFileList)
 		{
-			foreach (var fileName in pickerFileNames)
+			List<string> ret = new List<string>(fileName);
+
+			foreach (string cur in fileName)
 			{
-				PluginLog.Log($"-> {fileName} START");
-
-				try
+				MidiFile file = LoadMidiFile(cur);
+				if (addToSavedConfigFileList && file != null)
 				{
-					//_texToolsImport = new TexToolsImport(new DirectoryInfo(_base._plugin!.Configuration!.CurrentCollection));
-					//_texToolsImport.ImportModPack(new FileInfo(fileName));
+					Plugin.config.Playlist.Add(cur);
+				}
 
-					using (var f = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+				if (file == null)
+				{
+					ret.Remove(cur);
+				}
+				else
+				{
+					var substring = cur.Substring(cur.LastIndexOf('\\') + 1);
+					Filelist.Add((cur, substring.Substring(0, substring.LastIndexOf('.'))));
+				}
+			}
+
+			return ret;
+		}
+
+		internal static MidiFile LoadMidiFile(int index)
+		{
+			if (index < 0 || index >= Filelist.Count)
+			{
+				return null;
+			}
+
+			return LoadMidiFile(Filelist[index].Item1);
+		}
+
+		internal static MidiFile LoadMidiFile(string fileName)
+		{
+			PluginLog.Log($"-> {fileName} START");
+			MidiFile loaded = null;
+			try
+			{
+				//_texToolsImport = new TexToolsImport(new DirectoryInfo(_base._plugin!.Configuration!.CurrentCollection));
+				//_texToolsImport.ImportModPack(new FileInfo(fileName));
+
+				using (var f = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+				{
+					if (f == null)
 					{
-						var loaded = MidiFile.Read(f, readingSettings);
-						//PluginLog.Log(f.Name);
-						//PluginLog.LogDebug($"{loaded.OriginalFormat}, {loaded.TimeDivision}, Duration: {loaded.GetDuration<MetricTimeSpan>().Hours:00}:{loaded.GetDuration<MetricTimeSpan>().Minutes:00}:{loaded.GetDuration<MetricTimeSpan>().Seconds:00}:{loaded.GetDuration<MetricTimeSpan>().Milliseconds:000}");
-						//foreach (var chunk in loaded.Chunks) PluginLog.LogDebug($"{chunk}");
-						var substring = f.Name.Substring(f.Name.LastIndexOf('\\') + 1);
+						return null;
+					}
 
-						#region processing channels
+					loaded = MidiFile.Read(f, readingSettings);
+					//PluginLog.Log(f.Name);
+					//PluginLog.LogDebug($"{loaded.OriginalFormat}, {loaded.TimeDivision}, Duration: {loaded.GetDuration<MetricTimeSpan>().Hours:00}:{loaded.GetDuration<MetricTimeSpan>().Minutes:00}:{loaded.GetDuration<MetricTimeSpan>().Seconds:00}:{loaded.GetDuration<MetricTimeSpan>().Milliseconds:000}");
+					//foreach (var chunk in loaded.Chunks) PluginLog.LogDebug($"{chunk}");
 
-						//var channelStopwatch = Stopwatch.StartNew();
+					#region processing channels
 
-						//byte moveToChannel = 0;
-						//foreach (var trackChunk in loaded.GetTrackChunks().Where(i => i.Events.OfType<NoteEvent>().Any()))
-						//{
-						//	foreach (var trackChunkEvent in trackChunk.Events.OfType<NoteEvent>())
-						//	{
-						//		trackChunkEvent.Channel = new FourBitNumber(moveToChannel);
-						//	}
-						//	moveToChannel++;
-						//}
-						//PluginLog.Debug($"channel preprocessing took {channelStopwatch.Elapsed.TotalMilliseconds:F3}ms");
+					//var channelStopwatch = Stopwatch.StartNew();
 
-						#endregion
+					//byte moveToChannel = 0;
+					//foreach (var trackChunk in loaded.GetTrackChunks().Where(i => i.Events.OfType<NoteEvent>().Any()))
+					//{
+					//	foreach (var trackChunkEvent in trackChunk.Events.OfType<NoteEvent>())
+					//	{
+					//		trackChunkEvent.Channel = new FourBitNumber(moveToChannel);
+					//	}
+					//	moveToChannel++;
+					//}
+					//PluginLog.Debug($"channel preprocessing took {channelStopwatch.Elapsed.TotalMilliseconds:F3}ms");
 
-						try
+					#endregion processing channels
+
+					try
+					{
+						var chordStopwatch = Stopwatch.StartNew();
+						loaded.ProcessChords(chord =>
 						{
-							var chordStopwatch = Stopwatch.StartNew();
-							loaded.ProcessChords(chord =>
+							try
+							{
+								//PluginLog.Verbose($"{chord} {chord.Time} {chord.Length} {chord.Notes.Count()}");
+								var i = 0;
+								foreach (var chordNote in chord.Notes.OrderBy(j => j.NoteNumber))
+								{
+									//var starttime = chordNote.GetTimedNoteOnEvent().Time;
+									//var offtime = chordNote.GetTimedNoteOffEvent().Time;
+
+									chordNote.Time += i;
+									if (chordNote.Length - i < 0)
+									{
+										chordNote.Length = 0;
+									}
+									else
+									{
+										chordNote.Length -= i;
+									}
+
+									i += 1;
+
+									//PluginLog.Verbose($"[{i}]{chordNote} [{starttime}/{chordNote.GetTimedNoteOnEvent().Time} {offtime}/{chordNote.GetTimedNoteOffEvent().Time}]");
+								}
+							}
+							catch (Exception e)
 							{
 								try
 								{
-									//PluginLog.Verbose($"{chord} {chord.Time} {chord.Length} {chord.Notes.Count()}");
-									var i = 0;
-									foreach (var chordNote in chord.Notes.OrderBy(j => j.NoteNumber))
-									{
-										//var starttime = chordNote.GetTimedNoteOnEvent().Time;
-										//var offtime = chordNote.GetTimedNoteOffEvent().Time;
-
-										chordNote.Time += i;
-										if (chordNote.Length - i < 0)
-										{
-											chordNote.Length = 0;
-										}
-										else
-										{
-											chordNote.Length -= i;
-										}
-
-
-										i += 1;
-
-										//PluginLog.Verbose($"[{i}]{chordNote} [{starttime}/{chordNote.GetTimedNoteOnEvent().Time} {offtime}/{chordNote.GetTimedNoteOffEvent().Time}]");
-									}
+									PluginLog.Verbose($"{chord.Channel} {chord} {chord.Time} {e}");
 								}
-								catch (Exception e)
+								catch (Exception exception)
 								{
-									try
-									{
-										PluginLog.Verbose($"{chord.Channel} {chord} {chord.Time} {e}");
-									}
-									catch (Exception exception)
-									{
-										PluginLog.Verbose($"error when processing a chord: {exception}");
-									}
+									PluginLog.Verbose($"error when processing a chord: {exception}");
 								}
-							}, chord => chord.Notes.Count() > 1);
-							PluginLog.Debug($"chord processing took {chordStopwatch.Elapsed.TotalMilliseconds:F3}ms");
-						}
-						catch (Exception e)
-						{
-							PluginLog.Error($"error when processing chords on {fileName}\n{e.Message}");
-						}
-
-						Filelist.Add((loaded, substring.Substring(0, substring.LastIndexOf('.'))));
-
-						if (addToSavedConfigFileList)
-						{
-							Plugin.config.Playlist.Add(fileName);
-						}
+							}
+						}, chord => chord.Notes.Count() > 1);
+						PluginLog.Debug($"chord processing took {chordStopwatch.Elapsed.TotalMilliseconds:F3}ms");
 					}
+					catch (Exception e)
+					{
+						PluginLog.Error($"error when processing chords on {fileName}\n{e.Message}");
+					}
+				}
 
-					PluginLog.Log($"-> {fileName} OK!");
-				}
-				catch (Exception ex)
-				{
-					PluginLog.LogError(ex, "Failed to import file at {0}", fileName);
-					//_hasError = true;
-				}
+				PluginLog.Log($"-> {fileName} OK!");
 			}
+			catch (Exception ex)
+			{
+				PluginLog.LogError(ex, "Failed to load file at {0}", fileName);
+				//_hasError = true;
+			}
+
+			return loaded;
 		}
 	}
 }

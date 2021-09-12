@@ -19,15 +19,13 @@ namespace MidiBard
 					PluginLog.Information("empty playlist");
 				try
 				{
-					var valueTuple = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying];
-					currentPlayback = valueTuple.GetFilePlayback();
+					PlaybackExtension.LoadSong(PlaylistManager.CurrentPlaying);
 				}
 				catch (Exception e)
 				{
 					try
 					{
-						currentPlayback = PlaylistManager.Filelist[0].GetFilePlayback();
-						PlaylistManager.CurrentPlaying = 0;
+						PlaybackExtension.LoadSong(0);
 					}
 					catch (Exception exception)
 					{
@@ -84,23 +82,19 @@ namespace MidiBard
 				try
 				{
 					var wasplaying = IsPlaying;
-					currentPlayback?.Dispose();
-					currentPlayback = null;
 
 					switch ((PlayMode)config.PlayMode)
 					{
 						case PlayMode.Single:
 						case PlayMode.ListOrdered:
 						case PlayMode.SingleRepeat:
-							currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying + 1].GetFilePlayback();
-							PlaylistManager.CurrentPlaying += 1;
+							PlaybackExtension.LoadSong(PlaylistManager.CurrentPlaying + 1);
 							break;
 
 						case PlayMode.ListRepeat:
 							var next = PlaylistManager.CurrentPlaying + 1;
 							next %= PlaylistManager.Filelist.Count;
-							currentPlayback = PlaylistManager.Filelist[next].GetFilePlayback();
-							PlaylistManager.CurrentPlaying = next;
+							PlaybackExtension.LoadSong(next);
 							break;
 
 						case PlayMode.Random:
@@ -111,8 +105,7 @@ namespace MidiBard
 								nexttrack = r.Next(0, PlaylistManager.Filelist.Count);
 							} while (nexttrack == PlaylistManager.CurrentPlaying);
 
-							currentPlayback = PlaylistManager.Filelist[nexttrack].GetFilePlayback();
-							PlaylistManager.CurrentPlaying = nexttrack;
+							PlaybackExtension.LoadSong(nexttrack);
 							break;
 					}
 
@@ -128,7 +121,6 @@ namespace MidiBard
 							PluginLog.Error(e, "error when try playing next song.");
 						}
 					}
-					Task.Run(SwitchInstrument.WaitSwitchInstrument);
 				}
 				catch (Exception e)
 				{
@@ -150,16 +142,13 @@ namespace MidiBard
 				try
 				{
 					var wasplaying = IsPlaying;
-					currentPlayback?.Dispose();
-					currentPlayback = null;
 
 					switch ((PlayMode)config.PlayMode)
 					{
 						case PlayMode.Single:
 						case PlayMode.ListOrdered:
 						case PlayMode.SingleRepeat:
-							currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying - 1].GetFilePlayback();
-							PlaylistManager.CurrentPlaying -= 1;
+							PlaybackExtension.LoadSong(PlaylistManager.CurrentPlaying - 1);
 							break;
 
 						case PlayMode.Random:
@@ -167,8 +156,8 @@ namespace MidiBard
 							var next = PlaylistManager.CurrentPlaying - 1;
 							if (next < 0)
 								next = PlaylistManager.Filelist.Count - 1;
-							currentPlayback = PlaylistManager.Filelist[next].GetFilePlayback();
-							PlaylistManager.CurrentPlaying = next;
+
+							PlaybackExtension.LoadSong(next);
 							break;
 					}
 
@@ -183,7 +172,6 @@ namespace MidiBard
 							PluginLog.Error(e, "error when try playing next song.");
 						}
 					}
-					Task.Run(SwitchInstrument.WaitSwitchInstrument);
 				}
 				catch (Exception e)
 				{

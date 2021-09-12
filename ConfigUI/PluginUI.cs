@@ -381,13 +381,9 @@ namespace MidiBard
 			try
 			{
 				var wasplaying = IsPlaying;
-				currentPlayback?.Dispose();
-				currentPlayback = null;
-
-				currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].GetFilePlayback();
+				PlaybackExtension.LoadSong(PlaylistManager.CurrentPlaying);
 				if (wasplaying && startPlaying)
 					currentPlayback?.Start();
-				Task.Run(SwitchInstrument.WaitSwitchInstrument);
 			}
 			catch (Exception e)
 			{
@@ -801,14 +797,18 @@ namespace MidiBard
 				return;
 			}
 
-			config.playDeltaTime += delta;
 			var currentTime = currentPlayback.GetCurrentTime<MetricTimeSpan>();
 			long msTime = currentTime.TotalMicroseconds;
-			PluginLog.LogDebug("curTime:" + msTime);
+			//PluginLog.LogDebug("curTime:" + msTime);
+			if (msTime + delta * 1000 < 0)
+			{
+				return;
+			}
 			msTime += delta * 1000;
 			MetricTimeSpan newTime = new MetricTimeSpan(msTime);
-			PluginLog.LogDebug("newTime:" + newTime.TotalMicroseconds);
+			//PluginLog.LogDebug("newTime:" + newTime.TotalMicroseconds);
 			currentPlayback.MoveToTime(newTime);
+			config.playDeltaTime += delta;
 		}
 
 		private static string GetBpmString()
@@ -1410,7 +1410,7 @@ namespace MidiBard
 		{
 			if (result == DialogResult.OK)
 			{
-				PlaylistManager.ImportMidiFile(filePath, true);
+				PlaylistManager.LoadMidiFileList(filePath, true);
 			}
 
 			_isImportRunning = false;
