@@ -33,6 +33,7 @@ namespace MidiBard
 		internal static BardPlayDevice CurrentOutputDevice;
 
 		internal static Playback currentPlayback;
+		internal static MidiFile currentOpeningMIDIFile;
 
 		//internal static MidiFile CurrentFile;
 		internal static TempoMap CurrentTMap;
@@ -135,7 +136,8 @@ namespace MidiBard
 
 			Task.Run(() =>
 	  {
-		  PlaylistManager.ImportMidiFile(config.Playlist, false);
+		  // update playlist in case any files is being deleted
+		  config.Playlist = PlaylistManager.LoadMidiFileList(config.Playlist.ToArray(), false);
 	  });
 
 			ui = new PluginUI();
@@ -220,7 +222,7 @@ namespace MidiBard
 					{
 						if (PlaylistManager.CurrentPlaying != -1)
 						{
-							currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].GetFilePlayback();
+							PlaybackExtension.LoadSong(PlaylistManager.CurrentPlaying);
 						}
 					}
 				}

@@ -381,13 +381,9 @@ namespace MidiBard
 			try
 			{
 				var wasplaying = IsPlaying;
-				currentPlayback?.Dispose();
-				currentPlayback = null;
-
-				currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].GetFilePlayback();
+				PlaybackExtension.LoadSong(PlaylistManager.CurrentPlaying);
 				if (wasplaying && startPlaying)
 					currentPlayback?.Start();
-				Task.Run(SwitchInstrument.WaitSwitchInstrument);
 			}
 			catch (Exception e)
 			{
@@ -1414,7 +1410,7 @@ namespace MidiBard
 		{
 			if (result == DialogResult.OK)
 			{
-				PlaylistManager.ImportMidiFile(filePath, true);
+				PlaylistManager.LoadMidiFileList(filePath, true);
 			}
 
 			_isImportRunning = false;
