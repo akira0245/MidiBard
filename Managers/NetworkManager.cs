@@ -13,6 +13,36 @@ namespace MidiBard.Managers
 {
 	class NetworkManager : IDisposable
 	{
+		
+		private unsafe void SoloSend(IntPtr dataptr)
+		{
+			//Span<byte> notes = new Span<byte>((dataptr + 0x10).ToPointer(), 10);
+			//Span<byte> tones = new Span<byte>((dataptr + 0x10 + 10).ToPointer(), 10);
+			//PluginLog.Information($"[{nameof(SoloSend)}] {toString(notes)} : {toString(tones)}");
+		}
+
+		private unsafe void SoloRecv(uint sourceId, IntPtr data)
+		{
+			//var ipc = Marshal.PtrToStructure<SoloPerformanceIpc>(data);
+			//PluginLog.Information($"[{nameof(SoloRecv)}] {toString(ipc.NoteNumbers)} : {toString(ipc.NoteTones)}");
+		}
+
+		private unsafe void EnsembleSend(IntPtr dataptr)
+		{
+			Span<byte> notes = new Span<byte>((dataptr + 0x10).ToPointer(), 60);
+			Span<byte> tones = new Span<byte>((dataptr + 0x10 + 60).ToPointer(), 60);
+			PluginLog.Information($"[{nameof(EnsembleSend)}] [MYSELF] {toString(notes)} : {toString(tones)}");
+		}
+
+		private unsafe void EnsembleRecv(uint sourceId, IntPtr data)
+		{
+			var ipc = Marshal.PtrToStructure<EnsemblePerformanceIpc>(data);
+			foreach (var perCharacterData in ipc.EnsembleCharacterDatas.Where(i => i.IsValid))
+			{
+				PluginLog.Information($"[{nameof(EnsembleRecv)}] {perCharacterData.CharacterId:X} {toString(perCharacterData.NoteNumbers)}");
+			}
+		}
+
 		delegate IntPtr sub_14070A1C0(uint sourceId, IntPtr data);
 		private readonly Hook<sub_14070A1C0> soloReceivedHook;
 
@@ -90,43 +120,6 @@ namespace MidiBard.Managers
 			soloReceivedHook.Enable();
 			ensembleReceivedHook.Enable();
 		}
-
-		private unsafe void SoloSend(IntPtr dataptr)
-		{
-			unsafe
-			{
-				Span<byte> notes = new Span<byte>((dataptr + 0x10).ToPointer(), 10);
-				Span<byte> tones = new Span<byte>((dataptr + 0x10 + 10).ToPointer(), 10);
-				PluginLog.Information($"[{nameof(SoloSend)}] {toString(notes)} : {toString(tones)}");
-			}
-		}
-
-		private unsafe void EnsembleSend(IntPtr dataptr)
-		{
-			Span<byte> notes = new Span<byte>((dataptr + 0x10).ToPointer(), 60);
-			Span<byte> tones = new Span<byte>((dataptr + 0x10 + 60).ToPointer(), 60);
-			PluginLog.Warning($"[{nameof(EnsembleSend)}] [MYSELF] {toString(notes)} : {toString(tones)}");
-		}
-
-
-		private void SoloRecv(uint sourceId, IntPtr data)
-		{
-			var ipc = Marshal.PtrToStructure<SoloPerformanceIpc>(data);
-			PluginLog.Information($"[{nameof(SoloRecv)}] {toString(ipc.NoteNumbers)} : {toString(ipc.NoteTones)}");
-
-		}
-
-		private void EnsembleRecv(uint sourceId, IntPtr data)
-		{
-			var ipc = Marshal.PtrToStructure<EnsemblePerformanceIpc>(data);
-			foreach (var perCharacterData in ipc.EnsembleCharacterDatas.Where(i => i.IsValid))
-			{
-				PluginLog.Information($"[{nameof(EnsembleRecv)}] {perCharacterData.CharacterId:X} {toString(perCharacterData.NoteNumbers)}");
-			}
-			//PluginLog.Information($"[{nameof(EnsembleRecv)}] {toString(meData.NoteNumbers)} : {toString(meData.ToneNumbers)}");
-
-		}
-
 
 		public static NetworkManager Instance { get; } = new NetworkManager();
 

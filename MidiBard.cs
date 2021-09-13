@@ -132,49 +132,11 @@ namespace MidiBard
 
 			if (AgentPerformance.InPerformanceMode)
 			{
-				if (AgentMetronome.EnsembleModeRunning)
-				{
-					if (currentPlayback != null)
-					{
-						if (AgentMetronome.MetronomeBeatsElapsed < 0)
-						{
-							try
-							{
-								if (currentPlayback.GetCurrentTime<MidiTimeSpan>().TimeSpan != 0)
-								{
-									currentPlayback.MoveToTime(new MidiTimeSpan(0));
-									currentPlayback.Stop();
-								}
-							}
-							catch (Exception e)
-							{
-								//
-							}
-						}
-						else if (AgentMetronome.MetronomeBeatsElapsed == 0)
-						{
-							if (currentPlayback.GetCurrentTime<MidiTimeSpan>().TimeSpan == 0)
-							{
-								currentPlayback.Start();
-							}
-						}
-					}
-					else
-					{
-						if (PlaylistManager.CurrentPlaying != -1)
-						{
-							currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].GetFilePlayback();
-						}
-					}
-				}
-				else
-				{
-					playlib.ConfirmReadyCheck();
+				playlib.ConfirmReadyCheck();
 
-					if (wasEnsembleModeRunning && IsPlaying)
-					{
-						currentPlayback?.Stop();
-					}
+				if (wasEnsembleModeRunning && IsPlaying)
+				{
+					currentPlayback?.Stop();
 				}
 
 				wasEnsembleModeRunning = AgentMetronome.EnsembleModeRunning;

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Dalamud.Hooking;
 using Dalamud.Logging;
+using Melanchall.DryWetMidi.Interaction;
 using MidiBard.Managers.Agents;
 
 namespace MidiBard.Managers
@@ -27,35 +28,76 @@ namespace MidiBard.Managers
 			UpdateMetronomeHook.Enable();
 		}
 
-		private unsafe IntPtr HandleUpdateMetronome(IntPtr agentmetronome, byte beat)
+		private unsafe IntPtr HandleUpdateMetronome(IntPtr agentMetronome, byte currentBeat)
 		{
-			var original = UpdateMetronomeHook.Original(agentmetronome, beat);
-
-			var metronome = ((AgentMetronome.AgentMetronomeStruct*)agentmetronome);
-			var bar = metronome->MetronomeBeatsPerBar;
-			var elapsed = metronome->MetronomeBeatsElapsed;
-			if (elapsed == 0 && beat == 0)
+			try
 			{
-				PluginLog.Warning($"Start ensemble: {metronome->EnsembleModeRunning}");
-				if (metronome->EnsembleModeRunning != 0)
+				var original = UpdateMetronomeHook.Original(agentMetronome, currentBeat);
+				if (MidiBard.config.MonitorOnEnsemble)
 				{
+					var metronome = ((AgentMetronome.AgentMetronomeStruct*)agentMetronome);
+					var beatsPerBar = metronome->MetronomeBeatsPerBar;
+					var barElapsed = metronome->MetronomeBeatsElapsed;
 
+					if (barElapsed == 0 && currentBeat == 0)
+					{
+						PluginLog.Warning($"Start: ensemble: {metronome->EnsembleModeRunning}");
+						if (metronome->EnsembleModeRunning != 0)
+						{
+							EnsembleStart?.Invoke();
+
+							try
+							{
+								var currentPlayback = MidiBard.currentPlayback;
+								currentPlayback.Start();
+							}
+							catch (Exception e)
+							{
+								PluginLog.Error(e, "error when starting ensemble playback");
+							}
+						}
+					}
+
+					if (barElapsed == -2 && currentBeat == 0)
+					{
+						PluginLog.Warning($"Prepare: ensemble: {metronome->EnsembleModeRunning}");
+						if (metronome->EnsembleModeRunning != 0)
+						{
+							EnsemblePrepare?.Invoke();
+
+							Task.Run(() =>
+							{
+								try
+								{
+									var currentPlayback = MidiBard.currentPlayback;
+									currentPlayback?.Dispose();
+									MidiBard.currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].GetFilePlayback();
+									currentPlayback?.MoveToStart();
+									currentPlayback?.Stop();
+
+								}
+								catch (Exception e)
+								{
+									PluginLog.Error(e, "error when loading playback for ensemble");
+								}
+							});
+						}
+					}
+
+					PluginLog.Verbose($"[Metronome] {barElapsed} {currentBeat}/{beatsPerBar}");
 				}
-			}
 
-			if (elapsed == -2 && beat == 0)
+				return original;
+			}
+			catch (Exception e)
 			{
-				PluginLog.Warning($"Prepare ensemble: {metronome->EnsembleModeRunning}");
-				if (metronome->EnsembleModeRunning != 0)
-				{
-
-				}
+				PluginLog.Error(e, $"error in {nameof(UpdateMetronomeHook)}");
+				return IntPtr.Zero;
 			}
-
-			PluginLog.Information($"{original:X} {elapsed} {beat}/{bar}");
-
-			return original;
 		}
+
+		public event Action EnsembleStart;
+		public event Action EnsemblePrepare;
 
 		public static EnsembleManager Instance { get; } = new EnsembleManager();
 
