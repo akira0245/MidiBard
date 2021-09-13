@@ -5,6 +5,7 @@ using Dalamud.Plugin;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Interaction;
+using MidiBard.Managers.Agents;
 using playlibnamespace;
 
 namespace MidiBard
@@ -19,7 +20,7 @@ namespace MidiBard
 
 		public bool SendEventWithMetadata(MidiEvent midiEvent, object metadata)
 		{
-			if (!MidiBard.InPerformanceMode) return false;
+			if (!MidiBard.AgentPerformance.InPerformanceMode) return false;
 
 			var trackIndex = (int)metadata;
 			if (!MidiBard.config.EnabledTracks[trackIndex])
@@ -91,7 +92,7 @@ namespace MidiBard
 
 		public void SendEvent(MidiEvent midiEvent)
 		{
-			if (!MidiBard.InPerformanceMode) return;
+			if (!MidiBard.AgentPerformance.InPerformanceMode) return;
 
 			if (midiEvent is NoteOnEvent noteOnEvent)
 			{

@@ -20,6 +20,7 @@ using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
 using MidiBard.DalamudApi;
 using MidiBard.Managers;
+using MidiBard.Managers.Agents;
 using playlibnamespace;
 using static MidiBard.DalamudApi.DalamudApi;
 
@@ -27,91 +28,62 @@ namespace MidiBard
 {
 	public class MidiBard : IDalamudPlugin
 	{
-		public static MidiBard Plugin { get; private set; }
 		public static Configuration config { get; private set; }
 		internal static PluginUI ui;
 
 		internal static BardPlayDevice CurrentOutputDevice;
 
 		internal static Playback currentPlayback;
-		//internal static MidiFile CurrentFile;
 		internal static TempoMap CurrentTMap;
 		internal static List<(TrackChunk, TrackInfo)> CurrentTracks;
 
 		internal static Localizer localizer;
-		private static int configSaverTick;
 
-		internal static AgentInterface MetronomeAgent;
-		internal static AgentInterface PerformanceAgent;
+		internal static AgentMetronome AgentMetronome;
+		internal static AgentPerformance AgentPerformance;
+
+		private static int configSaverTick;
 		private static bool wasEnsembleModeRunning = false;
 
 		internal static ExcelSheet<Perform> InstrumentSheet;
 		internal static string[] InstrumentStrings;
-		internal static IntPtr PerformInfos;
 
 		internal delegate void DoPerformActionDelegate(IntPtr performInfoPtr, uint instrumentId, int a3 = 0);
 		internal static DoPerformActionDelegate DoPerformAction;
 
 		internal static byte InstrumentOffset;
-		internal static byte CurrentInstrument => Marshal.ReadByte(PerformInfos + 3 + InstrumentOffset);
-		//internal static byte UnkByte1 => Marshal.ReadByte(PerformInfos + 3 + 8);
-		//internal static float UnkFloat => Marshal.PtrToStructure<float>(PerformInfos + 3);
-
+		internal static byte CurrentInstrument => Marshal.ReadByte(OffsetManager.Instance.PerformInfos + 3 + InstrumentOffset);
 		internal static readonly byte[] guitarGroup = { 24, 25, 26, 27, 28 };
 		internal static bool PlayingGuitar => guitarGroup.Contains(CurrentInstrument);
-		internal static int CurrentGroupTone => Marshal.ReadInt32(PerformanceAgent.Pointer + 0x1B0);
-		internal static bool InPerformanceMode => Marshal.ReadByte(PerformanceAgent.Pointer + 0x20) != 0;
-		internal static bool MetronomeRunning => Marshal.ReadByte(MetronomeAgent.Pointer + 0x73) == 1;
-		internal static bool EnsembleModeRunning => Marshal.ReadByte(MetronomeAgent.Pointer + 0x80) == 1;
-
-		internal static byte MetronomeBeatsperBar => Marshal.ReadByte(MetronomeAgent.Pointer + 0x72);
-		internal static int MetronomeBeatsElapsed => Marshal.ReadInt32(MetronomeAgent.Pointer + 0x78);
-		internal static long MetronomePPQN => Marshal.ReadInt64(MetronomeAgent.Pointer + 0x60);
-		internal static long MetronomeTimer1 => Marshal.ReadInt64(MetronomeAgent.Pointer + 0x48);
-		internal static long MetronomeTimer2 => Marshal.ReadInt64(MetronomeAgent.Pointer + 0x50);
-
-		internal static int CurrentTone => Marshal.ReadInt32(PerformanceAgent.Pointer + 0x1B0);
-		internal static bool notePressed => Marshal.ReadByte(PerformanceAgent.Pointer + 0x60) != 0x9C;
-		internal static byte noteNumber => notePressed ? Marshal.ReadByte(PerformanceAgent.Pointer + 0x60) : (byte)0;
-		internal static long PerformanceTimer1 => Marshal.ReadInt64(PerformanceAgent.Pointer + 0x38);
-		internal static long PerformanceTimer2 => Marshal.ReadInt64(PerformanceAgent.Pointer + 0x40);
 
 		internal static bool IsPlaying => currentPlayback?.IsRunning == true;
 		internal static Playback testplayback = null;
 
-		public string Name => "MidiBard";
+		public string Name => nameof(MidiBard);
 
 		public unsafe MidiBard(DalamudPluginInterface pi)
 		{
-			Plugin = this;
 			DalamudApi.DalamudApi.Initialize(this, pi);
 			config = (Configuration)PluginInterface.GetPluginConfig() ?? new();
 			config.Initialize();
 
-			localizer = new Localizer((UILang)config.uiLang);
+			_ = OffsetManager.Instance;
+			_ = NetworkManager.Instance;
+			_ = EnsembleManager.Instance;
 			playlib.init(this);
-
 			CurrentOutputDevice = new BardPlayDevice();
 
-			AgentManager.Initialize();
+			AgentMetronome = new AgentMetronome(AgentManager.Instance.FindAgentInterfaceByVtable(OffsetManager.Instance.MetronomeAgent).VTable);
+			AgentPerformance = new AgentPerformance(AgentManager.Instance.FindAgentInterfaceByVtable(OffsetManager.Instance.PerformanceAgent).VTable);
+			DoPerformAction = Marshal.GetDelegateForFunctionPointer<DoPerformActionDelegate>(OffsetManager.Instance.DoPerformAction);
+			InstrumentOffset = Marshal.ReadByte(OffsetManager.Instance.InstrumentOffset);
 
-			MetronomeAgent = AgentManager.FindAgentInterfaceByVtable(AddressManager.Instance.MetronomeAgent);
-			PerformanceAgent = AgentManager.FindAgentInterfaceByVtable(AddressManager.Instance.PerformanceAgent);
-			PerformInfos = AddressManager.Instance.PerformInfos;
-			DoPerformAction = Marshal.GetDelegateForFunctionPointer<DoPerformActionDelegate>(AddressManager.Instance.DoPerformAction);
-			InstrumentOffset = Marshal.ReadByte(AddressManager.Instance.InstrumentOffset);
+			InstrumentSheet = DataManager.Excel.GetSheet<Perform>();
+			InstrumentStrings = InstrumentSheet.Where(i => !string.IsNullOrWhiteSpace(i.Instrument) || i.RowId == 0).Select(i => $"{(i.RowId == 0 ? "None" : $"{i.RowId:00} {i.Instrument.RawString} ({i.Name})")}").ToArray();
 
-			InstrumentSheet = DalamudApi.DalamudApi.DataManager.Excel.GetSheet<Perform>();
-			InstrumentStrings = InstrumentSheet.Where(i => !string.IsNullOrWhiteSpace(i.Instrument) || i.RowId == 0)
-				.Select(i => $"{(i.RowId == 0 ? "None" : $"{i.RowId:00} {i.Instrument.RawString} ({i.Name})")}").ToArray();
+			Task.Run(() => PlaylistManager.ImportMidiFile(config.Playlist, false));
 
-
-			Task.Run(() =>
-			{
-				PlaylistManager.ImportMidiFile(config.Playlist, false);
-			});
-
-
+			localizer = new Localizer((UILang)config.uiLang);
 			ui = new PluginUI();
 			PluginInterface.UiBuilder.Draw += ui.Draw;
 			Framework.Update += Tick;
@@ -126,7 +98,7 @@ namespace MidiBard
 		{
 			if (config.AutoOpenPlayerWhenPerforming)
 			{
-				if (!wasInPerformance && InPerformanceMode)
+				if (!wasInPerformance && AgentPerformance.InPerformanceMode)
 				{
 					if (!ui.IsVisible)
 					{
@@ -134,7 +106,7 @@ namespace MidiBard
 					}
 				}
 
-				wasInPerformance = InPerformanceMode;
+				wasInPerformance = AgentPerformance.InPerformanceMode;
 			}
 
 			if (ui.IsVisible)
@@ -158,13 +130,13 @@ namespace MidiBard
 
 			if (!config.MonitorOnEnsemble) return;
 
-			if (InPerformanceMode)
+			if (AgentPerformance.InPerformanceMode)
 			{
-				if (EnsembleModeRunning)
+				if (AgentMetronome.EnsembleModeRunning)
 				{
 					if (currentPlayback != null)
 					{
-						if (MetronomeBeatsElapsed < 0)
+						if (AgentMetronome.MetronomeBeatsElapsed < 0)
 						{
 							try
 							{
@@ -179,7 +151,7 @@ namespace MidiBard
 								//
 							}
 						}
-						else if (MetronomeBeatsElapsed == 0)
+						else if (AgentMetronome.MetronomeBeatsElapsed == 0)
 						{
 							if (currentPlayback.GetCurrentTime<MidiTimeSpan>().TimeSpan == 0)
 							{
@@ -205,7 +177,7 @@ namespace MidiBard
 					}
 				}
 
-				wasEnsembleModeRunning = EnsembleModeRunning;
+				wasEnsembleModeRunning = AgentMetronome.EnsembleModeRunning;
 			}
 		}
 
@@ -234,7 +206,7 @@ namespace MidiBard
 						var instrumentInput = argStrings[1];
 						if (instrumentInput == "cancel")
 						{
-							DoPerformAction(PerformInfos, 0);
+							DoPerformAction(OffsetManager.Instance.PerformInfos, 0);
 						}
 						else
 						{
@@ -303,12 +275,15 @@ namespace MidiBard
 		}
 
 		#region IDisposable Support
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!disposing) return;
-			DeviceManager.DisposeDevice();
-			DalamudApi.DalamudApi.Framework.Update -= Tick;
 
+		void FreeUnmanagedResources()
+		{
+			Framework.Update -= Tick;
+			PluginInterface.UiBuilder.Draw -= ui.Draw;
+
+			EnsembleManager.Instance.Dispose();
+			NetworkManager.Instance.Dispose();
+			DeviceManager.DisposeDevice();
 			try
 			{
 				currentPlayback?.Stop();
@@ -319,10 +294,14 @@ namespace MidiBard
 			{
 				PluginLog.Error($"{e}");
 			}
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			FreeUnmanagedResources();
+			if (!disposing) return;
 
 			PluginInterface.SavePluginConfig(config);
-
-			PluginInterface.UiBuilder.Draw -= ui.Draw;
 			DalamudApi.DalamudApi.Dispose();
 		}
 
@@ -330,6 +309,11 @@ namespace MidiBard
 		{
 			Dispose(true);
 			GC.SuppressFinalize(this);
+		}
+
+		~MidiBard()
+		{
+			FreeUnmanagedResources();
 		}
 		#endregion
 	}

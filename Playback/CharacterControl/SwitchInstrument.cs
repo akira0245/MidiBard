@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Dalamud.Logging;
 using Dalamud.Plugin;
 using Lumina.Excel.GeneratedSheets;
+using MidiBard.Managers;
 
 namespace MidiBard
 {
@@ -29,9 +30,10 @@ namespace MidiBard
 
 			var sw = Stopwatch.StartNew();
 
+			var performInfos = OffsetManager.Instance.PerformInfos;
 			if (MidiBard.CurrentInstrument != 0)
 			{ 
-				MidiBard.DoPerformAction(MidiBard.PerformInfos, 0);
+				MidiBard.DoPerformAction(performInfos, 0);
 			}
 
 			while (MidiBard.CurrentInstrument != 0)
@@ -44,7 +46,7 @@ namespace MidiBard
 				await Task.Delay(1);
 			}
 
-			MidiBard.DoPerformAction(MidiBard.PerformInfos, instrumentId);
+			MidiBard.DoPerformAction(performInfos, instrumentId);
 
 			while (MidiBard.CurrentInstrument != instrumentId && DalamudApi.DalamudApi.GameGui.GetAddonByName("PerformanceModeWide", 1) != IntPtr.Zero)
 			{

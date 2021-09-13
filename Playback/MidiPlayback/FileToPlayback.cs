@@ -15,6 +15,7 @@ using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
 using Melanchall.DryWetMidi.Standards;
+using MidiBard.Managers.Agents;
 using static MidiBard.MidiBard;
 using Note = Melanchall.DryWetMidi.Interaction.Note;
 
@@ -191,7 +192,7 @@ namespace MidiBard
 						case PlayMode.Single:
 							break;
 						case PlayMode.ListOrdered:
-							if (EnsembleModeRunning) return;
+							if (MidiBard.AgentMetronome.EnsembleModeRunning) return;
 							PerformWaiting(config.secondsBetweenTracks);
 							if (needToCancel)
 							{
@@ -214,7 +215,7 @@ namespace MidiBard
 
 							break;
 						case PlayMode.ListRepeat:
-							if (EnsembleModeRunning) return;
+							if (MidiBard.AgentMetronome.EnsembleModeRunning) return;
 							PerformWaiting(config.secondsBetweenTracks);
 							if (needToCancel)
 							{
@@ -253,7 +254,7 @@ namespace MidiBard
 							currentPlayback.Start();
 							break;
 						case PlayMode.Random:
-							if (EnsembleModeRunning) return;
+							if (MidiBard.AgentMetronome.EnsembleModeRunning) return;
 							if (!PlaylistManager.Filelist.Any()) return;
 							PerformWaiting(config.secondsBetweenTracks);
 							if (needToCancel)

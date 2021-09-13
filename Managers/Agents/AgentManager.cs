@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Dalamud.Game;
@@ -11,17 +10,18 @@ using Dalamud.Game.Gui;
 using Dalamud.Logging;
 using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
+using MidiBard.Managers.Agents;
 using static MidiBard.MidiBard;
 
 namespace MidiBard
 {
 	unsafe class AgentManager
 	{
-		internal static AgentModule* AgentModule;
-		internal static List<AgentInterface> Agents { get; private set; } = new List<AgentInterface>(400);
+		internal List<AgentInterface> AgentTable { get; private set; }
 
-		internal static void Initialize()
+		private AgentManager()
 		{
+			AgentTable = new List<AgentInterface>(500);
 			try
 			{
 				unsafe
@@ -30,12 +30,12 @@ namespace MidiBard
 					var agentModule = instance->UIModule->GetAgentModule();
 					var agentArray = &(agentModule->AgentArray);
 
-					for (var i = 0; i < 380; i++)
+					for (var i = 0; i < 400; i++)
 					{
 						var pointer = agentArray[i];
 						if (pointer is null)
 							continue;
-						Agents.Add(new AgentInterface((IntPtr)pointer));
+						AgentTable.Add(new AgentInterface((IntPtr)pointer));
 					}
 				}
 			}
@@ -45,31 +45,18 @@ namespace MidiBard
 			}
 		}
 
-		internal static AgentInterface FindAgentInterfaceById(int id) => Agents[id];
+		public static AgentManager Instance { get; } = new AgentManager();
 
-		internal static AgentInterface FindAgentInterfaceByVtable(IntPtr vtbl) =>
-			Agents.FirstOrDefault(i => i.VTable == vtbl);
-	}
+		internal AgentInterface FindAgentInterfaceById(int id) => AgentTable[id];
 
-	public unsafe class AgentInterface
-	{
-		public IntPtr Pointer { get; }
-		public IntPtr VTable { get; }
-		public int Id => AgentManager.Agents.FindIndex(i => i.Pointer == this.Pointer && i.VTable == this.VTable);
-		public ref FFXIVClientStructs.FFXIV.Component.GUI.AgentInterface Struct => ref *(FFXIVClientStructs.FFXIV.Component.GUI.AgentInterface*)Pointer;
-
-		public AgentInterface(IntPtr pointer)
-		{
-			Pointer = pointer;
-			VTable = Marshal.ReadIntPtr(pointer);
-		}
+		internal AgentInterface FindAgentInterfaceByVtable(IntPtr vtbl) => AgentTable.First(i=>i.VTable == vtbl);
 	}
 
 	//public unsafe class AgentInterface<T> where T : unmanaged
 	//{
 	//	public T* Pointer { get; }
 	//	public void** Vtable { get; }
-		
+
 	//	public AgentInterface(IntPtr pointer) : base(pointer)
 	//	{
 	//		Pointer = (T*)pointer;

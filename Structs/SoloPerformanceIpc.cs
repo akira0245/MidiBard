@@ -7,35 +7,16 @@ using System.Threading.Tasks;
 
 namespace MidiBard.Structs
 {
+	[StructLayout(LayoutKind.Sequential, Size = 24)]
 	public struct SoloPerformanceIpc
 	{
-		public byte noteCount;
+		public byte NoteCount;
 		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 10)]
-		public byte[] noteNumbersArray;
-		public bool IsEmpty => noteNumbers.All(i => i == 0xff);
+		public byte[] NoteNumbers;
+		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 10)]
+		public byte[] NoteTones;
 
-		public List<byte> noteNumbers
-		{
-			get
-			{
-				var list = new List<byte>();
-				for (int i = 0; i < 10; i++)
-				{
-					list.Add(noteNumbersArray[i]);
-				}
-
-				return list;
-			}
-		}
-
-		public override string ToString()
-		{
-			var sb = new StringBuilder();
-			for (int i = 0; i < noteCount; i++)
-			{
-				sb.Append($" {noteNumbersArray[i]}");
-			}
-			return sb.ToString();
-		}
+		public bool IsEmpty => NoteNumbers.All(i => i == 0xff);
+		public override string ToString() => string.Join(' ', NoteNumbers.Select(i => i.ToString("X")));
 	}
 }

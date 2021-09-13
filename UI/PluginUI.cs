@@ -19,6 +19,8 @@ using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
+using MidiBard.Managers;
+using MidiBard.Managers.Agents;
 using static MidiBard.MidiBard;
 using Chord = Melanchall.DryWetMidi.MusicTheory.Chord;
 using Note = Melanchall.DryWetMidi.MusicTheory.Note;
@@ -46,8 +48,8 @@ namespace MidiBard
 			//ImGui.PushStyleVar(ImGuiStyleVar.WindowTitleAlign, new Vector2(0.5f, 0.5f));
 
 			//uint color = ImGui.GetColorU32(ImGuiCol.TitleBgActive);
-			var ensembleModeRunning = EnsembleModeRunning;
-			var ensemblePreparing = MetronomeBeatsElapsed < 0;
+			var ensembleModeRunning = MidiBard.AgentMetronome.EnsembleModeRunning;
+			var ensemblePreparing = MidiBard.AgentMetronome.MetronomeBeatsElapsed < 0;
 			var listeningForEvents = DeviceManager.IsListeningForEvents;
 
 			//if (ensembleModeRunning)
@@ -481,7 +483,7 @@ namespace MidiBard
 			ImGui.TextUnformatted(durationText);
 			try
 			{
-				var currentInstrument = PlayingGuitar && !config.OverrideGuitarTones ? (uint)(24 + CurrentGroupTone) : CurrentInstrument;
+				var currentInstrument = PlayingGuitar && !config.OverrideGuitarTones ? (uint)(24 + MidiBard.AgentPerformance.CurrentGroupTone) : CurrentInstrument;
 
 				string currentInstrumentText;
 				if (currentInstrument != 0)
@@ -917,10 +919,10 @@ namespace MidiBard
 			{
 				try
 				{
-					ImGui.TextUnformatted($"AgentModule: {(long)AgentManager.AgentModule:X}");
-					ImGui.SameLine();
-					if (ImGui.SmallButton("C##AgentModule")) ImGui.SetClipboardText($"{(long)AgentManager.AgentModule:X}");
-					ImGui.TextUnformatted($"AgentCount:{AgentManager.Agents.Count}");
+					//ImGui.TextUnformatted($"AgentModule: {(long)AgentManager.Instance:X}");
+					//ImGui.SameLine();
+					//if (ImGui.SmallButton("C##AgentModule")) ImGui.SetClipboardText($"{(long)AgentManager.AgentModule:X}");
+					ImGui.TextUnformatted($"AgentCount:{AgentManager.Instance.AgentTable.Count}");
 				}
 				catch (Exception e)
 				{
@@ -930,17 +932,17 @@ namespace MidiBard
 				ImGui.Separator();
 				try
 				{
-					ImGui.TextUnformatted($"AgentPerformance: {PerformanceAgent.Pointer.ToInt64():X}");
+					ImGui.TextUnformatted($"AgentPerformance: {MidiBard.AgentPerformance.Pointer.ToInt64():X}");
 					ImGui.SameLine();
-					if (ImGui.SmallButton("C##AgentPerformance")) ImGui.SetClipboardText($"{PerformanceAgent.Pointer.ToInt64():X}");
+					if (ImGui.SmallButton("C##AgentPerformance")) ImGui.SetClipboardText($"{MidiBard.AgentPerformance.Pointer.ToInt64():X}");
 
-					ImGui.TextUnformatted($"AgentID: {PerformanceAgent.Id}");
+					ImGui.TextUnformatted($"AgentID: {MidiBard.AgentPerformance.Id}");
 
-					ImGui.TextUnformatted($"notePressed: {notePressed}");
-					ImGui.TextUnformatted($"noteNumber: {noteNumber}");
-					ImGui.TextUnformatted($"InPerformanceMode: {InPerformanceMode}");
-					ImGui.TextUnformatted($"Timer1: {TimeSpan.FromMilliseconds(PerformanceTimer1)}");
-					ImGui.TextUnformatted($"Timer2: {TimeSpan.FromTicks(PerformanceTimer2 * 10)}");
+					ImGui.TextUnformatted($"notePressed: {MidiBard.AgentPerformance.notePressed}");
+					ImGui.TextUnformatted($"noteNumber: {MidiBard.AgentPerformance.noteNumber}");
+					ImGui.TextUnformatted($"InPerformanceMode: {MidiBard.AgentPerformance.InPerformanceMode}");
+					ImGui.TextUnformatted($"Timer1: {TimeSpan.FromMilliseconds(MidiBard.AgentPerformance.PerformanceTimer1)}");
+					ImGui.TextUnformatted($"Timer2: {TimeSpan.FromTicks(MidiBard.AgentPerformance.PerformanceTimer2 * 10)}");
 				}
 				catch (Exception e)
 				{
@@ -951,19 +953,19 @@ namespace MidiBard
 
 				try
 				{
-					ImGui.TextUnformatted($"AgentMetronome: {MetronomeAgent.Pointer.ToInt64():X}");
+					ImGui.TextUnformatted($"AgentMetronome: {MidiBard.AgentMetronome.Pointer.ToInt64():X}");
 					ImGui.SameLine();
-					if (ImGui.SmallButton("C##AgentMetronome")) ImGui.SetClipboardText($"{MetronomeAgent.Pointer.ToInt64():X}");
-					ImGui.TextUnformatted($"AgentID: {MetronomeAgent.Id}");
+					if (ImGui.SmallButton("C##AgentMetronome")) ImGui.SetClipboardText($"{MidiBard.AgentMetronome.Pointer.ToInt64():X}");
+					ImGui.TextUnformatted($"AgentID: {MidiBard.AgentMetronome.Id}");
 
 
-					ImGui.TextUnformatted($"Running: {MetronomeRunning}");
-					ImGui.TextUnformatted($"Ensemble: {EnsembleModeRunning}");
-					ImGui.TextUnformatted($"BeatsElapsed: {MetronomeBeatsElapsed}");
-					ImGui.TextUnformatted($"PPQN: {MetronomePPQN} ({60_000_000 / (double)MetronomePPQN:F3}bpm)");
-					ImGui.TextUnformatted($"BeatsPerBar: {MetronomeBeatsperBar}");
-					ImGui.TextUnformatted($"Timer1: {TimeSpan.FromMilliseconds(MetronomeTimer1)}");
-					ImGui.TextUnformatted($"Timer2: {TimeSpan.FromTicks(MetronomeTimer2 * 10)}");
+					ImGui.TextUnformatted($"Running: {MidiBard.AgentMetronome.MetronomeRunning}");
+					ImGui.TextUnformatted($"Ensemble: {MidiBard.AgentMetronome.EnsembleModeRunning}");
+					ImGui.TextUnformatted($"BeatsElapsed: {MidiBard.AgentMetronome.MetronomeBeatsElapsed}");
+					ImGui.TextUnformatted($"PPQN: {MidiBard.AgentMetronome.MetronomePPQN} ({60_000_000 / (double)MidiBard.AgentMetronome.MetronomePPQN:F3}bpm)");
+					ImGui.TextUnformatted($"BeatsPerBar: {MidiBard.AgentMetronome.MetronomeBeatsPerBar}");
+					ImGui.TextUnformatted($"Timer1: {TimeSpan.FromMilliseconds(MidiBard.AgentMetronome.MetronomeTimer1)}");
+					ImGui.TextUnformatted($"Timer2: {TimeSpan.FromTicks(MidiBard.AgentMetronome.MetronomeTimer2 * 10)}");
 				}
 				catch (Exception e)
 				{
@@ -975,13 +977,14 @@ namespace MidiBard
 				ImGui.Separator();
 				try
 				{
-					ImGui.TextUnformatted($"PerformInfos: {PerformInfos.ToInt64() + 3:X}");
+					var performInfos = OffsetManager.Instance.PerformInfos;
+					ImGui.TextUnformatted($"PerformInfos: {performInfos.ToInt64() + 3:X}");
 					ImGui.SameLine();
-					if (ImGui.SmallButton("C##PerformInfos")) ImGui.SetClipboardText($"{PerformInfos.ToInt64() + 3:X}");
+					if (ImGui.SmallButton("C##PerformInfos")) ImGui.SetClipboardText($"{performInfos.ToInt64() + 3:X}");
 					ImGui.TextUnformatted($"CurrentInstrumentKey: {CurrentInstrument}");
 					ImGui.TextUnformatted($"Instrument: {InstrumentSheet.GetRow(CurrentInstrument).Instrument}");
 					ImGui.TextUnformatted($"Name: {InstrumentSheet.GetRow(CurrentInstrument).Name.RawString}");
-					ImGui.TextUnformatted($"Tone: {CurrentGroupTone}");
+					ImGui.TextUnformatted($"Tone: {MidiBard.AgentPerformance.CurrentGroupTone}");
 					//ImGui.Text($"unkFloat: {UnkFloat}");
 					////ImGui.Text($"unkByte: {UnkByte1}");
 				}

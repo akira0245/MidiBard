@@ -10,50 +10,43 @@ namespace MidiBard.Structs
 {
 	[StructLayout(LayoutKind.Sequential)]
 	[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
-	readonly struct EnsemblePerformanceIpc
+	struct EnsemblePerformanceIpc
 	{
-		public readonly uint unk1;
-		private readonly short pad1;
-		public readonly ushort worldId;
+		public uint unk1;
+		private short pad1;
+		public ushort WorldId;
 		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
-		public readonly EnsemblePerCharacterData[] ensembleCharacters;
+		public EnsembleCharacterData[] EnsembleCharacterDatas;
 
-		public uint[] Ids => ensembleCharacters.Select(i => i.ObjectId).Where(i => i != 0xE000_0000).ToArray();
-		public override string ToString() => string.Join(", ", ensembleCharacters.Select(i => $"{i.ObjectId:X}:{i.GetNotes.Count(j => j != 0)}"));
+		public uint[] Ids => EnsembleCharacterDatas.Select(i => i.CharacterId).Where(i => i != 0xE000_0000).ToArray();
+		public override string ToString() => string.Join(", ", EnsembleCharacterDatas.Select(i => $"{i.CharacterId:X}:{i.NoteNumbers.Count(j => j != 0)}"));
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	unsafe struct EnsemblePerCharacterData
+	struct EnsembleCharacterData
 	{
+		public bool IsValid => CharacterId is not (0 or 0xE000_0000);
+
 		/// <summary>
 		/// source actor id, if null it's 0xE000_0000
 		/// </summary>
-		public uint ObjectId;
+		public uint CharacterId;
 
 		/// <summary>
 		/// 3C or 00 for null actor 
 		/// </summary>
-		public byte unk;
+		public byte noteCount;
 
 		/// <summary>
 		/// 60 note numbers for 3 seconds sample.
 		/// </summary>
-		public fixed byte noteNumbers[60];
+		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 60)]
+		public byte[] NoteNumbers;
+		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 60)]
+		public byte[] ToneNumbers;
 
-		private fixed byte pad[3];
-
-		public List<byte> GetNotes
-		{
-			get
-			{
-				var ret = new byte[60];
-				for (int i = 0; i < 60; i++)
-				{
-					ret[i] = noteNumbers[i];
-				}
-
-				return ret.ToList();
-			}
-		}
+		private byte pad1;
+		private byte pad2;
+		private byte pad3;
 	}
 }
