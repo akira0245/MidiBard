@@ -58,6 +58,16 @@ namespace MidiBard
 				MetricTimeSpan time = new MetricTimeSpan(0, 0, number, 0);
 				PlayerControl.SkipTo(time);
 			}
+			else if (cmd == "reloadplaylist") // reload the playlist from saved config
+			{
+				if (Plugin.currentPlayback != null && Plugin.currentPlayback.IsRunning)
+				{
+					PluginLog.LogInformation("Reload playlist is not allowed while playing.");
+					return;
+				}
+
+				PlaylistManager.ReloadPlayListFromConfig(true);
+			}
 		}
 	}
 }

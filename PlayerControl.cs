@@ -39,7 +39,7 @@ namespace MidiBard
 				if (currentPlayback?.GetCurrentTime<MidiTimeSpan>() == currentPlayback?.GetDuration<MidiTimeSpan>())
 				{
 					currentPlayback?.MoveToStart();
-					config.playDeltaTime = 0;
+					playDeltaTime = 0;
 				}
 
 				currentPlayback?.Start();
@@ -62,7 +62,7 @@ namespace MidiBard
 			{
 				currentPlayback?.Stop();
 				currentPlayback?.MoveToTime(new MidiTimeSpan(0));
-				config.playDeltaTime = 0;
+				playDeltaTime = 0;
 			}
 			catch (Exception e)
 			{
@@ -76,7 +76,7 @@ namespace MidiBard
 
 		internal static void Next()
 		{
-			config.playDeltaTime = 0;
+			playDeltaTime = 0;
 			if (currentPlayback != null)
 			{
 				try
@@ -136,7 +136,7 @@ namespace MidiBard
 
 		internal static void Last()
 		{
-			config.playDeltaTime = 0;
+			playDeltaTime = 0;
 			if (currentPlayback != null)
 			{
 				try
@@ -189,7 +189,7 @@ namespace MidiBard
 		{
 			if (currentPlayback != null)
 			{
-				config.playDeltaTime = 0;
+				playDeltaTime = 0;
 				currentPlayback.MoveToTime(time);
 			}
 		}
