@@ -377,7 +377,7 @@ namespace MidiBard
 			}
 
 			PlaylistManager.CurrentPlaying = number;
-			config.playDeltaTime = 0;
+			playDeltaTime = 0;
 			try
 			{
 				var wasplaying = IsPlaying;
@@ -758,10 +758,10 @@ namespace MidiBard
 				ChangeDeltaTime(50);
 			}
 			ImGui.SameLine();
-			ImGui.TextUnformatted("Manual Sync: " + $"{config.playDeltaTime} ms");
+			ImGui.TextUnformatted("Manual Sync: " + $"{playDeltaTime} ms");
 			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
 			{
-				ChangeDeltaTime(-config.playDeltaTime);
+				ChangeDeltaTime(-playDeltaTime);
 			}
 			ToolTip("Delay time(ms) add on top of current progress to help sync between bards.");
 
@@ -793,7 +793,7 @@ namespace MidiBard
 		{
 			if (currentPlayback == null)
 			{
-				config.playDeltaTime = 0;
+				playDeltaTime = 0;
 				return;
 			}
 
@@ -808,7 +808,7 @@ namespace MidiBard
 			MetricTimeSpan newTime = new MetricTimeSpan(msTime);
 			//PluginLog.LogDebug("newTime:" + newTime.TotalMicroseconds);
 			currentPlayback.MoveToTime(newTime);
-			config.playDeltaTime += delta;
+			playDeltaTime += delta;
 		}
 
 		private static string GetBpmString()
@@ -1411,6 +1411,7 @@ namespace MidiBard
 			if (result == DialogResult.OK)
 			{
 				PlaylistManager.LoadMidiFileList(filePath, true);
+				SaveConfig();
 			}
 
 			_isImportRunning = false;

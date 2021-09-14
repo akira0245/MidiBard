@@ -185,7 +185,7 @@ namespace MidiBard
 
 		private static void Playback_Finished(object sender, EventArgs e)
 		{
-			config.playDeltaTime = 0;
+			playDeltaTime = 0;
 			Task.Run(() =>
 			{
 				try

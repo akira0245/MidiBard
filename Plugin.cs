@@ -34,6 +34,7 @@ namespace MidiBard
 
 		internal static Playback currentPlayback;
 		internal static MidiFile currentOpeningMIDIFile;
+		internal static int playDeltaTime = 0;
 
 		//internal static MidiFile CurrentFile;
 		internal static TempoMap CurrentTMap;
@@ -87,7 +88,9 @@ namespace MidiBard
 		public void Initialize(DalamudPluginInterface pi)
 		{
 			pluginInterface = pi;
-			config = (Configuration)pluginInterface.GetPluginConfig() ?? new Configuration();
+
+			LoadConfig();
+
 			config.Initialize(pluginInterface);
 
 			pluginInterface.Framework.Gui.Chat.OnChatMessage += ChatCommand.OnChatMessage;
@@ -136,8 +139,8 @@ namespace MidiBard
 
 			Task.Run(() =>
 	  {
-		  // update playlist in case any files is being deleted
-		  config.Playlist = PlaylistManager.LoadMidiFileList(config.Playlist.ToArray(), false);
+		  PlaylistManager.ReloadPlayListFromConfig();
+		  SaveConfig();
 	  });
 
 			ui = new PluginUI();
@@ -213,7 +216,7 @@ namespace MidiBard
 						{
 							if (currentPlayback.GetCurrentTime<MidiTimeSpan>().TimeSpan == 0)
 							{
-								config.playDeltaTime = 0;
+								playDeltaTime = 0;
 								currentPlayback.Start();
 							}
 						}
@@ -385,7 +388,7 @@ namespace MidiBard
 
 			commandManager.Dispose();
 
-			pluginInterface.SavePluginConfig(config);
+			SaveConfig();
 
 			pluginInterface.UiBuilder.OnBuildUi -= ui.Draw;
 
@@ -396,6 +399,16 @@ namespace MidiBard
 		{
 			Dispose(true);
 			GC.SuppressFinalize(this);
+		}
+
+		internal static void SaveConfig()
+		{
+			pluginInterface.SavePluginConfig(config);
+		}
+
+		internal static void LoadConfig()
+		{
+			config = (Configuration)pluginInterface.GetPluginConfig() ?? new Configuration();
 		}
 
 		#endregion IDisposable Support

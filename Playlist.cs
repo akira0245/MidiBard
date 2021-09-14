@@ -45,6 +45,7 @@ namespace MidiBard
 			Plugin.config.Playlist.Clear();
 			Filelist.Clear();
 			CurrentPlaying = -1;
+			Plugin.SaveConfig();
 		}
 
 		public static void Remove(int index)
@@ -58,6 +59,7 @@ namespace MidiBard
 				{
 					currentPlaying--;
 				}
+				Plugin.SaveConfig();
 			}
 			catch (Exception e)
 			{
@@ -83,6 +85,21 @@ namespace MidiBard
 			TextEncoding = Encoding.Default,
 			InvalidSystemCommonEventParameterValuePolicy = InvalidSystemCommonEventParameterValuePolicy.SnapToLimits
 		};
+
+		internal static void ReloadPlayListFromConfig(bool alsoReloadConfig = false)
+		{
+			if (alsoReloadConfig)
+			{
+				// back up since we don't want the enabled tracks to be overwritten by the shared config between bards.
+				bool[] enabledTracks = Plugin.config.EnabledTracks;
+				Plugin.LoadConfig();
+				Plugin.config.EnabledTracks = enabledTracks;
+			}
+
+			Filelist.Clear();
+			// update playlist in case any files is being deleted
+			Plugin.config.Playlist = LoadMidiFileList(Plugin.config.Playlist.ToArray(), false);
+		}
 
 		internal static List<string> LoadMidiFileList(string[] fileName, bool addToSavedConfigFileList)
 		{
