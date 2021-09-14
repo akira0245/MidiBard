@@ -30,7 +30,6 @@ namespace MidiBard
 	public partial class PluginUI
 	{
 		private readonly string[] uilangStrings = { "EN", "ZH" };
-		private static bool Debug = false;
 		public bool IsVisible;
 
 		private static string searchstring = "";
@@ -188,7 +187,7 @@ namespace MidiBard
 						DrawPanelGeneralSettings();
 					}
 
-					if (Debug) DrawDebugWindow();
+					if (MidiBard.Debug) DrawDebugWindow();
 				}
 			}
 			finally
@@ -359,27 +358,11 @@ namespace MidiBard
 		private static void DrawPlaylistItemSelectable(int i)
 		{
 			if (ImGui.Selectable($"{i + 1:000}##plistitem", PlaylistManager.CurrentPlaying == i,
-				ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowDoubleClick |
-				ImGuiSelectableFlags.AllowItemOverlap))
+				ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowDoubleClick | ImGuiSelectableFlags.AllowItemOverlap))
 			{
 				if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
 				{
-					PlaylistManager.CurrentPlaying = i;
-
-					try
-					{
-						var wasplaying = IsPlaying;
-						currentPlayback?.Dispose();
-						currentPlayback = null;
-
-						currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].GetFilePlayback();
-						if (wasplaying) currentPlayback?.Start();
-						Task.Run(SwitchInstrument.WaitSwitchInstrument);
-					}
-					catch (Exception e)
-					{
-						//
-					}
+					MidiPlayerControl.SwitchSong(i, true);
 				}
 				else
 				{
@@ -387,6 +370,8 @@ namespace MidiBard
 				}
 			}
 		}
+
+		
 
 		private static void DrawPlaylistDeleteButton(int i)
 		{
@@ -442,11 +427,11 @@ namespace MidiBard
 			MetricTimeSpan duration = new MetricTimeSpan(0);
 			float progress = 0;
 
-			if (PlaybackExtension.isWaiting)
+			if (MidiPlayback.isWaiting)
 			{
 				ImGui.PushStyleColor(ImGuiCol.PlotHistogram, ImGui.GetColorU32(ImGuiCol.PlotHistogram));
 				ImGui.PushStyleColor(ImGuiCol.FrameBg, ImGui.GetColorU32(ImGuiCol.FrameBg));
-				ImGui.ProgressBar(PlaybackExtension.waitProgress, new Vector2(-1, 3));
+				ImGui.ProgressBar(MidiPlayback.waitProgress, new Vector2(-1, 3));
 				ImGui.PopStyleColor();
 			}
 			else
@@ -910,7 +895,7 @@ namespace MidiBard
 			HelpMarker("Assign different guitar tones for each midi tracks".Localize());
 
 			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
-			if (ImGui.Button("Debug info", new Vector2(-2, ImGui.GetFrameHeight()))) Debug = !Debug;
+			if (ImGui.Button("Debug info", new Vector2(-2, ImGui.GetFrameHeight()))) MidiBard.Debug ^= true;
 		}
 		private static unsafe void DrawDebugWindow()
 		{

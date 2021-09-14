@@ -17,11 +17,10 @@ namespace MidiBard
 {
 	unsafe class AgentManager
 	{
-		internal List<AgentInterface> AgentTable { get; private set; }
+		internal List<AgentInterface> AgentTable { get; } = new List<AgentInterface>(400);
 
 		private AgentManager()
 		{
-			AgentTable = new List<AgentInterface>(500);
 			try
 			{
 				unsafe
@@ -30,12 +29,12 @@ namespace MidiBard
 					var agentModule = instance->UIModule->GetAgentModule();
 					var agentArray = &(agentModule->AgentArray);
 
-					for (var i = 0; i < 400; i++)
+					for (var i = 0; i < 383; i++)
 					{
 						var pointer = agentArray[i];
 						if (pointer is null)
 							continue;
-						AgentTable.Add(new AgentInterface((IntPtr)pointer));
+						AgentTable.Add(new AgentInterface((IntPtr)pointer, i));
 					}
 				}
 			}

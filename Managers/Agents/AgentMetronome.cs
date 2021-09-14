@@ -5,7 +5,10 @@ namespace MidiBard.Managers.Agents
 {
 	public sealed unsafe class AgentMetronome : AgentInterface
 	{
-		public AgentMetronome(IntPtr pointer) : base(pointer) { }
+		public AgentMetronome(AgentInterface agentInterface) : base(agentInterface.Pointer, agentInterface.Id)
+		{
+
+		}
 		public new unsafe AgentMetronomeStruct* Struct => (AgentMetronomeStruct*)Pointer;
 
 		[StructLayout(LayoutKind.Explicit)]

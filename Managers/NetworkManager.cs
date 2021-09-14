@@ -13,7 +13,7 @@ namespace MidiBard.Managers
 {
 	class NetworkManager : IDisposable
 	{
-		
+
 		private unsafe void SoloSend(IntPtr dataptr)
 		{
 			//Span<byte> notes = new Span<byte>((dataptr + 0x10).ToPointer(), 10);
@@ -31,16 +31,20 @@ namespace MidiBard.Managers
 		{
 			Span<byte> notes = new Span<byte>((dataptr + 0x10).ToPointer(), 60);
 			Span<byte> tones = new Span<byte>((dataptr + 0x10 + 60).ToPointer(), 60);
-			PluginLog.Information($"[{nameof(EnsembleSend)}] [MYSELF] {toString(notes)} : {toString(tones)}");
+			if (MidiBard.Debug)
+			{
+				PluginLog.Information($"[{nameof(EnsembleSend)}] [MYSELF] {notes.toString()} : {tones.toString()}");
+			}
 		}
 
 		private unsafe void EnsembleRecv(uint sourceId, IntPtr data)
 		{
 			var ipc = Marshal.PtrToStructure<EnsemblePerformanceIpc>(data);
-			foreach (var perCharacterData in ipc.EnsembleCharacterDatas.Where(i => i.IsValid))
-			{
-				PluginLog.Information($"[{nameof(EnsembleRecv)}] {perCharacterData.CharacterId:X} {toString(perCharacterData.NoteNumbers)}");
-			}
+			if (MidiBard.Debug)
+				foreach (var perCharacterData in ipc.EnsembleCharacterDatas.Where(i => i.IsValid))
+				{
+					PluginLog.Information($"[{nameof(EnsembleRecv)}] {perCharacterData.CharacterId:X} {perCharacterData.NoteNumbers.toString()}");
+				}
 		}
 
 		delegate IntPtr sub_14070A1C0(uint sourceId, IntPtr data);
@@ -54,9 +58,6 @@ namespace MidiBard.Managers
 
 		delegate void sub_14119B120(IntPtr a1);
 		private readonly Hook<sub_14119B120> ensembleSendHook;
-
-		static string toString<T>(in Span<T> t) where T : struct => string.Join(' ', t.ToArray().Select(i => $"{i:X}"));
-		static string toString<T>(in T[] t) where T : struct => string.Join(' ', t.Select(i => $"{i:X}"));
 
 		private NetworkManager()
 		{

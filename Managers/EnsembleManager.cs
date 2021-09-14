@@ -48,8 +48,7 @@ namespace MidiBard.Managers
 
 							try
 							{
-								var currentPlayback = MidiBard.currentPlayback;
-								currentPlayback.Start();
+								MidiBard.currentPlayback.Start();
 							}
 							catch (Exception e)
 							{
@@ -69,12 +68,10 @@ namespace MidiBard.Managers
 							{
 								try
 								{
-									var currentPlayback = MidiBard.currentPlayback;
-									currentPlayback?.Dispose();
-									MidiBard.currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].GetFilePlayback();
-									currentPlayback?.MoveToStart();
-									currentPlayback?.Stop();
+									MidiBard.currentPlayback ??= PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].GetFilePlayback();
 
+									MidiBard.currentPlayback.Stop();
+									MidiBard.currentPlayback.MoveToStart();
 								}
 								catch (Exception e)
 								{

@@ -51,9 +51,9 @@ namespace MidiBard
 			if (ImGui.Button(PlayPauseIcon))
 			{
 				PluginLog.Debug($"PlayPause pressed. wasplaying: {MidiBard.IsPlaying}");
-				if (PlaybackExtension.isWaiting)
+				if (MidiPlayback.isWaiting)
 				{
-					PlaybackExtension.StopWaiting();
+					MidiPlayback.StopWaiting();
 				}
 				else
 				{
@@ -74,9 +74,9 @@ namespace MidiBard
 			ImGui.SameLine();
 			if (ImGui.Button(FontAwesomeIcon.Stop.ToIconString()))
 			{
-				if (PlaybackExtension.isWaiting)
+				if (MidiPlayback.isWaiting)
 				{
-					PlaybackExtension.CancelWaiting();
+					MidiPlayback.CancelWaiting();
 				}
 				else
 				{

@@ -5,7 +5,7 @@ namespace MidiBard.Managers.Agents
 {
 	public sealed unsafe class AgentPerformance : AgentInterface
 	{
-		public AgentPerformance(IntPtr pointer) : base(pointer) { }
+		public AgentPerformance(AgentInterface agentInterface) : base(agentInterface.Pointer, agentInterface.Id) { }
 
 		public new AgentPerformanceStruct* Struct => (AgentPerformanceStruct*)Pointer;
 

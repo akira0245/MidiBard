@@ -21,10 +21,9 @@ using Note = Melanchall.DryWetMidi.Interaction.Note;
 
 namespace MidiBard
 {
-	public static class PlaybackExtension
+	public static class MidiPlayback
 	{
 		static readonly Regex regex = new Regex(@"^#.*?([-|+][0-9]+).*?#", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-		static readonly MidiClockSettings clock = new MidiClockSettings { CreateTickGeneratorCallback = () => new HighPrecisionTickGenerator() };
 
 		public static BardPlayback GetFilePlayback(this (MidiFile midifile, string trackName) fileTuple)
 		{
@@ -125,7 +124,7 @@ namespace MidiBard
 				.OrderBy(e => e.Time);
 
 
-			var playback = new BardPlayback(timedEvents, CurrentTMap, clock)
+			var playback = new BardPlayback(timedEvents, CurrentTMap, new MidiClockSettings())
 			{
 				InterruptNotesOnStop = true,
 				Speed = config.playSpeed
@@ -187,12 +186,13 @@ namespace MidiBard
 			{
 				try
 				{
+					if (MidiBard.AgentMetronome.EnsembleModeRunning) return;
+
 					switch ((PlayMode)config.PlayMode)
 					{
 						case PlayMode.Single:
 							break;
 						case PlayMode.ListOrdered:
-							if (MidiBard.AgentMetronome.EnsembleModeRunning) return;
 							PerformWaiting(config.secondsBetweenTracks);
 							if (needToCancel)
 							{
@@ -215,7 +215,6 @@ namespace MidiBard
 
 							break;
 						case PlayMode.ListRepeat:
-							if (MidiBard.AgentMetronome.EnsembleModeRunning) return;
 							PerformWaiting(config.secondsBetweenTracks);
 							if (needToCancel)
 							{
@@ -254,7 +253,6 @@ namespace MidiBard
 							currentPlayback.Start();
 							break;
 						case PlayMode.Random:
-							if (MidiBard.AgentMetronome.EnsembleModeRunning) return;
 							if (!PlaylistManager.Filelist.Any()) return;
 							PerformWaiting(config.secondsBetweenTracks);
 							if (needToCancel)
@@ -272,16 +270,16 @@ namespace MidiBard
 							try
 							{
 								var r = new Random();
-								int nexttrack;
+								int nextTrack;
 								do
 								{
-									nexttrack = r.Next(0, PlaylistManager.Filelist.Count);
-								} while (nexttrack == PlaylistManager.CurrentPlaying);
+									nextTrack = r.Next(0, PlaylistManager.Filelist.Count);
+								} while (nextTrack == PlaylistManager.CurrentPlaying);
 
 								currentPlayback?.Dispose();
 								currentPlayback = null;
-								currentPlayback = PlaylistManager.Filelist[nexttrack].GetFilePlayback();
-								PlaylistManager.CurrentPlaying = nexttrack;
+								currentPlayback = PlaylistManager.Filelist[nextTrack].GetFilePlayback();
+								PlaylistManager.CurrentPlaying = nextTrack;
 								currentPlayback.Start();
 								Task.Run(() => SwitchInstrument.WaitSwitchInstrument());
 							}

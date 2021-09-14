@@ -30,6 +30,7 @@ namespace MidiBard
 	{
 		public static Configuration config { get; private set; }
 		internal static PluginUI ui;
+		public static bool Debug = false;
 
 		internal static BardPlayDevice CurrentOutputDevice;
 
@@ -73,8 +74,8 @@ namespace MidiBard
 			playlib.init(this);
 			CurrentOutputDevice = new BardPlayDevice();
 
-			AgentMetronome = new AgentMetronome(AgentManager.Instance.FindAgentInterfaceByVtable(OffsetManager.Instance.MetronomeAgent).VTable);
-			AgentPerformance = new AgentPerformance(AgentManager.Instance.FindAgentInterfaceByVtable(OffsetManager.Instance.PerformanceAgent).VTable);
+			AgentMetronome = new AgentMetronome(AgentManager.Instance.FindAgentInterfaceByVtable(OffsetManager.Instance.MetronomeAgent));
+			AgentPerformance = new AgentPerformance(AgentManager.Instance.FindAgentInterfaceByVtable(OffsetManager.Instance.PerformanceAgent));
 			DoPerformAction = Marshal.GetDelegateForFunctionPointer<DoPerformActionDelegate>(OffsetManager.Instance.DoPerformAction);
 			InstrumentOffset = Marshal.ReadByte(OffsetManager.Instance.InstrumentOffset);
 
@@ -89,7 +90,10 @@ namespace MidiBard
 			Framework.Update += Tick;
 			PluginInterface.UiBuilder.OpenConfigUi += () => ui.IsVisible ^= true;
 
-			if (PluginInterface.Reason == PluginLoadReason.Unknown) ui.IsVisible = true;
+			if (PluginInterface.Reason is PluginLoadReason.Unknown or PluginLoadReason.Reload)
+			{
+				ui.IsVisible = true;
+			}
 		}
 
 		private bool wasInPerformance = false;
@@ -134,9 +138,9 @@ namespace MidiBard
 			{
 				playlib.ConfirmReadyCheck();
 
-				if (wasEnsembleModeRunning && IsPlaying)
+				if (!AgentMetronome.EnsembleModeRunning && wasEnsembleModeRunning)
 				{
-					currentPlayback?.Stop();
+					MidiPlayerControl.Stop();
 				}
 
 				wasEnsembleModeRunning = AgentMetronome.EnsembleModeRunning;
@@ -263,7 +267,14 @@ namespace MidiBard
 			FreeUnmanagedResources();
 			if (!disposing) return;
 
-			PluginInterface.SavePluginConfig(config);
+			try
+			{
+				PluginInterface.SavePluginConfig(config);
+			}
+			catch (Exception e)
+			{
+				PluginLog.Error(e, "error when saving config file");
+			}
 			DalamudApi.DalamudApi.Dispose();
 		}
 
