@@ -20,28 +20,12 @@ namespace MidiBard
 				SetSpeed();
 			}
 
-			ToolTip(
-				"Set the speed of events playing. 1 means normal speed.\nFor example, to play events twice slower this property should be set to 0.5.\nRight Click to reset back to 1."
-					.Localize());
+			ToolTip("Set the speed of events playing. 1 means normal speed.\nFor example, to play events twice slower this property should be set to 0.5.\nRight Click to reset back to 1.".Localize());
 
 			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
 			{
 				MidiBard.config.playSpeed = 1;
 				SetSpeed();
-			}
-
-			static void SetSpeed()
-			{
-				try
-				{
-					MidiBard.config.playSpeed = Math.Max(0.1f, MidiBard.config.playSpeed);
-					var currenttime = MidiBard.currentPlayback.GetCurrentTime(TimeSpanType.Midi);
-					MidiBard.currentPlayback.Speed = MidiBard.config.playSpeed;
-					MidiBard.currentPlayback.MoveToTime(currenttime);
-				}
-				catch (Exception e)
-				{
-				}
 			}
 
 
@@ -53,7 +37,7 @@ namespace MidiBard
 			ToolTip("Delay time before play next track.".Localize());
 
 
-			//ImGui.SetNextItemWidth(ImGui.GetWindowWidth() * 0.75f - ImGui.CalcTextSize("Transpose".Localize()).X - 50);
+			ImGui.SetNextItemWidth(ImGui.GetWindowWidth() * 0.75f - ImGui.CalcTextSize("Transpose".Localize()).X - 50);
 			ImGui.InputInt("Transpose".Localize(), ref MidiBard.config.TransposeGlobal, 12);
 			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
 				MidiBard.config.TransposeGlobal = 0;
@@ -69,6 +53,12 @@ namespace MidiBard
 			//ImGui.SameLine();
 			//if (ImGui.Button("Reset##note".Localize())) config.NoteNumberOffset = 0;
 
+			ImGui.SameLine();
+			ImGui.Checkbox("Transpose Per Track".Localize(), ref MidiBard.config.EnableTransposePerTrack);
+			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+				Array.Clear(MidiBard.config.TransposePerTrack,0, MidiBard.config.TransposePerTrack.Length);
+			HelpMarker("Transpose Per Track, right click to reset all tracks' transpose offset back to zero.".Localize());
+			//ImGui.SameLine(ImGui.GetWindowContentRegionWidth()/2);
 			ImGui.Checkbox("Auto Adapt".Localize(), ref MidiBard.config.AdaptNotesOOR);
 			HelpMarker("Adapt high/low pitch notes which are out of range\r\ninto 3 octaves we can play".Localize());
 
@@ -77,6 +67,20 @@ namespace MidiBard
 
 			//ImGui.SliderFloat("secbetweensongs", ref config.timeBetweenSongs, 0, 10,
 			//	$"{config.timeBetweenSongs:F2} [{500000 * config.timeBetweenSongs:F0}]", ImGuiSliderFlags.AlwaysClamp);
+		}
+
+		private static void SetSpeed()
+		{
+			try
+			{
+				MidiBard.config.playSpeed = Math.Max(0.1f, MidiBard.config.playSpeed);
+				var currenttime = MidiBard.currentPlayback.GetCurrentTime(TimeSpanType.Midi);
+				MidiBard.currentPlayback.Speed = MidiBard.config.playSpeed;
+				MidiBard.currentPlayback.MoveToTime(currenttime);
+			}
+			catch (Exception e)
+			{
+			}
 		}
 
 		private static string GetBpmString()

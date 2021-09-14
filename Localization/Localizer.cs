@@ -56,11 +56,10 @@ namespace MidiBard
             zh.Add("Toggle player control panel", "演奏控制面板");
             zh.Add("Toggle settings panel", "播放器设置面板");
             zh.Add("Toggle mini player", "切换迷你播放器");
-            zh.Add("Track Selection. \r\nMidiBard will only perform tracks been selected, which is useful in ensemble.\r\nChange on this will interrupt ongoing performance.",
-                "音轨选择。\r\nMIDIBARD只会播放被选中的音轨，在合奏中有用。\r\n请注意：在演奏中切换音轨将会打断当前演奏。");
+            zh.Add("Track Selection. \r\nMidiBard will only perform tracks been selected, which is useful in ensemble.\r\nChange on this will interrupt ongoing performance.", "音轨选择。\r\nMIDIBARD只会播放被选中的音轨，在合奏中有用。\r\n请注意：在演奏中切换音轨将会打断当前演奏。");
             zh.Add("Track", "音轨");
             zh.Add($"notes)", "音符)");
-            zh.Add("Transpose", "移调");
+            zh.Add("Transpose", "全音轨移调");
             zh.Add("Octave+", "升高八度");
             zh.Add("Octave-", "降低八度");
             zh.Add("Add 1 octave(+12 semitones) to all notes.", "对将要演奏的所有音符升高八度（加12半音）");
@@ -108,6 +107,8 @@ namespace MidiBard
             zh.Add("Delay", "间隔时间");
             zh.Add("Delay time before play next track.", "在连续播放时每首乐曲播放结束后的等待时间。");
             zh.Add("Midibard auto performance only supports 37-key layout.\nPlease consider switching in performance settings.", "Midibard自动演奏仅支持37键布局。\n请考虑在操作设置中切换。");
+            zh.Add("Transpose Per Track","分音轨移调");
+            zh.Add("Transpose Per Track, right click to reset all tracks' transpose offset back to zero.","启用分音轨移调，右键点击将全部音轨的移调偏移重置回0。");
 
 
         }

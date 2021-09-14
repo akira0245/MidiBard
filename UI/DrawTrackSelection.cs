@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
+using static MidiBard.ImguiUtil;
 
 namespace MidiBard
 {
@@ -68,9 +69,20 @@ namespace MidiBard
 							//}
 						}
 
+
+
+						if (MidiBard.config.EnableTransposePerTrack)
+						{
+							ImGui.SameLine();
+							ImGui.Dummy(Vector2.Zero);
+							ImGui.SameLine();
+							ImGui.SetNextItemWidth(ImGui.GetFrameHeightWithSpacing() * 3);
+							ImGui.InputInt($"##TransposeByTrack", ref MidiBard.config.TransposePerTrack[i], 12);
+							if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+								MidiBard.config.TransposePerTrack[i] = 0;
+						}
 						ImGui.SameLine();
-						ImGui.SetNextItemWidth(ImGui.GetFrameHeightWithSpacing() * 3);
-						ImGui.InputInt($"##TransposeByTrack", ref MidiBard.config.TransposePerTrack[i], 12);
+						ImGui.Dummy(Vector2.Zero);
 						ImGui.SameLine();
 						ImGui.TextUnformatted($"[{i + 1:00}] {MidiBard.CurrentTracks[i].Item2}");
 						if (configEnabledTrack)

@@ -43,6 +43,7 @@ namespace MidiBard
 		public bool AutoOpenPlayerWhenPerforming = true;
 		public bool[] EnabledTracks = Enumerable.Repeat(true, 100).ToArray();
 		public int[] TonesPerTrack = new int[100];
+		public bool EnableTransposePerTrack = false;
 		public int[] TransposePerTrack = new int[100];
 		public int uiLang = DalamudApi.DalamudApi.PluginInterface.UiLanguage == "zh" ? 1 : 0;
 		public bool showMusicControlPanel = true;
