@@ -21,7 +21,7 @@ using Note = Melanchall.DryWetMidi.Interaction.Note;
 
 namespace MidiBard
 {
-	public static class MidiPlayback
+	public static class FilePlayback
 	{
 		static readonly Regex regex = new Regex(@"^#.*?([-|+][0-9]+).*?#", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
@@ -131,14 +131,14 @@ namespace MidiBard
 			};
 
 
-			if (config.autoPitchShift)
+			if (config.autoTransposeByFileName)
 			{
 				var match = regex.Match(fileTuple.Item2);
 
 				if (match.Success && int.TryParse(match.Groups[1].Value, out var demandedNoteOffset))
 				{
 					PluginLog.Debug($"DemandedNoteOffset: {demandedNoteOffset}");
-					config.NoteNumberOffset = demandedNoteOffset;
+					config.TransposeGlobal = demandedNoteOffset;
 				}
 				else
 				{
@@ -154,13 +154,13 @@ namespace MidiBard
 						case PlayMode.SingleRepeat:
 							break;
 						case PlayMode.ListOrdered:
-							if (match.Success) config.NoteNumberOffset = 0;
+							if (match.Success) config.TransposeGlobal = 0;
 							break;
 						case PlayMode.ListRepeat:
-							if (match.Success) config.NoteNumberOffset = 0;
+							if (match.Success) config.TransposeGlobal = 0;
 							break;
 						case PlayMode.Random:
-							if (match.Success) config.NoteNumberOffset = 0;
+							if (match.Success) config.TransposeGlobal = 0;
 							break;
 						default:
 							throw new ArgumentOutOfRangeException();

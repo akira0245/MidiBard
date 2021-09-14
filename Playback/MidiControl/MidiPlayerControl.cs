@@ -14,10 +14,6 @@ namespace MidiBard
 	{
 		internal static void Play()
 		{
-			if (DalamudApi.DalamudApi.GameGui.GetAddonByName("PerformanceMode", 1) != IntPtr.Zero)
-			{
-				
-			}
 			if (currentPlayback == null)
 			{
 				if (!PlaylistManager.Filelist.Any()) PluginLog.Information("empty playlist");
@@ -61,7 +57,7 @@ namespace MidiBard
 			currentPlayback?.Stop();
 		}
 
-		
+
 		internal static void PlayPause()
 		{
 			if (currentPlayback?.IsRunning == false)

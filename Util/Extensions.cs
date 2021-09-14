@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MidiBard
 {
-	static class Utils
+	static class Extensions
 	{
 		internal static bool ContainsIgnoreCase(this string haystack, string needle)
 		{

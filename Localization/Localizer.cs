@@ -107,6 +107,7 @@ namespace MidiBard
             zh.Add("Enter to search", "输入开始搜索");
             zh.Add("Delay", "间隔时间");
             zh.Add("Delay time before play next track.", "在连续播放时每首乐曲播放结束后的等待时间。");
+            zh.Add("Midibard auto performance only supports 37-key layout.\nPlease consider switching in performance settings.", "Midibard自动演奏仅支持37键布局。\n请考虑在操作设置中切换。");
 
 
         }

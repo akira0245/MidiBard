@@ -36,24 +36,23 @@ namespace MidiBard
 		public float playSpeed = 1f;
 		public float secondsBetweenTracks = 3;
 		public int PlayMode = 0;
-		public int NoteNumberOffset = 0;
+		public int TransposeGlobal = 0;
 		public bool AdaptNotesOOR = true;
 
 		public bool MonitorOnEnsemble = true;
 		public bool AutoOpenPlayerWhenPerforming = true;
-		//public bool TrimStart;
-		//public bool TrimEnd;
 		public bool[] EnabledTracks = Enumerable.Repeat(true, 100).ToArray();
-		public int[] TracksTone = new int[100];
+		public int[] TonesPerTrack = new int[100];
+		public int[] TransposePerTrack = new int[100];
 		public int uiLang = DalamudApi.DalamudApi.PluginInterface.UiLanguage == "zh" ? 1 : 0;
 		public bool showMusicControlPanel = true;
 		public bool showSettingsPanel = true;
 		public int playlistSizeY = 10;
-		public bool miniPlayer;
-		public bool enableSearching;
+		public bool miniPlayer = false;
+		public bool enableSearching = false;
 
-		public bool autoSwitchInstrument = true;
-		public bool autoPitchShift = true;
+		public bool autoSwitchInstrumentByFileName = true;
+		public bool autoTransposeByFileName = true;
 		public bool OverrideGuitarTones = true;
 
 		public Vector4 themeColor = ImGui.ColorConvertU32ToFloat4(0x9C60FF8E);

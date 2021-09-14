@@ -90,27 +90,21 @@ namespace MidiBard
 			Framework.Update += Tick;
 			PluginInterface.UiBuilder.OpenConfigUi += () => ui.IsVisible ^= true;
 
-			if (PluginInterface.Reason is PluginLoadReason.Unknown or PluginLoadReason.Reload)
-			{
-				ui.IsVisible = true;
-			}
+			if (PluginInterface.Reason is PluginLoadReason.Unknown or PluginLoadReason.Reload) ui.IsVisible = true;
 		}
 
-		private bool wasInPerformance = false;
 
 		private void Tick(Dalamud.Game.Framework framework)
 		{
 			if (config.AutoOpenPlayerWhenPerforming)
 			{
-				if (!wasInPerformance && AgentPerformance.InPerformanceMode)
+				if (AgentPerformance.InPerformanceMode)
 				{
 					if (!ui.IsVisible)
 					{
 						ui.IsVisible = true;
 					}
 				}
-
-				wasInPerformance = AgentPerformance.InPerformanceMode;
 			}
 
 			if (ui.IsVisible)

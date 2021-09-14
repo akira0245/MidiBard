@@ -5,6 +5,7 @@ using Dalamud.Plugin;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Interaction;
+using Melanchall.DryWetMidi.Standards;
 using MidiBard.Managers.Agents;
 using playlibnamespace;
 
@@ -28,65 +29,71 @@ namespace MidiBard
 				return false;
 			}
 
-			if (midiEvent is NoteOnEvent noteOnEvent)
+			switch (midiEvent)
 			{
-				if (MidiBard.PlayingGuitar && MidiBard.config.OverrideGuitarTones)
-				{
-					playlib.GuitarSwitchTone(MidiBard.config.TracksTone[trackIndex]);
-				}
-
-				var noteNum = noteOnEvent.NoteNumber - 48 + MidiBard.config.NoteNumberOffset;
-				var adaptedOctave = 0;
-				if (MidiBard.config.AdaptNotesOOR)
-				{
-					while (noteNum < 0)
+				case ProgramChangeEvent programChangeEvent:
+					PluginLog.Information($"[ProgramChange] [{trackIndex}:{programChangeEvent.Channel}] {programChangeEvent.ProgramNumber,-3} {(GeneralMidiProgram)(byte)programChangeEvent.ProgramNumber}");
+					return false;
+				case NoteOnEvent noteOnEvent:
 					{
-						noteNum += 12;
-						adaptedOctave++;
+						if (MidiBard.PlayingGuitar && MidiBard.config.OverrideGuitarTones)
+						{
+							playlib.GuitarSwitchTone(MidiBard.config.TonesPerTrack[trackIndex]);
+						}
+
+						var noteNum = noteOnEvent.NoteNumber - 48 + MidiBard.config.TransposeGlobal + MidiBard.config.TransposePerTrack[trackIndex];
+						var adaptedOctave = 0;
+						if (MidiBard.config.AdaptNotesOOR)
+						{
+							while (noteNum < 0)
+							{
+								noteNum += 12;
+								adaptedOctave++;
+							}
+							while (noteNum > 36)
+							{
+								noteNum -= 12;
+								adaptedOctave--;
+							}
+						}
+
+						var s = $"[{trackIndex}:{noteOnEvent.Channel}] {noteOnEvent.GetNoteName().ToString().Replace("Sharp", "#")}{noteOnEvent.GetNoteOctave()} ({noteNum})";
+						if (noteNum < 0 || noteNum > 36)
+						{
+							s += "(out of range)";
+						}
+						if (adaptedOctave != 0)
+						{
+							s += $"[adapted {adaptedOctave} Oct]";
+						}
+						PluginLog.Verbose(s);
+
+						if (noteNum is < 0 or > 36) return false;
+						return playlib.PressKey(noteNum);
 					}
-					while (noteNum > 36)
+				case NoteOffEvent noteOffEvent:
 					{
-						noteNum -= 12;
-						adaptedOctave--;
+						var noteNum = noteOffEvent.NoteNumber - 48 + MidiBard.config.TransposeGlobal + MidiBard.config.TransposePerTrack[trackIndex];
+						var adaptedOctave = 0;
+						if (MidiBard.config.AdaptNotesOOR)
+						{
+							while (noteNum < 0)
+							{
+								noteNum += 12;
+								adaptedOctave++;
+							}
+							while (noteNum > 36)
+							{
+								noteNum -= 12;
+								adaptedOctave--;
+							}
+						}
+						if (noteNum is < 0 or > 36) return false;
+						return playlib.ReleaseKey(noteNum);
 					}
-				}
-
-				var s = $"{noteOnEvent.DeltaTime} | {noteOnEvent.GetNoteName().ToString().Replace("Sharp", "#")}{noteOnEvent.GetNoteOctave()} ({noteNum})";
-				if (noteNum < 0 || noteNum > 36)
-				{
-					s += "(out of range)";
-				}
-				if (adaptedOctave != 0)
-				{
-					s += $"[adapted {adaptedOctave} Oct]";
-				}
-				PluginLog.Verbose(s);
-
-				if (noteNum < 0 || noteNum > 36) return false;
-				return playlib.PressKey(noteNum);
+				default:
+					return false;
 			}
-			else if (midiEvent is NoteOffEvent noteOffEvent)
-			{
-				var noteNum = noteOffEvent.NoteNumber - 48 + MidiBard.config.NoteNumberOffset;
-				var adaptedOctave = 0;
-				if (MidiBard.config.AdaptNotesOOR)
-				{
-					while (noteNum < 0)
-					{
-						noteNum += 12;
-						adaptedOctave++;
-					}
-					while (noteNum > 36)
-					{
-						noteNum -= 12;
-						adaptedOctave--;
-					}
-				}
-				if (noteNum < 0 || noteNum > 36) return false;
-				return playlib.ReleaseKey(noteNum);
-			}
-
-			return false;
 		}
 
 
@@ -96,7 +103,7 @@ namespace MidiBard
 
 			if (midiEvent is NoteOnEvent noteOnEvent)
 			{
-				var noteNum = noteOnEvent.NoteNumber - 48 + MidiBard.config.NoteNumberOffset;
+				var noteNum = noteOnEvent.NoteNumber - 48 + MidiBard.config.TransposeGlobal;
 				var adaptedOctave = 0;
 				if (MidiBard.config.AdaptNotesOOR)
 				{
@@ -112,7 +119,7 @@ namespace MidiBard
 					}
 				}
 
-				var s = $"{noteOnEvent.DeltaTime} | {noteOnEvent.GetNoteName().ToString().Replace("Sharp", "#")}{noteOnEvent.GetNoteOctave()} ({noteNum})";
+				var s = $"{noteOnEvent.GetNoteName().ToString().Replace("Sharp", "#")}{noteOnEvent.GetNoteOctave()} ({noteNum})";
 				if (noteNum < 0 || noteNum > 36)
 				{
 					s += "(out of range)";
@@ -128,7 +135,7 @@ namespace MidiBard
 			}
 			else if (midiEvent is NoteOffEvent noteOffEvent)
 			{
-				var noteNum = noteOffEvent.NoteNumber - 48 + MidiBard.config.NoteNumberOffset;
+				var noteNum = noteOffEvent.NoteNumber - 48 + MidiBard.config.TransposeGlobal;
 				var adaptedOctave = 0;
 				if (MidiBard.config.AdaptNotesOOR)
 				{

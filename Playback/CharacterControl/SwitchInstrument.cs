@@ -75,7 +75,7 @@ namespace MidiBard
 		internal static async Task WaitSwitchInstrument()
 		{
 			var match = regex.Match(PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].Item2);
-			if (MidiBard.config.autoSwitchInstrument && match.Success)
+			if (MidiBard.config.autoSwitchInstrumentByFileName && match.Success)
 			{
 				var wasplaying = MidiBard.IsPlaying;
 				MidiBard.currentPlayback?.Stop();
