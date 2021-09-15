@@ -32,7 +32,7 @@ namespace MidiBard
 						ImGui.Columns(2);
 						ImGui.SetColumnWidth(0,
 							ImGui.GetWindowContentRegionWidth() - 4 * ImGui.GetCursorPosX() -
-							ImGui.GetFontSize() * 5.5f - 10);
+							ImGui.GetFontSize() * 5.5f);
 					}
 
 					bool showtooltip = true;

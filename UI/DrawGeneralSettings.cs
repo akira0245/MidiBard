@@ -80,8 +80,11 @@ namespace MidiBard
 			ImGui.Checkbox("Override guitar tones".Localize(), ref MidiBard.config.OverrideGuitarTones);
 			ImguiUtil.ToolTip("Assign different guitar tones for each midi tracks".Localize());
 
-			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
-			if (ImGui.Button("Debug info", new Vector2(-2, ImGui.GetFrameHeight()))) MidiBard.Debug ^= true;
+			if (DalamudApi.DalamudApi.PluginInterface.IsDev)
+			{
+				ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
+				if (ImGui.Button("Debug info", new Vector2(-2, ImGui.GetFrameHeight()))) MidiBard.Debug ^= true;
+			}
 		}
 	}
 }

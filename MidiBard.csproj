@@ -24,28 +24,19 @@
 
   <ItemGroup>
     <Reference Include="Dalamud">
-      <HintPath>..\Dalamud\bin\Debug\Dalamud.dll</HintPath>
-      <Private>false</Private>
+      <HintPath>..\..\..\Downloads\Compressed\dalamud-artifactbuild\dalamud-artifact\Dalamud.dll</HintPath>
     </Reference>
     <Reference Include="FFXIVClientStructs">
-      <HintPath>..\Dalamud\bin\Debug\FFXIVClientStructs.dll</HintPath>
-      <Private>false</Private>
+      <HintPath>..\..\..\Downloads\Compressed\dalamud-artifactbuild\dalamud-artifact\FFXIVClientStructs.dll</HintPath>
     </Reference>
     <Reference Include="ImGui.NET">
-      <HintPath>..\Dalamud\bin\Debug\ImGui.NET.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="ImGuiScene">
-      <HintPath>..\Dalamud\bin\Debug\ImGuiScene.dll</HintPath>
-      <Private>false</Private>
+      <HintPath>..\..\..\Downloads\Compressed\dalamud-artifactbuild\dalamud-artifact\ImGui.NET.dll</HintPath>
     </Reference>
     <Reference Include="Lumina">
-      <HintPath>..\Dalamud\bin\Debug\Lumina.dll</HintPath>
-      <Private>false</Private>
+      <HintPath>..\..\..\Downloads\Compressed\dalamud-artifactbuild\dalamud-artifact\Lumina.dll</HintPath>
     </Reference>
     <Reference Include="Lumina.Excel">
-      <HintPath>..\Dalamud\bin\Debug\Lumina.Excel.dll</HintPath>
-      <Private>false</Private>
+      <HintPath>..\..\..\Downloads\Compressed\dalamud-artifactbuild\dalamud-artifact\Lumina.Excel.dll</HintPath>
     </Reference>
     <Reference Include="playlib">
       <HintPath>lib\playlib.dll</HintPath>

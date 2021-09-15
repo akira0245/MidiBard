@@ -45,7 +45,7 @@ namespace MidiBard
 				//	isListeningForEvents ? " - Listening Events" : string.Empty);
 				var flag = config.miniPlayer ? ImGuiWindowFlags.NoDecoration : ImGuiWindowFlags.None;
 				ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(5, 5));
-
+				ImGui.SetNextWindowSizeConstraints(new Vector2(ImGui.GetIO().FontGlobalScale*357, 0),new Vector2(ImGui.GetIO().FontGlobalScale*357, float.MaxValue));
 				if (ImGui.Begin("MidiBard###MIDIBARD", ref IsVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | flag))
 				{
 					if (ensembleModeRunning)

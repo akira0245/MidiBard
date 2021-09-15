@@ -30,7 +30,7 @@ namespace MidiBard
 
 
 			//ImGui.SetNextItemWidth(ImGui.GetWindowWidth() * 0.5f - ImGui.CalcTextSize("Delay".Localize()).X);
-			ImGui.PushItemWidth(ImGui.GetWindowContentRegionWidth() / 4);
+			ImGui.PushItemWidth(ImGui.GetWindowContentRegionWidth() / 3.5f);
 			ImGui.DragFloat("Delay".Localize(), ref MidiBard.config.secondsBetweenTracks, 0.01f, 0, 60,
 				$"{MidiBard.config.secondsBetweenTracks:f2} s",
 				ImGuiSliderFlags.AlwaysClamp | ImGuiSliderFlags.NoRoundToFormat);
@@ -45,17 +45,6 @@ namespace MidiBard
 			ToolTip("Transpose, measured by semitone. \nRight click to reset.".Localize());
 			ImGui.PopItemWidth();
 
-			//if (ImGui.Button("Octave+".Localize())) config.NoteNumberOffset += 12;
-			//ToolTip("Add 1 octave(+12 semitones) to all notes.".Localize());
-
-			//ImGui.SameLine();
-			//if (ImGui.Button("Octave-".Localize())) config.NoteNumberOffset -= 12;
-			//ToolTip("Subtract 1 octave(-12 semitones) to all notes.".Localize());
-
-			//ImGui.SameLine();
-			//if (ImGui.Button("Reset##note".Localize())) config.NoteNumberOffset = 0;
-
-			//ImGui.SameLine(ImGui.GetWindowContentRegionWidth()/2);
 			ImGui.Checkbox("Auto adapt notes".Localize(), ref MidiBard.config.AdaptNotesOOR);
 			ToolTip("Adapt high/low pitch notes which are out of range\r\ninto 3 octaves we can play".Localize());
 

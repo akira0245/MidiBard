@@ -95,7 +95,7 @@ namespace MidiBard
 			Framework.Update += Tick;
 			PluginInterface.UiBuilder.OpenConfigUi += () => ui.IsVisible ^= true;
 
-			if (PluginInterface.Reason is PluginLoadReason.Unknown or PluginLoadReason.Reload) ui.IsVisible = true;
+			if (PluginInterface.IsDev) ui.IsVisible = true;
 		}
 
 
