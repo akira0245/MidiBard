@@ -58,29 +58,27 @@ namespace MidiBard
 
 
 			ImGui.Checkbox("Auto open MidiBard".Localize(), ref MidiBard.config.AutoOpenPlayerWhenPerforming);
-			ImguiUtil.HelpMarker("Open MidiBard window automatically when entering performance mode".Localize());
+			ImguiUtil.ToolTip("Open MidiBard window automatically when entering performance mode".Localize());
 			//ImGui.Checkbox("Auto Confirm Ensemble Ready Check".Localize(), ref config.AutoConfirmEnsembleReadyCheck);
 			//if (localizer.Language == UILang.CN) HelpMarker("在收到合奏准备确认时自动选择确认。");
 
 			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
 
 			ImGui.Checkbox("Monitor ensemble".Localize(), ref MidiBard.config.MonitorOnEnsemble);
-			ImguiUtil.HelpMarker("Auto start ensemble when entering in-game party ensemble mode.".Localize());
+			ImguiUtil.ToolTip("Auto start ensemble when entering in-game party ensemble mode.".Localize());
 
-			ImGui.Checkbox("Auto transpose".Localize(), ref MidiBard.config.autoTransposeByFileName);
-			ImguiUtil.HelpMarker(
-				"Auto transpose notes on demand. If you need this, \nplease add #transpose number# before file name.\nE.g. #-12#demo.mid"
-					.Localize());
+			ImGui.Checkbox("Auto switch instrument".Localize(), ref MidiBard.config.autoSwitchInstrumentByFileName);
+			ImguiUtil.ToolTip("Auto switch instrument on demand. If you need this, \nplease add #instrument name# before file name.\nE.g. #harp#demo.mid".Localize());
 
 			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
 
-			ImGui.Checkbox("Auto switch instrument".Localize(), ref MidiBard.config.autoSwitchInstrumentByFileName);
-			ImguiUtil.HelpMarker(
-				"Auto switch instrument on demand. If you need this, \nplease add #instrument name# before file name.\nE.g. #harp#demo.mid"
+			ImGui.Checkbox("Auto transpose".Localize(), ref MidiBard.config.autoTransposeByFileName);
+			ImguiUtil.ToolTip(
+				"Auto transpose notes on demand. If you need this, \nplease add #transpose number# before file name.\nE.g. #-12#demo.mid"
 					.Localize());
 
 			ImGui.Checkbox("Override guitar tones".Localize(), ref MidiBard.config.OverrideGuitarTones);
-			ImguiUtil.HelpMarker("Assign different guitar tones for each midi tracks".Localize());
+			ImguiUtil.ToolTip("Assign different guitar tones for each midi tracks".Localize());
 
 			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
 			if (ImGui.Button("Debug info", new Vector2(-2, ImGui.GetFrameHeight()))) MidiBard.Debug ^= true;

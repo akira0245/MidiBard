@@ -34,6 +34,7 @@ namespace MidiBard
 
 		internal static BardPlayDevice CurrentOutputDevice;
 
+		internal static MidiFile currentOpeningMIDIFile;
 		internal static Playback currentPlayback;
 		internal static TempoMap CurrentTMap;
 		internal static List<(TrackChunk, TrackInfo)> CurrentTracks;
@@ -82,7 +83,11 @@ namespace MidiBard
 			InstrumentSheet = DataManager.Excel.GetSheet<Perform>();
 			InstrumentStrings = InstrumentSheet.Where(i => !string.IsNullOrWhiteSpace(i.Instrument) || i.RowId == 0).Select(i => $"{(i.RowId == 0 ? "None" : $"{i.RowId:00} {i.Instrument.RawString} ({i.Name})")}").ToArray();
 
-			Task.Run(() => PlaylistManager.ImportMidiFile(config.Playlist, false));
+			Task.Run(() =>
+			{
+				// update playlist in case any files is being deleted
+				config.Playlist = PlaylistManager.LoadMidiFileList(config.Playlist.ToArray(), false);
+			});
 
 			localizer = new Localizer((UILang)config.uiLang);
 			ui = new PluginUI();

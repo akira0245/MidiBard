@@ -68,7 +68,10 @@ namespace MidiBard.Managers
 							{
 								try
 								{
-									MidiBard.currentPlayback ??= PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].GetFilePlayback();
+									if (PlaylistManager.CurrentPlaying != -1)
+									{
+										FilePlayback.LoadSong(PlaylistManager.CurrentPlaying);
+									}
 
 									MidiBard.currentPlayback.Stop();
 									MidiBard.currentPlayback.MoveToStart();

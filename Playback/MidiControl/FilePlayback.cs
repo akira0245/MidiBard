@@ -23,15 +23,13 @@ namespace MidiBard
 {
 	public static class FilePlayback
 	{
-		static readonly Regex regex = new Regex(@"^#.*?([-|+][0-9]+).*?#", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private static readonly Regex regex = new Regex(@"^#.*?([-|+][0-9]+).*?#", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-		public static BardPlayback GetFilePlayback(this (MidiFile midifile, string trackName) fileTuple)
+		public static BardPlayback GetFilePlayback(MidiFile midifile, string trackName)
 		{
-			var file = fileTuple.Item1;
-
 			try
 			{
-				CurrentTMap = file.GetTempoMap();
+				CurrentTMap = midifile.GetTempoMap();
 			}
 			catch (Exception e)
 			{
@@ -41,27 +39,27 @@ namespace MidiBard
 
 			try
 			{
-				CurrentTracks = file.GetTrackChunks()
-					.Where(i => i.GetNotes().Any())
-					.Select(i =>
-					{
-						var notes = i.GetNotes()
-							.ToList();
-						var notesCount = notes.Count;
-						var notesHighest = notes.MaxElement(j => (int)j.NoteNumber);
-						var notesLowest = notes.MinElement(j => (int)j.NoteNumber);
+				CurrentTracks = midifile.GetTrackChunks()
+				  .Where(i => i.GetNotes().Any())
+				  .Select(i =>
+				  {
+					  var notes = i.GetNotes()
+			  .ToList();
+					  var notesCount = notes.Count;
+					  var notesHighest = notes.MaxElement(j => (int)j.NoteNumber);
+					  var notesLowest = notes.MinElement(j => (int)j.NoteNumber);
 
-						return (i, new TrackInfo
-						{
-							TrackNameEventsText = i.Events.OfType<SequenceTrackNameEvent>().Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct(),
-							TextEventsText = i.Events.OfType<TextEvent>().Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct(),
-							ProgramChangeEvent = i.Events.OfType<ProgramChangeEvent>().Select(j => $"channel {j.Channel}, {(GeneralMidiProgram)(byte)j.ProgramNumber}").Distinct(),
-							HighestNote = notesHighest,
-							LowestNote = notesLowest,
-							NoteCount = notesCount,
-							Duration = i.GetTimedEvents().LastOrDefault(e => e.Event is NoteOffEvent)?.TimeAs<MetricTimeSpan>(CurrentTMap) ?? new MetricTimeSpan()
-						});
-					}).ToList();
+					  return (i, new TrackInfo
+					  {
+						  TrackNameEventsText = i.Events.OfType<SequenceTrackNameEvent>().Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct(),
+						  TextEventsText = i.Events.OfType<TextEvent>().Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct(),
+						  ProgramChangeEvent = i.Events.OfType<ProgramChangeEvent>().Select(j => $"channel {j.Channel}, {(GeneralMidiProgram)(byte)j.ProgramNumber}").Distinct(),
+						  HighestNote = notesHighest,
+						  LowestNote = notesLowest,
+						  NoteCount = notesCount,
+						  Duration = i.GetTimedEvents().LastOrDefault(e => e.Event is NoteOffEvent)?.TimeAs<MetricTimeSpan>(CurrentTMap) ?? new MetricTimeSpan()
+					  });
+				  }).ToList();
 			}
 			catch (Exception exception1)
 			{
@@ -69,8 +67,8 @@ namespace MidiBard
 
 				try
 				{
-					PluginLog.Debug($"file.Chunks.Count {file.Chunks.Count}");
-					var trackChunks = file.GetTrackChunks().ToList();
+					PluginLog.Debug($"file.Chunks.Count {midifile.Chunks.Count}");
+					var trackChunks = midifile.GetTrackChunks().ToList();
 					PluginLog.Debug($"file.GetTrackChunks.Count {trackChunks.Count}");
 					PluginLog.Debug($"file.GetTrackChunks.First {trackChunks.First()}");
 					PluginLog.Debug($"file.GetTrackChunks.Events.Count {trackChunks.First().Events.Count}");
@@ -82,7 +80,6 @@ namespace MidiBard
 						var notesCount = notes.Count;
 						var notesHighest = notes.MaxElement(j => (int)j.NoteNumber);
 						var notesLowest = notes.MinElement(j => (int)j.NoteNumber);
-
 
 						var trackChunk = new TrackChunk(i.Events.OfType<NoteEvent>());
 						return (trackChunk, new TrackInfo
@@ -120,8 +117,8 @@ namespace MidiBard
 			//}
 
 			var timedEvents = CurrentTracks.Select(i => i.Item1)
-				.SelectMany((chunk, index) => chunk.GetTimedEvents().Select(e => new TimedEventWithTrackChunkIndex(e.Event, e.Time, index)))
-				.OrderBy(e => e.Time);
+		.SelectMany((chunk, index) => chunk.GetTimedEvents().Select(e => new TimedEventWithTrackChunkIndex(e.Event, e.Time, index)))
+		.OrderBy(e => e.Time);
 
 
 			var playback = new BardPlayback(timedEvents, CurrentTMap, new MidiClockSettings())
@@ -130,10 +127,9 @@ namespace MidiBard
 				Speed = config.playSpeed
 			};
 
-
 			if (config.autoTransposeByFileName)
 			{
-				var match = regex.Match(fileTuple.Item2);
+				var match = regex.Match(trackName);
 
 				if (match.Success && int.TryParse(match.Groups[1].Value, out var demandedNoteOffset))
 				{
@@ -151,17 +147,25 @@ namespace MidiBard
 					{
 						case PlayMode.Single:
 							break;
+
 						case PlayMode.SingleRepeat:
 							break;
+
 						case PlayMode.ListOrdered:
-							if (match.Success) config.TransposeGlobal = 0;
+							if (match.Success)
+								config.TransposeGlobal = 0;
 							break;
+
 						case PlayMode.ListRepeat:
-							if (match.Success) config.TransposeGlobal = 0;
+							if (match.Success)
+								config.TransposeGlobal = 0;
 							break;
+
 						case PlayMode.Random:
-							if (match.Success) config.TransposeGlobal = 0;
+							if (match.Success)
+								config.TransposeGlobal = 0;
 							break;
+
 						default:
 							throw new ArgumentOutOfRangeException();
 					}
@@ -176,9 +180,10 @@ namespace MidiBard
 		public static DateTime? waitUntil { get; set; } = null;
 		public static DateTime? waitStart { get; set; } = null;
 		public static bool isWaiting => DateTime.Now < waitUntil;
+
 		public static float waitProgress => isWaiting
-			? 1 - (float)((waitUntil - DateTime.Now).Value.TotalMilliseconds / (waitUntil - waitStart).Value.TotalMilliseconds)
-			: 1;
+		  ? 1 - (float)((waitUntil - DateTime.Now).Value.TotalMilliseconds / (waitUntil - waitStart).Value.TotalMilliseconds)
+		  : 1;
 
 		private static void Playback_Finished(object sender, EventArgs e)
 		{
@@ -192,6 +197,7 @@ namespace MidiBard
 					{
 						case PlayMode.Single:
 							break;
+
 						case PlayMode.ListOrdered:
 							PerformWaiting(config.secondsBetweenTracks);
 							if (needToCancel)
@@ -201,19 +207,17 @@ namespace MidiBard
 							}
 							try
 							{
-								currentPlayback?.Dispose();
-								currentPlayback = null;
-								currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying + 1].GetFilePlayback();
-								PlaylistManager.CurrentPlaying += 1;
-								currentPlayback.Start();
-								Task.Run(SwitchInstrument.WaitSwitchInstrument);
+								if (LoadSong(PlaylistManager.CurrentPlaying + 1))
+								{
+									currentPlayback.Start();
+								}
 							}
 							catch (Exception exception)
 							{
-
 							}
 
 							break;
+
 						case PlayMode.ListRepeat:
 							PerformWaiting(config.secondsBetweenTracks);
 							if (needToCancel)
@@ -223,25 +227,20 @@ namespace MidiBard
 							}
 							try
 							{
-								currentPlayback?.Dispose();
-								currentPlayback = null;
-								currentPlayback = PlaylistManager.Filelist[PlaylistManager.CurrentPlaying + 1]
-									.GetFilePlayback();
-								PlaylistManager.CurrentPlaying += 1;
-								currentPlayback.Start();
-								Task.Run(SwitchInstrument.WaitSwitchInstrument);
+								LoadSong(PlaylistManager.CurrentPlaying + 1);
 							}
 							catch (Exception exception)
 							{
-								if (!PlaylistManager.Filelist.Any()) return;
-								currentPlayback?.Dispose();
-								currentPlayback = null;
-								currentPlayback = PlaylistManager.Filelist[0].GetFilePlayback();
-								PlaylistManager.CurrentPlaying = 0;
-								currentPlayback.Start();
-								Task.Run(SwitchInstrument.WaitSwitchInstrument);
+								if (!PlaylistManager.Filelist.Any())
+									return;
+
+								if (LoadSong(0))
+								{
+									currentPlayback.Start();
+								}
 							}
 							break;
+
 						case PlayMode.SingleRepeat:
 							PerformWaiting(config.secondsBetweenTracks);
 							if (needToCancel)
@@ -252,6 +251,7 @@ namespace MidiBard
 							currentPlayback.MoveToStart();
 							currentPlayback.Start();
 							break;
+
 						case PlayMode.Random:
 							if (!PlaylistManager.Filelist.Any()) return;
 							PerformWaiting(config.secondsBetweenTracks);
@@ -270,18 +270,16 @@ namespace MidiBard
 							try
 							{
 								var r = new Random();
-								int nextTrack;
+								int nexttrack;
 								do
 								{
-									nextTrack = r.Next(0, PlaylistManager.Filelist.Count);
-								} while (nextTrack == PlaylistManager.CurrentPlaying);
+									nexttrack = r.Next(0, PlaylistManager.Filelist.Count);
+								} while (nexttrack == PlaylistManager.CurrentPlaying);
 
-								currentPlayback?.Dispose();
-								currentPlayback = null;
-								currentPlayback = PlaylistManager.Filelist[nextTrack].GetFilePlayback();
-								PlaylistManager.CurrentPlaying = nextTrack;
-								currentPlayback.Start();
-								Task.Run(() => SwitchInstrument.WaitSwitchInstrument());
+								if (LoadSong(nexttrack))
+								{
+									currentPlayback.Start();
+								}
 							}
 							catch (Exception exception)
 							{
@@ -289,6 +287,7 @@ namespace MidiBard
 							}
 
 							break;
+
 						default:
 							throw new ArgumentOutOfRangeException();
 					}
@@ -298,6 +297,24 @@ namespace MidiBard
 					PluginLog.Error(exception, "Unexpected exception when Playback finished.");
 				}
 			});
+		}
+
+		internal static bool LoadSong(int index)
+		{
+			currentPlayback?.Dispose();
+			currentPlayback = null;
+			MidiFile midiFile = PlaylistManager.LoadMidiFile(index);
+			if (midiFile == null)
+			{
+				// delete file if can't be loaded(likely to be deleted locally)
+				PlaylistManager.Filelist.RemoveAt(index);
+				return false;
+			}
+			currentPlayback = GetFilePlayback(midiFile, PlaylistManager.Filelist[index].Item2);
+			PlaylistManager.CurrentPlaying = index;
+			Task.Run(() => SwitchInstrument.WaitSwitchInstrument());
+
+			return true;
 		}
 
 		private static bool needToCancel { get; set; } = false;

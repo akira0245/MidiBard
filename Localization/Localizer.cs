@@ -65,7 +65,7 @@ namespace MidiBard
             zh.Add("Add 1 octave(+12 semitones) to all notes.", "对将要演奏的所有音符升高八度（加12半音）");
             zh.Add("Subtract 1 octave(-12 semitones) to all notes.", "对将要演奏的所有音符降低八度（减12半音）");
             zh.Add("Reset##note", "重置音高");
-            zh.Add("Auto Adapt", "自适应音高");
+            zh.Add("Auto adapt notes", "自适应音高");
             zh.Add("Adapt high/low pitch notes which are out of range\r\ninto 3 octaves we can play", 
 	            "对超出演奏范围的音符自动升/降八度直至其可以被演奏。");
             zh.Add("Progress", "演奏进度");
@@ -107,8 +107,8 @@ namespace MidiBard
             zh.Add("Delay", "间隔时间");
             zh.Add("Delay time before play next track.", "在连续播放时每首乐曲播放结束后的等待时间。");
             zh.Add("Midibard auto performance only supports 37-key layout.\nPlease consider switching in performance settings.", "Midibard自动演奏仅支持37键布局。\n请考虑在操作设置中切换。");
-            zh.Add("Transpose Per Track","分音轨移调");
-            zh.Add("Transpose Per Track, right click to reset all tracks' transpose offset back to zero.","启用分音轨移调，右键点击将全部音轨的移调偏移重置回0。");
+            zh.Add("Transpose per track","分音轨移调");
+            zh.Add("Transpose per track, right click to reset all tracks' transpose offset back to zero.","启用分音轨移调，右键点击将全部音轨的移调偏移重置回0。");
 
 
         }

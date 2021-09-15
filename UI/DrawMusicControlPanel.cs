@@ -29,6 +29,8 @@ namespace MidiBard
 			}
 
 
+			//ImGui.SetNextItemWidth(ImGui.GetWindowWidth() * 0.5f - ImGui.CalcTextSize("Delay".Localize()).X);
+			ImGui.PushItemWidth(ImGui.GetWindowContentRegionWidth() / 4);
 			ImGui.DragFloat("Delay".Localize(), ref MidiBard.config.secondsBetweenTracks, 0.01f, 0, 60,
 				$"{MidiBard.config.secondsBetweenTracks:f2} s",
 				ImGuiSliderFlags.AlwaysClamp | ImGuiSliderFlags.NoRoundToFormat);
@@ -36,12 +38,12 @@ namespace MidiBard
 				MidiBard.config.secondsBetweenTracks = 0;
 			ToolTip("Delay time before play next track.".Localize());
 
-
-			ImGui.SetNextItemWidth(ImGui.GetWindowWidth() * 0.75f - ImGui.CalcTextSize("Transpose".Localize()).X - 50);
+			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
 			ImGui.InputInt("Transpose".Localize(), ref MidiBard.config.TransposeGlobal, 12);
 			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
 				MidiBard.config.TransposeGlobal = 0;
 			ToolTip("Transpose, measured by semitone. \nRight click to reset.".Localize());
+			ImGui.PopItemWidth();
 
 			//if (ImGui.Button("Octave+".Localize())) config.NoteNumberOffset += 12;
 			//ToolTip("Add 1 octave(+12 semitones) to all notes.".Localize());
@@ -53,15 +55,16 @@ namespace MidiBard
 			//ImGui.SameLine();
 			//if (ImGui.Button("Reset##note".Localize())) config.NoteNumberOffset = 0;
 
-			ImGui.SameLine();
-			ImGui.Checkbox("Transpose Per Track".Localize(), ref MidiBard.config.EnableTransposePerTrack);
-			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
-				Array.Clear(MidiBard.config.TransposePerTrack,0, MidiBard.config.TransposePerTrack.Length);
-			HelpMarker("Transpose Per Track, right click to reset all tracks' transpose offset back to zero.".Localize());
 			//ImGui.SameLine(ImGui.GetWindowContentRegionWidth()/2);
-			ImGui.Checkbox("Auto Adapt".Localize(), ref MidiBard.config.AdaptNotesOOR);
-			HelpMarker("Adapt high/low pitch notes which are out of range\r\ninto 3 octaves we can play".Localize());
+			ImGui.Checkbox("Auto adapt notes".Localize(), ref MidiBard.config.AdaptNotesOOR);
+			ToolTip("Adapt high/low pitch notes which are out of range\r\ninto 3 octaves we can play".Localize());
 
+			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
+
+			ImGui.Checkbox("Transpose per track".Localize(), ref MidiBard.config.EnableTransposePerTrack);
+			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+				Array.Clear(MidiBard.config.TransposePerTrack, 0, MidiBard.config.TransposePerTrack.Length);
+			ToolTip("Transpose per track, right click to reset all tracks' transpose offset back to zero.".Localize());
 			//ImGui.SameLine();
 
 
