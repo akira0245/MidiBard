@@ -137,6 +137,7 @@ namespace MidiBard
 			{
 				PluginLog.LogDebug("No track is being enabled.");
 				Task.Run(() => SwitchTo(0));
+				Plugin.config.NoteNumberOffset = 0;
 			}
 			else
 			{
@@ -145,6 +146,7 @@ namespace MidiBard
 				uint insID = GetInstrumentIDByName(trackName);
 				if (insID > 0)
 				{
+					Plugin.config.NoteNumberOffset = GetTransposeByName(trackName);
 					Task.Run(() => SwitchTo(insID));
 				}
 			}
@@ -152,6 +154,23 @@ namespace MidiBard
 
 		public static uint GetInstrumentIDByName(string name)
 		{
+			if (name.Contains("+"))
+			{
+				string[] split = name.Split('+');
+				if (split.Length > 0)
+				{
+					name = split[0];
+				}
+			}
+			else if (name.Contains("-"))
+			{
+				string[] split = name.Split('-');
+				if (split.Length > 0)
+				{
+					name = split[0];
+				}
+			}
+
 			if (Plugin.InstrumentIDDict.ContainsKey(name))
 			{
 				return Plugin.InstrumentIDDict[name];
@@ -185,6 +204,31 @@ namespace MidiBard
 			}
 
 			return 0;
+		}
+
+		public static int GetTransposeByName(string name)
+		{
+			int octave = 0;
+			if (name.Contains("+"))
+			{
+				string[] split = name.Split('+');
+				if (split.Length > 1)
+				{
+					Int32.TryParse(split[1], out octave);
+				}
+			}
+			else if (name.Contains("-"))
+			{
+				string[] split = name.Split('-');
+				if (split.Length > 1)
+				{
+					Int32.TryParse(split[1], out octave);
+					octave = -octave;
+				}
+			}
+
+			//PluginLog.LogDebug("Transpose octave: " + octave);
+			return octave * 12;
 		}
 	}
 }
