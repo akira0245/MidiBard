@@ -137,6 +137,7 @@ namespace MidiBard
 			{
 				PluginLog.LogDebug("No track is being enabled.");
 				Task.Run(() => SwitchTo(0));
+				Plugin.config.NoteNumberOffset = 0;
 			}
 			else
 			{
@@ -145,6 +146,7 @@ namespace MidiBard
 				uint insID = GetInstrumentIDByName(trackName);
 				if (insID > 0)
 				{
+					Plugin.config.NoteNumberOffset = GetTransposeByName(trackName);
 					Task.Run(() => SwitchTo(insID));
 				}
 			}
@@ -152,39 +154,170 @@ namespace MidiBard
 
 		public static uint GetInstrumentIDByName(string name)
 		{
-			if (Plugin.InstrumentIDDict.ContainsKey(name))
+			if (name.Contains("+"))
 			{
-				return Plugin.InstrumentIDDict[name];
+				string[] split = name.Split('+');
+				if (split.Length > 0)
+				{
+					name = split[0];
+				}
+			}
+			else if (name.Contains("-"))
+			{
+				string[] split = name.Split('-');
+				if (split.Length > 0)
+				{
+					name = split[0];
+				}
 			}
 
+			name = name.ToLower();
+
 			// below are to be compatible with BMP-ready MIDI files.
-			else if (name == "ElectricGuitarOverdriven")
+			if (name == "harp")
+			{
+				return 1;
+			}
+			else if (name == "piano")
+			{
+				return 2;
+			}
+			else if (name == "lute")
+			{
+				return 3;
+			}
+			else if (name == "fiddle")
+			{
+				return 4;
+			}
+			else if (name == "flute")
+			{
+				return 5;
+			}
+			else if (name == "oboe")
+			{
+				return 6;
+			}
+			else if (name == "clarinet")
+			{
+				return 7;
+			}
+			else if (name == "fife")
+			{
+				return 8;
+			}
+			else if (name == "panpipes")
+			{
+				return 9;
+			}
+			else if (name == "timpani")
+			{
+				return 10;
+			}
+			else if (name == "bongo")
+			{
+				return 11;
+			}
+			else if (name == "bass drum")
+			{
+				return 12;
+			}
+			else if (name == "snare drum")
+			{
+				return 13;
+			}
+			else if (name == "cymbal")
+			{
+				return 14;
+			}
+			else if (name == "trumpet")
+			{
+				return 15;
+			}
+			else if (name == "trombone")
+			{
+				return 16;
+			}
+			else if (name == "tuba")
+			{
+				return 17;
+			}
+			else if (name == "horn")
+			{
+				return 18;
+			}
+			else if (name == "saxophone")
+			{
+				return 19;
+			}
+			else if (name == "violin")
+			{
+				return 20;
+			}
+			else if (name == "viola")
+			{
+				return 21;
+			}
+			else if (name == "cello")
+			{
+				return 22;
+			}
+			else if (name == "double bass")
+			{
+				return 23;
+			}
+			else if (name == "electricguitaroverdriven")
 			{
 				return 24;
 			}
-			else if (name == "ElectricGuitarClean")
+			else if (name == "electricguitarclean")
 			{
 				return 25;
 			}
-			else if (name == "ElectricGuitarMuted")
+			else if (name == "electricguitarmuted")
 			{
 				return 26;
 			}
-			else if (name == "ElectricGuitarPowerChords")
+			else if (name == "electricguitarpowerchords")
 			{
 				return 27;
 			}
-			else if (name == "ElectricGuitarSpecial")
+			else if (name == "electricguitarspecial")
 			{
 				return 28;
 			}
-			else if (name == "Program:ElectricGuitar")
+			else if (name == "program:electricguitar")
 			{
 				// program change on same track, although function not supported
 				return 24;
 			}
 
 			return 0;
+		}
+
+		public static int GetTransposeByName(string name)
+		{
+			int octave = 0;
+			if (name.Contains("+"))
+			{
+				string[] split = name.Split('+');
+				if (split.Length > 1)
+				{
+					Int32.TryParse(split[1], out octave);
+				}
+			}
+			else if (name.Contains("-"))
+			{
+				string[] split = name.Split('-');
+				if (split.Length > 1)
+				{
+					Int32.TryParse(split[1], out octave);
+					octave = -octave;
+				}
+			}
+
+			//PluginLog.LogDebug("Transpose octave: " + octave);
+			return octave * 12;
 		}
 	}
 }

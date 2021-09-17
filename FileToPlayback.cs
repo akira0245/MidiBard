@@ -315,10 +315,28 @@ namespace MidiBard
 				return false;
 			}
 			currentPlayback = GetFilePlayback(midiFile, PlaylistManager.Filelist[index].Item2);
-			PlaylistManager.CurrentPlaying = index;
-			Task.Run(() => SwitchInstrument.WaitSwitchInstrument());
 
-			return true;
+			if (currentPlayback != null)
+			{
+				for (int i = 0; i < CurrentTracks.Count; i++)
+				{
+					uint insID = SwitchInstrument.GetInstrumentIDByName(CurrentTracks[i].Item2.GetTrackName());
+					if (insID >= 24 && insID <= 28)
+					{
+						// auto sets guitar tone ID by track name, so no need to appoint it manually
+						config.TracksTone[i] = (int)(insID - 24);
+					}
+				}
+
+				PlaylistManager.CurrentPlaying = index;
+				Task.Run(() => SwitchInstrument.WaitSwitchInstrument());
+
+				return true;
+			}
+			else
+			{
+				return false;
+			}
 		}
 
 		private static bool needToCancel { get; set; } = false;
