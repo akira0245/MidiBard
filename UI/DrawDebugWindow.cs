@@ -1,9 +1,17 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
+using Dalamud;
+using Dalamud.Interface;
 using Dalamud.Logging;
+using Dalamud.Memory;
+using Dalamud.Utility;
+using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+using FFXIVClientStructs.FFXIV.Common.Configuration;
 using ImGuiNET;
+using Lumina.Excel.GeneratedSheets;
 using Melanchall.DryWetMidi.Devices;
 using MidiBard.Managers;
 using static ImGuiNET.ImGui;
@@ -17,7 +25,7 @@ namespace MidiBard
 			//ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(5, 0));
 			if (Begin("MIDIBARD DEBUG", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar))
 			{
-				Columns(3);
+				Columns(4);
 				var itemSpacingY = GetStyle().ItemSpacing.Y;
 				GetStyle().ItemSpacing.Y = 0;
 				if (BeginChild("child1"))
@@ -162,13 +170,13 @@ namespace MidiBard
 
 						if (SmallButton("Start Event Listening"))
 						{
-							DeviceManager.CurrentInputDevice?.StartEventsListening();
+							InputDeviceManager.CurrentInputDevice?.StartEventsListening();
 						}
 
 						SameLine();
 						if (SmallButton("Stop Event Listening"))
 						{
-							DeviceManager.CurrentInputDevice?.StopEventsListening();
+							InputDeviceManager.CurrentInputDevice?.StopEventsListening();
 						}
 
 						TextUnformatted(
@@ -177,7 +185,7 @@ namespace MidiBard
 							$"OutputDevices: {OutputDevice.GetDevicesCount()}\n{string.Join("\n", OutputDevice.GetAll().Select(i => $"[{i.Id}] {i.Name}({i.DeviceType})"))}");
 
 						TextUnformatted(
-							$"CurrentInputDevice: \n{DeviceManager.CurrentInputDevice} Listening: {DeviceManager.CurrentInputDevice?.IsListeningForEvents}");
+							$"CurrentInputDevice: \n{InputDeviceManager.CurrentInputDevice} Listening: {InputDeviceManager.CurrentInputDevice?.IsListeningForEvents}");
 						TextUnformatted($"CurrentOutputDevice: \n{MidiBard.CurrentOutputDevice}");
 					}
 					catch (Exception e)
@@ -437,12 +445,148 @@ namespace MidiBard
 					}
 				}
 				EndChild();
+				NextColumn();
+
+				if (BeginChild("child4"))
+				{
+					TextUnformatted($"useRawHook: {Testhooks.Instance?.playnoteHook?.IsEnabled}");
+					if (Button("useRawhook"))
+					{
+						if (Testhooks.Instance.playnoteHook.IsEnabled)
+							Testhooks.Instance.playnoteHook.Disable();
+						else
+							Testhooks.Instance.playnoteHook.Enable();
+					}
+
+					for (int i = Testhooks.min; i <= Testhooks.max; i++)
+					{
+						if (ImGui.Button($"{i:00}##b{i}"))
+						{
+							Testhooks.Instance.noteOn(i);
+						}
+
+						if ((i - Testhooks.min + 1) % 12 != 0)
+						{
+							ImGui.SameLine();
+						}
+					}
+
+					if (ImGui.IsMouseReleased(ImGuiMouseButton.Left))
+					{
+						Testhooks.Instance.noteOff();
+					}
+					Dummy(Vector2.Zero);
+					var framework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance();
+					var configBase = framework->SystemConfig.CommonSystemConfig.ConfigBase;
+					var configBaseConfigCount = configBase.ConfigCount;
+					//Util.ShowObject(configBase);
+					if (Button("logconfig"))
+					{
+						int i = 0;
+						while (true)
+						{
+							try
+							{
+								var entry = configBase.ConfigEntry[i++];
+								PluginLog.Information(
+									$"[{entry.Index:000}] {entry.Type} {(entry.Type != 1 ? "\t" : "")}{MemoryHelper.ReadStringNullTerminated((IntPtr)(entry.Name)),-40}" +
+									(entry.Type != 1 ? $"{entry.Value.UInt,-10}{entry.Value.Float,-10}" : ""));
+								if (entry.Index >= configBaseConfigCount - 1)
+								{
+									break;
+								}
+							}
+							catch (Exception e)
+							{
+								//PluginLog.Information($"{i} {e.Message}");
+							}
+						}
+						PluginLog.Information(configBaseConfigCount.ToString());
+					}
+				}
+				EndChild();
 
 				GetStyle().ItemSpacing.Y = itemSpacingY;
+			}
+
+			if (MidiBard.Debug)
+			{
+				if (ImGui.Begin("agentStatus"))
+				{
+					Util.ShowObject(*MidiBard.AgentPerformance.Struct);
+				}
+				End();
+				if (ImGui.Begin("agents"))
+				{
+					//var systemConfig = &(FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->SystemConfig);
+					//var CommonSystemConfig = &(FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->SystemConfig.CommonSystemConfig);
+					//var ConfigBase = &(FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->SystemConfig.CommonSystemConfig.ConfigBase);
+					//TextUnformatted($"{(long)systemConfig:X}");
+					//TextUnformatted($"{(long)CommonSystemConfig:X}");
+					//TextUnformatted($"{(long)ConfigBase:X}");
+					ConfigModule* configModule = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->UIModule->GetConfigModule();
+					var offset = (long)Testhooks.Instance.SetoptionHook.Address - (long)Process.GetCurrentProcess().MainModule.BaseAddress;
+					ImGui.Button(offset.ToString("X")); ImGui.SameLine();
+					if (ImguiUtil.IconButton(FontAwesomeIcon.Clipboard, "c")) ImGui.SetClipboardText((offset).ToString("X"));
+					ImGui.Button(((long)configModule).ToString("X")); ImGui.SameLine();
+					if (ImguiUtil.IconButton(FontAwesomeIcon.Clipboard, "c")) ImGui.SetClipboardText(((long)configModule).ToString("X"));
+					if (InputInt("configIndex", ref configIndex))
+					{
+
+					}
+
+					if (InputInt("configValue", ref configValue))
+					{
+
+					}
+
+					if (Button("SetConfig"))
+					{
+						//Testhooks.Instance.SetoptionHook.Original((IntPtr)configModule, (ulong)configIndex, (ulong)configValue, 2);
+					}
+
+					SameLine();
+					if (Button("ToggleConfig"))
+					{
+						//var v = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->UIModule->GetConfigModule()->GetValue((uint)configIndex)->Value;
+						//var idv = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->UIModule->GetConfigModule()->GetValueById((short)configIndex)->Value;
+						//PluginLog.Information($"{configIndex}: byId:{idv}");
+						//Testhooks.Instance.SetoptionHook.Original((IntPtr)configModule, (ulong)configIndex, (ulong)(configValue == 1 ? 0 : 1), 2);
+						configValue = configValue == 1 ? 0 : 1;
+					}
+
+					ImGui.Dummy(Vector2.Zero);
+
+					InputText("", ref filter, 10000);
+					foreach (var agentInterface in AgentManager.Instance.AgentTable)
+					{
+						var text = agentInterface.ToString();
+						if (!string.IsNullOrWhiteSpace(filter))
+						{
+							if (text.Contains(filter, StringComparison.InvariantCultureIgnoreCase))
+							{
+								TextUnformatted(text);
+							}
+						}
+						else
+						{
+
+
+
+							TextUnformatted(text);
+						}
+
+					}
+				}
+				End();
 			}
 
 			End();
 			//ImGui.PopStyleVar();
 		}
+
+		public static int configIndex = 0;
+		public static int configValue = 0;
+		public static string filter = String.Empty;
 	}
 }

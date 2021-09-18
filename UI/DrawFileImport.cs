@@ -64,6 +64,7 @@ namespace MidiBard
 					if (result == DialogResult.OK)
 					{
 						PlaylistManager.LoadMidiFileList(filePath, true);
+						MidiBard.SaveConfig();
 					}
 
 					_isImportRunning = false;

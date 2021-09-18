@@ -16,9 +16,11 @@ namespace MidiBard.Managers
 
 		private unsafe void SoloSend(IntPtr dataptr)
 		{
-			//Span<byte> notes = new Span<byte>((dataptr + 0x10).ToPointer(), 10);
-			//Span<byte> tones = new Span<byte>((dataptr + 0x10 + 10).ToPointer(), 10);
-			//PluginLog.Information($"[{nameof(SoloSend)}] {toString(notes)} : {toString(tones)}");
+#if DEBUG
+			Span<byte> notes = new Span<byte>((dataptr + 0x10).ToPointer(), 10);
+			Span<byte> tones = new Span<byte>((dataptr + 0x10 + 10).ToPointer(), 10);
+			PluginLog.Information($"[{nameof(SoloSend)}] {notes.toString()} : {tones.toString()}");
+#endif
 		}
 
 		private unsafe void SoloRecv(uint sourceId, IntPtr data)

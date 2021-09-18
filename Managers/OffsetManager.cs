@@ -42,6 +42,25 @@ namespace MidiBard.Managers
 		[Function("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 0F B6 FA 48 8B D9 84 D2 ")]
 		public IntPtr UpdateMetronome { get; private set; }
 
+		[Function("48 89 ? ? ? 48 89 ? ? ? 57 48 83 EC ? 8B FA 41 0F ? ? 03 79")]
+		public IntPtr PressNote { get; private set; }
+
+		[Function("E8 ?? ?? ?? ?? 48 8B D7 48 8D 4D D8 44 8B E0")]
+		public IntPtr ChangeOctave { get; private set; }
+
+		[Function(" E8 ?? ?? ?? ?? 88 43 08 48 8B 74 24 ?? ")]
+		public IntPtr ChangeKeyboardLayout { get; private set; }
+
+		[Function("89 54 24 10 53 55 57 41 54 41 55 41 56 48 83 EC 48 8B C2 45 8B E0 44 8B D2 45 32 F6 44 8B C2 45 32 ED")]
+		public IntPtr SetOption { get; private set; }
+		
+
+
+
+
+
+
+
 
 		#region Manager
 

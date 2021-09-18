@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Logging;
 using Dalamud.Plugin;
 using Lumina.Data;
@@ -29,49 +30,55 @@ namespace MidiBard
 	public class MidiBard : IDalamudPlugin
 	{
 		public static Configuration config { get; private set; }
-		internal static PluginUI ui;
+		internal static PluginUI Ui { get; set; }
+#if DEBUG
+		public static bool Debug = true;
+#else
 		public static bool Debug = false;
+#endif
 
-		internal static BardPlayDevice CurrentOutputDevice;
+		internal static BardPlayDevice CurrentOutputDevice { get; set; }
+		internal static MidiFile CurrentOpeningMidiFile { get; }
+		internal static Playback CurrentPlayback { get; set; }
+		internal static TempoMap CurrentTMap { get; set; }
+		internal static List<(TrackChunk, TrackInfo)> CurrentTracks { get; set; }
 
-		internal static MidiFile currentOpeningMIDIFile;
-		internal static Playback currentPlayback;
-		internal static TempoMap CurrentTMap;
-		internal static List<(TrackChunk, TrackInfo)> CurrentTracks;
+		internal static Localizer Localizer { get; set; }
 
-		internal static Localizer localizer;
-
-		internal static AgentMetronome AgentMetronome;
-		internal static AgentPerformance AgentPerformance;
+		internal static AgentMetronome AgentMetronome { get; set; }
+		internal static AgentPerformance AgentPerformance { get; set; }
 
 		private static int configSaverTick;
 		private static bool wasEnsembleModeRunning = false;
 
-		internal static ExcelSheet<Perform> InstrumentSheet;
-		internal static string[] InstrumentStrings;
+		internal static ExcelSheet<Perform> InstrumentSheet { get; set; }
+		internal static string[] InstrumentStrings { get; set; }
 
 		internal delegate void DoPerformActionDelegate(IntPtr performInfoPtr, uint instrumentId, int a3 = 0);
-		internal static DoPerformActionDelegate DoPerformAction;
+		internal static DoPerformActionDelegate DoPerformAction { get; set; }
 
 		internal static byte InstrumentOffset;
 		internal static byte CurrentInstrument => Marshal.ReadByte(OffsetManager.Instance.PerformInfos + 3 + InstrumentOffset);
 		internal static readonly byte[] guitarGroup = { 24, 25, 26, 27, 28 };
 		internal static bool PlayingGuitar => guitarGroup.Contains(CurrentInstrument);
 
-		internal static bool IsPlaying => currentPlayback?.IsRunning == true;
-		internal static Playback testplayback = null;
+		internal static bool IsPlaying => CurrentPlayback?.IsRunning == true;
 
 		public string Name => nameof(MidiBard);
 
 		public unsafe MidiBard(DalamudPluginInterface pi)
 		{
 			DalamudApi.DalamudApi.Initialize(this, pi);
-			config = (Configuration)PluginInterface.GetPluginConfig() ?? new();
-			config.Initialize();
+			LoadConfig();
 
 			_ = OffsetManager.Instance;
 			_ = NetworkManager.Instance;
 			_ = EnsembleManager.Instance;
+
+#if DEBUG
+			_ = Testhooks.Instance;
+#endif
+
 			playlib.init(this);
 			CurrentOutputDevice = new BardPlayDevice();
 
@@ -85,17 +92,17 @@ namespace MidiBard
 
 			Task.Run(() =>
 			{
-				// update playlist in case any files is being deleted
-				config.Playlist = PlaylistManager.LoadMidiFileList(config.Playlist.ToArray(), false);
+				PlaylistManager.ReloadPlayListFromConfig();
+				SaveConfig();
 			});
 
-			localizer = new Localizer((UILang)config.uiLang);
-			ui = new PluginUI();
-			PluginInterface.UiBuilder.Draw += ui.Draw;
+			Localizer = new Localizer((UILang)config.uiLang);
+			Ui = new PluginUI();
+			PluginInterface.UiBuilder.Draw += Ui.Draw;
 			Framework.Update += Tick;
-			PluginInterface.UiBuilder.OpenConfigUi += () => ui.IsVisible ^= true;
+			PluginInterface.UiBuilder.OpenConfigUi += () => Ui.IsVisible ^= true;
 
-			if (PluginInterface.IsDev) ui.IsVisible = true;
+			if (PluginInterface.IsDev) Ui.IsVisible = true;
 		}
 
 
@@ -105,29 +112,19 @@ namespace MidiBard
 			{
 				if (AgentPerformance.InPerformanceMode)
 				{
-					if (!ui.IsVisible)
+					if (!Ui.IsVisible)
 					{
-						ui.IsVisible = true;
+						Ui.IsVisible = true;
 					}
 				}
 			}
 
-			if (ui.IsVisible)
+			if (Ui.IsVisible)
 			{
 				if (configSaverTick++ == 3600)
 				{
 					configSaverTick = 0;
-					Task.Run(() =>
-					{
-						try
-						{
-							config.Save();
-						}
-						catch (Exception e)
-						{
-							PluginLog.Warning(e, "error when auto save settings.");
-						}
-					});
+					SaveConfig();
 				}
 			}
 
@@ -235,25 +232,53 @@ namespace MidiBard
 			}
 			else
 			{
-				ui.IsVisible ^= true;
+				Ui.IsVisible ^= true;
 			}
 		}
+
+		internal static void SaveConfig()
+		{
+			Task.Run(() =>
+			{
+				try
+				{
+					var startNew = Stopwatch.StartNew();
+					PluginInterface.SavePluginConfig(config);
+					PluginLog.Verbose($"config saved in {startNew.Elapsed.TotalMilliseconds}ms");
+				}
+				catch (Exception e)
+				{
+					PluginLog.Error(e, "Error when saving config");
+					PluginInterface.UiBuilder.AddNotification(e.Message, "[Midibard] Error when saving config",
+						NotificationType.Error, 5000);
+				}
+			});
+		}
+
+		internal static void LoadConfig()
+		{
+			config = (Configuration)PluginInterface.GetPluginConfig() ?? new Configuration();
+		}
+
 
 		#region IDisposable Support
 
 		void FreeUnmanagedResources()
 		{
+#if DEBUG
+			Testhooks.Instance?.Dispose();
+#endif
 			Framework.Update -= Tick;
-			PluginInterface.UiBuilder.Draw -= ui.Draw;
+			PluginInterface.UiBuilder.Draw -= Ui.Draw;
 
 			EnsembleManager.Instance.Dispose();
 			NetworkManager.Instance.Dispose();
-			DeviceManager.DisposeDevice();
+			InputDeviceManager.DisposeDevice();
 			try
 			{
-				currentPlayback?.Stop();
-				currentPlayback?.Dispose();
-				currentPlayback = null;
+				CurrentPlayback?.Stop();
+				CurrentPlayback?.Dispose();
+				CurrentPlayback = null;
 			}
 			catch (Exception e)
 			{
@@ -268,7 +293,7 @@ namespace MidiBard
 
 			try
 			{
-				PluginInterface.SavePluginConfig(config);
+				SaveConfig();
 			}
 			catch (Exception e)
 			{

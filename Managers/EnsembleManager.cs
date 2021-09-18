@@ -48,7 +48,7 @@ namespace MidiBard.Managers
 
 							try
 							{
-								MidiBard.currentPlayback.Start();
+								MidiBard.CurrentPlayback.Start();
 							}
 							catch (Exception e)
 							{
@@ -70,11 +70,11 @@ namespace MidiBard.Managers
 								{
 									if (PlaylistManager.CurrentPlaying != -1)
 									{
-										FilePlayback.LoadSong(PlaylistManager.CurrentPlaying);
+										FilePlayback.LoadPlayback(PlaylistManager.CurrentPlaying);
 									}
 
-									MidiBard.currentPlayback.Stop();
-									MidiBard.currentPlayback.MoveToStart();
+									MidiBard.CurrentPlayback.Stop();
+									MidiBard.CurrentPlayback.MoveToStart();
 								}
 								catch (Exception e)
 								{

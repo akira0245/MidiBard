@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Threading;
@@ -36,7 +37,7 @@ namespace MidiBard
 			//uint color = ImGui.GetColorU32(ImGuiCol.TitleBgActive);
 			var ensembleModeRunning = AgentMetronome.EnsembleModeRunning;
 			var ensemblePreparing = AgentMetronome.MetronomeBeatsElapsed < 0;
-			var listeningForEvents = DeviceManager.IsListeningForEvents;
+			var listeningForEvents = InputDeviceManager.IsListeningForEvents;
 
 			try
 			{
@@ -46,7 +47,11 @@ namespace MidiBard
 				var flag = config.miniPlayer ? ImGuiWindowFlags.NoDecoration : ImGuiWindowFlags.None;
 				ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(5, 5));
 				ImGui.SetNextWindowSizeConstraints(new Vector2(ImGui.GetIO().FontGlobalScale*357, 0),new Vector2(ImGui.GetIO().FontGlobalScale*357, float.MaxValue));
+#if DEBUG
+				if (ImGui.Begin($"MidiBard - {DalamudApi.DalamudApi.ClientState.LocalPlayer?.Name.TextValue} PID{Process.GetCurrentProcess().Id}###MIDIBARD", ref IsVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | flag))
+					#else
 				if (ImGui.Begin("MidiBard###MIDIBARD", ref IsVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | flag))
+#endif
 				{
 					if (ensembleModeRunning)
 					{
@@ -62,7 +67,7 @@ namespace MidiBard
 
 					if (listeningForEvents)
 					{
-						DrawColoredBanner(violet, "Listening input device: ".Localize() + DeviceManager.CurrentInputDevice.ToDeviceString());
+						DrawColoredBanner(violet, "Listening input device: ".Localize() + InputDeviceManager.CurrentInputDevice.ToDeviceString());
 					}
 
 					if (!config.miniPlayer)
@@ -80,7 +85,7 @@ namespace MidiBard
 							ImGui.SameLine();
 							ButtonClearPlaylist();
 
-							if (localizer.Language == UILang.CN)
+							if (MidiBard.Localizer.Language == UILang.CN)
 							{
 								ImGui.SameLine(ImGui.GetWindowContentRegionWidth() - ImGui.CalcTextSize(FontAwesomeIcon.QuestionCircle.ToIconString()).X - ImGui.GetStyle().FramePadding.X * 2 - ImGui.GetCursorPosX() - 2);
 
@@ -151,9 +156,15 @@ namespace MidiBard
 						DrawPanelGeneralSettings();
 					}
 
-					if (Debug) DrawDebugWindow();
+#if DEBUG
+					if (DalamudApi.DalamudApi.PluginInterface.IsDev)
+					{
+						if (ImGui.Button("Debug info", new Vector2(-2, ImGui.GetFrameHeight()))) MidiBard.Debug ^= true;
+					}
+					if (MidiBard.Debug) DrawDebugWindow();
+#endif
 
-					DrawKeyboardModeSwitchingGuide();
+					//DrawKeyboardModeSwitchingGuide();
 				}
 			}
 			finally

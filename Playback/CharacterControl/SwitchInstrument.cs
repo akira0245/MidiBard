@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Logging;
 using Dalamud.Plugin;
 using Lumina.Excel.GeneratedSheets;
@@ -16,69 +17,75 @@ namespace MidiBard
 	{
 		internal static bool Switching { get; private set; }
 
-		internal static async Task<bool> SwitchTo(uint instrumentId, bool pauseWhileSwitching = false)
+		internal static async Task<bool> SwitchTo(uint instrumentId)
 		{
-			if (MidiBard.CurrentInstrument == instrumentId) return true;
-			DalamudApi.DalamudApi.ChatGui.Print(instrumentId == 0 ? "Cancel performance mode" : $"Switching to {MidiBard.InstrumentSheet.GetRow(instrumentId)?.Instrument?.RawString}");
-			bool ret = true;
-
-			var timeout = DateTime.UtcNow.AddSeconds(3);
 			var wasplaying = MidiBard.IsPlaying;
+			if (MidiBard.CurrentInstrument == instrumentId) return true;
+			DalamudApi.DalamudApi.PluginInterface.UiBuilder.AddNotification(
+				instrumentId == 0
+					? "Cancel performance mode"
+					: $"Switching to {MidiBard.InstrumentSheet.GetRow(instrumentId)?.Instrument?.RawString}",
+				"MidiBard", NotificationType.Info);
 
+
+
+			if (wasplaying) MidiBard.CurrentPlayback?.Stop();
 			Switching = true;
-			if (wasplaying && pauseWhileSwitching) MidiBard.currentPlayback?.Stop();
 
 			var sw = Stopwatch.StartNew();
+			bool ret = true;
 
-			var performInfos = OffsetManager.Instance.PerformInfos;
 			if (MidiBard.CurrentInstrument != 0)
-			{ 
-				MidiBard.DoPerformAction(performInfos, 0);
-			}
-
-			while (MidiBard.CurrentInstrument != 0)
 			{
-				if (DateTime.UtcNow > timeout)
+				MidiBard.DoPerformAction(OffsetManager.Instance.PerformInfos, 0);
+
+
+				while (MidiBard.CurrentInstrument != 0)
+				{
+					if (sw.ElapsedMilliseconds > 3000)
+					{
+						ret = false;
+						break;
+					}
+
+					await Task.Delay(10);
+				}
+			}
+			PluginLog.Debug($"cancel performance took {sw.Elapsed.TotalMilliseconds}ms");
+
+			MidiBard.DoPerformAction(OffsetManager.Instance.PerformInfos, instrumentId);
+
+			while (MidiBard.CurrentInstrument != instrumentId || DalamudApi.DalamudApi.GameGui.GetAddonByName("PerformanceModeWide", 1) == IntPtr.Zero)
+			{
+				if (sw.ElapsedMilliseconds > 6000)
 				{
 					ret = false;
 					break;
 				}
-				await Task.Delay(1);
+
+				await Task.Delay(10);
 			}
 
-			MidiBard.DoPerformAction(performInfos, instrumentId);
-
-			while (MidiBard.CurrentInstrument != instrumentId && DalamudApi.DalamudApi.GameGui.GetAddonByName("PerformanceModeWide", 1) != IntPtr.Zero)
-			{
-				if (DateTime.UtcNow > timeout)
-				{
-					ret = false;
-					break;
-				}
-				await Task.Delay(1);
-			}
-
-			await Task.Delay(300);
+			await Task.Delay(200);
 
 
 			sw.Stop();
+
 			PluginLog.Debug(ret
 				? $"instrument switching succeeded in {sw.Elapsed.TotalMilliseconds:F4}ms."
 				: $"instrument switching failed in {sw.Elapsed.TotalMilliseconds:F4}ms.");
 			Switching = false;
-			if (wasplaying && pauseWhileSwitching) MidiBard.currentPlayback?.Start();
+			if (wasplaying) MidiBard.CurrentPlayback?.Start();
 
 			return ret;
 		}
 
 		static Regex regex = new Regex(@"^#(.*?)([-|+][0-9]+)?#", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-		internal static async Task WaitSwitchInstrument()
+		internal static async Task WaitSwitchInstrumentForSong(string trackName)
 		{
-			var match = regex.Match(PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].Item2);
+			var match = regex.Match(trackName);
 			if (MidiBard.config.autoSwitchInstrumentByFileName && match.Success)
 			{
-				var wasplaying = MidiBard.IsPlaying;
-				MidiBard.currentPlayback?.Stop();
 				var captured = match.Groups[1].Value.ToLowerInvariant();
 
 				Perform possibleInstrument = MidiBard.InstrumentSheet.FirstOrDefault(i => i.Instrument.RawString.ToLowerInvariant() == captured);
@@ -102,11 +109,6 @@ namespace MidiBard
 				else
 				{
 					PluginLog.Error($"no instrument named {captured} found.");
-				}
-
-				if (wasplaying)
-				{
-					MidiBard.currentPlayback?.Start();
 				}
 
 				//PluginLog.Debug($"groups {match.Groups.Count}; captures {match.Captures.Count}");

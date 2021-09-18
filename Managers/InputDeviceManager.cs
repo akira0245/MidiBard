@@ -9,7 +9,7 @@ using Melanchall.DryWetMidi.Devices;
 
 namespace MidiBard
 {
-	static class DeviceManager
+	static class InputDeviceManager
 	{
 		internal static bool IsListeningForEvents
 		{
@@ -18,11 +18,11 @@ namespace MidiBard
 				var ret = false;
 				try
 				{
-					ret = CurrentInputDevice.IsListeningForEvents;
+					if (CurrentInputDevice != null) ret = CurrentInputDevice.IsListeningForEvents;
 				}
 				catch (Exception e)
 				{
-					//
+					PluginLog.Debug(e, "device maybe disposed.");
 				}
 
 				return ret;

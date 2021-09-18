@@ -192,78 +192,59 @@ namespace MidiBard
 				try
 				{
 					if (MidiBard.AgentMetronome.EnsembleModeRunning) return;
+					if (!PlaylistManager.Filelist.Any()) return;
+
+					PerformWaiting(config.secondsBetweenTracks);
+					if (needToCancel)
+					{
+						needToCancel = false;
+						return;
+					}
 
 					switch ((PlayMode)config.PlayMode)
 					{
 						case PlayMode.Single:
 							break;
 
+						case PlayMode.SingleRepeat:
+							CurrentPlayback.MoveToStart();
+							CurrentPlayback.Start();
+							break;
+
 						case PlayMode.ListOrdered:
-							PerformWaiting(config.secondsBetweenTracks);
-							if (needToCancel)
+							if (PlaylistManager.CurrentPlaying + 1 < PlaylistManager.Filelist.Count)
 							{
-								needToCancel = false;
-								return;
-							}
-							try
-							{
-								if (LoadSong(PlaylistManager.CurrentPlaying + 1))
+								if (LoadPlayback(PlaylistManager.CurrentPlaying + 1, true))
 								{
-									currentPlayback.Start();
+
 								}
-							}
-							catch (Exception exception)
-							{
 							}
 
 							break;
 
 						case PlayMode.ListRepeat:
-							PerformWaiting(config.secondsBetweenTracks);
-							if (needToCancel)
+							if (PlaylistManager.CurrentPlaying + 1 < PlaylistManager.Filelist.Count)
 							{
-								needToCancel = false;
-								return;
-							}
-							try
-							{
-								LoadSong(PlaylistManager.CurrentPlaying + 1);
-							}
-							catch (Exception exception)
-							{
-								if (!PlaylistManager.Filelist.Any())
-									return;
-
-								if (LoadSong(0))
+								if (LoadPlayback(PlaylistManager.CurrentPlaying + 1, true))
 								{
-									currentPlayback.Start();
+
 								}
 							}
-							break;
-
-						case PlayMode.SingleRepeat:
-							PerformWaiting(config.secondsBetweenTracks);
-							if (needToCancel)
+							else
 							{
-								needToCancel = false;
-								return;
+								if (LoadPlayback(0, true))
+								{
+
+								}
 							}
-							currentPlayback.MoveToStart();
-							currentPlayback.Start();
+
 							break;
 
 						case PlayMode.Random:
-							if (!PlaylistManager.Filelist.Any()) return;
-							PerformWaiting(config.secondsBetweenTracks);
-							if (needToCancel)
-							{
-								needToCancel = false;
-								return;
-							}
+
 							if (PlaylistManager.Filelist.Count == 1)
 							{
-								currentPlayback.MoveToStart();
-								currentPlayback.Start();
+								CurrentPlayback.MoveToStart();
 								break;
 							}
 
@@ -276,9 +257,9 @@ namespace MidiBard
 									nexttrack = r.Next(0, PlaylistManager.Filelist.Count);
 								} while (nexttrack == PlaylistManager.CurrentPlaying);
 
-								if (LoadSong(nexttrack))
+								if (LoadPlayback(nexttrack, true))
 								{
-									currentPlayback.Start();
+
 								}
 							}
 							catch (Exception exception)
@@ -299,22 +280,31 @@ namespace MidiBard
 			});
 		}
 
-		internal static bool LoadSong(int index)
+		internal static bool LoadPlayback(int index, bool startPlaying = false)
 		{
-			currentPlayback?.Dispose();
-			currentPlayback = null;
-			MidiFile midiFile = PlaylistManager.LoadMidiFile(index);
+			var wasPlaying = IsPlaying;
+			CurrentPlayback?.Dispose();
+			CurrentPlayback = null;
+			MidiFile midiFile = PlaylistManager.LoadMidiFile(index, out var trackName);
 			if (midiFile == null)
 			{
 				// delete file if can't be loaded(likely to be deleted locally)
 				PlaylistManager.Filelist.RemoveAt(index);
 				return false;
 			}
-			currentPlayback = GetFilePlayback(midiFile, PlaylistManager.Filelist[index].Item2);
-			PlaylistManager.CurrentPlaying = index;
-			Task.Run(() => SwitchInstrument.WaitSwitchInstrument());
-
-			return true;
+			else
+			{
+				CurrentPlayback = GetFilePlayback(midiFile, PlaylistManager.Filelist[index].trackName);
+				PlaylistManager.CurrentPlaying = index;
+				{
+					Task.Run(async () =>
+					{
+						await SwitchInstrument.WaitSwitchInstrumentForSong(PlaylistManager.Filelist[index].trackName);
+						if (wasPlaying || startPlaying) CurrentPlayback?.Start();
+					});
+				}
+				return true;
+			}
 		}
 
 		private static bool needToCancel { get; set; } = false;

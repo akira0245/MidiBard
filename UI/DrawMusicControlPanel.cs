@@ -63,30 +63,22 @@ namespace MidiBard
 
 		private static void SetSpeed()
 		{
-			try
+			MidiBard.config.playSpeed = Math.Max(0.1f, MidiBard.config.playSpeed);
+			var currenttime = MidiBard.CurrentPlayback?.GetCurrentTime(TimeSpanType.Midi);
+			if (currenttime is not null)
 			{
-				MidiBard.config.playSpeed = Math.Max(0.1f, MidiBard.config.playSpeed);
-				var currenttime = MidiBard.currentPlayback.GetCurrentTime(TimeSpanType.Midi);
-				MidiBard.currentPlayback.Speed = MidiBard.config.playSpeed;
-				MidiBard.currentPlayback.MoveToTime(currenttime);
-			}
-			catch (Exception e)
-			{
+				MidiBard.CurrentPlayback.Speed = MidiBard.config.playSpeed;
+				MidiBard.CurrentPlayback?.MoveToTime(currenttime);
 			}
 		}
 
 		private static string GetBpmString()
 		{
 			Tempo bpm = null;
-			try
+			var currentTime = MidiBard.CurrentPlayback?.GetCurrentTime(TimeSpanType.Midi);
+			if (currentTime != null)
 			{
-				// ReSharper disable once PossibleNullReferenceException
-				var current = MidiBard.currentPlayback.GetCurrentTime(TimeSpanType.Midi);
-				bpm = MidiBard.currentPlayback.TempoMap.GetTempoAtTime(current);
-			}
-			catch
-			{
-				//
+				bpm = MidiBard.CurrentPlayback?.TempoMap?.GetTempoAtTime(currentTime);
 			}
 
 			var label = $"{MidiBard.config.playSpeed:F2}";
@@ -97,10 +89,10 @@ namespace MidiBard
 
 		private static void SliderProgress()
 		{
-			if (MidiBard.currentPlayback != null)
+			if (MidiBard.CurrentPlayback != null)
 			{
-				var currentTime = MidiBard.currentPlayback.GetCurrentTime<MetricTimeSpan>();
-				var duration = MidiBard.currentPlayback.GetDuration<MetricTimeSpan>();
+				var currentTime = MidiBard.CurrentPlayback.GetCurrentTime<MetricTimeSpan>();
+				var duration = MidiBard.CurrentPlayback.GetDuration<MetricTimeSpan>();
 				float progress;
 				try
 				{
@@ -115,12 +107,12 @@ namespace MidiBard
 					$"{(currentTime.Hours != 0 ? currentTime.Hours + ":" : "")}{currentTime.Minutes:00}:{currentTime.Seconds:00}",
 					ImGuiSliderFlags.AlwaysClamp | ImGuiSliderFlags.NoRoundToFormat))
 				{
-					MidiBard.currentPlayback.MoveToTime(duration.Multiply(progress));
+					MidiBard.CurrentPlayback.MoveToTime(duration.Multiply(progress));
 				}
 
 				if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
 				{
-					MidiBard.currentPlayback.MoveToTime(duration.Multiply(0));
+					MidiBard.CurrentPlayback.MoveToTime(duration.Multiply(0));
 				}
 			}
 			else
@@ -139,14 +131,14 @@ namespace MidiBard
 			if (ImGui.Combo("Instrument".Localize(), ref UIcurrentInstrument, MidiBard.InstrumentStrings,
 				MidiBard.InstrumentStrings.Length, 20))
 			{
-				Task.Run(() => SwitchInstrument.SwitchTo((uint)UIcurrentInstrument, true));
+				Task.Run(async () => await SwitchInstrument.SwitchTo((uint)UIcurrentInstrument));
 			}
 
 			ToolTip("Select current instrument. \nRight click to quit performance mode.".Localize());
 
 			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
 			{
-				Task.Run(() => SwitchInstrument.SwitchTo(0));
+				Task.Run(async () => await SwitchInstrument.SwitchTo(0));
 				MidiPlayerControl.Pause();
 			}
 		}

@@ -10,15 +10,14 @@ namespace MidiBard
 	{
 		private static unsafe void DrawCurrentPlaying()
 		{
-			try
+			if (PlaylistManager.CurrentPlaying >= 0 && PlaylistManager.Filelist.Count > PlaylistManager.CurrentPlaying)
 			{
-				var fmt =
-					$"{PlaylistManager.CurrentPlaying + 1:000} {PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].Item2}";
+				var fmt = $"{PlaylistManager.CurrentPlaying + 1:000} {PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].trackName}";
 				ImGui.PushStyleColor(ImGuiCol.Text, MidiBard.config.themeColor * new Vector4(1, 1, 1, 1.3f));
 				ImGui.TextWrapped(fmt);
 				ImGui.PopStyleColor();
 			}
-			catch (Exception e)
+			else
 			{
 				var c = PlaylistManager.Filelist.Count;
 				ImGui.TextUnformatted(c > 1
@@ -32,7 +31,6 @@ namespace MidiBard
 		private static unsafe void DrawProgressBar()
 		{
 			//ImGui.PushStyleColor(ImGuiCol.FrameBg, 0x800000A0);
-
 
 			MetricTimeSpan currentTime = new MetricTimeSpan(0);
 			MetricTimeSpan duration = new MetricTimeSpan(0);
@@ -48,10 +46,10 @@ namespace MidiBard
 			else
 			{
 				ImGui.PushStyleColor(ImGuiCol.PlotHistogram, MidiBard.config.themeColor);
-				if (MidiBard.currentPlayback != null)
+				if (MidiBard.CurrentPlayback != null)
 				{
-					currentTime = MidiBard.currentPlayback.GetCurrentTime<MetricTimeSpan>();
-					duration = MidiBard.currentPlayback.GetDuration<MetricTimeSpan>();
+					currentTime = MidiBard.CurrentPlayback.GetCurrentTime<MetricTimeSpan>();
+					duration = MidiBard.CurrentPlayback.GetDuration<MetricTimeSpan>();
 					try
 					{
 						progress = (float)currentTime.Divide(duration);

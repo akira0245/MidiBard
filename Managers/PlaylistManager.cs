@@ -44,6 +44,7 @@ namespace MidiBard
 			MidiBard.config.Playlist.Clear();
 			Filelist.Clear();
 			CurrentPlaying = -1;
+			MidiBard.SaveConfig();
 		}
 
 		public static void Remove(int index)
@@ -57,6 +58,7 @@ namespace MidiBard
 				{
 					currentPlaying--;
 				}
+				MidiBard.SaveConfig();
 			}
 			catch (Exception e)
 			{
@@ -80,6 +82,23 @@ namespace MidiBard
 			TextEncoding = Encoding.Default,
 			InvalidSystemCommonEventParameterValuePolicy = InvalidSystemCommonEventParameterValuePolicy.SnapToLimits
 		};
+
+
+		internal static void ReloadPlayListFromConfig(bool alsoReloadConfig = false)
+		{
+			if (alsoReloadConfig)
+			{
+				// back up since we don't want the enabled tracks to be overwritten by the shared config between bards.
+				bool[] enabledTracks = MidiBard.config.EnabledTracks;
+				MidiBard.LoadConfig();
+				MidiBard.config.EnabledTracks = enabledTracks;
+			}
+
+			Filelist.Clear();
+			// update playlist in case any files is being deleted
+			MidiBard.config.Playlist = LoadMidiFileList(MidiBard.config.Playlist.ToArray(), false);
+		}
+
 
 		internal static List<string> LoadMidiFileList(string[] fileNames, bool addToSavedConfigFileList)
 		{
@@ -106,6 +125,17 @@ namespace MidiBard
 			return ret;
 		}
 
+		internal static MidiFile LoadMidiFile(int index, out string trackName)
+		{
+			if (index < 0 || index >= Filelist.Count)
+			{
+				trackName = null;
+				return null;
+			}
+			trackName = Filelist[index].trackName;
+			return LoadMidiFile(Filelist[index].path);
+		}
+
 		internal static MidiFile LoadMidiFile(int index)
 		{
 			if (index < 0 || index >= Filelist.Count)
@@ -113,7 +143,7 @@ namespace MidiBard
 				return null;
 			}
 
-			return LoadMidiFile(Filelist[index].Item1);
+			return LoadMidiFile(Filelist[index].path);
 		}
 
 		internal static MidiFile LoadMidiFile(string filePath)
@@ -122,9 +152,6 @@ namespace MidiBard
 			MidiFile loaded = null;
 			try
 			{
-				//_texToolsImport = new TexToolsImport(new DirectoryInfo(_base._plugin!.Configuration!.CurrentCollection));
-				//_texToolsImport.ImportModPack(new FileInfo(fileName));
-
 				using (var f = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 				{
 					loaded = MidiFile.Read(f, readingSettings);

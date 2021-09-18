@@ -22,21 +22,21 @@ namespace MidiBard
 			//	//CurrentInputDevice.Connect(CurrentOutputDevice);
 			//}
 
-			var inputDevices = DeviceManager.Devices;
+			var inputDevices = InputDeviceManager.Devices;
 
-			if (ImGui.BeginCombo("Input Device".Localize(), DeviceManager.CurrentInputDevice.ToDeviceString()))
+			if (ImGui.BeginCombo("Input Device".Localize(), InputDeviceManager.CurrentInputDevice.ToDeviceString()))
 			{
-				if (ImGui.Selectable("None##device", DeviceManager.CurrentInputDevice is null))
+				if (ImGui.Selectable("None##device", InputDeviceManager.CurrentInputDevice is null))
 				{
-					DeviceManager.DisposeDevice();
+					InputDeviceManager.DisposeDevice();
 				}
 
 				for (int i = 0; i < inputDevices.Length; i++)
 				{
 					var device = inputDevices[i];
-					if (ImGui.Selectable($"{device.Name}##{i}", device.Id == DeviceManager.CurrentInputDevice?.Id))
+					if (ImGui.Selectable($"{device.Name}##{i}", device.Id == InputDeviceManager.CurrentInputDevice?.Id))
 					{
-						DeviceManager.SetDevice(device);
+						InputDeviceManager.SetDevice(device);
 					}
 				}
 
@@ -45,7 +45,7 @@ namespace MidiBard
 
 			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
 			{
-				DeviceManager.DisposeDevice();
+				InputDeviceManager.DisposeDevice();
 			}
 
 			ImguiUtil.ToolTip("Choose external midi input device. right click to reset.".Localize());
@@ -53,7 +53,7 @@ namespace MidiBard
 
 			if (ImGui.Combo("UI Language".Localize(), ref MidiBard.config.uiLang, uilangStrings, 2))
 			{
-				MidiBard.localizer = new Localizer((UILang)MidiBard.config.uiLang);
+				MidiBard.Localizer = new Localizer((UILang)MidiBard.config.uiLang);
 			}
 
 
@@ -79,12 +79,6 @@ namespace MidiBard
 
 			ImGui.Checkbox("Override guitar tones".Localize(), ref MidiBard.config.OverrideGuitarTones);
 			ImguiUtil.ToolTip("Assign different guitar tones for each midi tracks".Localize());
-
-			if (DalamudApi.DalamudApi.PluginInterface.IsDev)
-			{
-				ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
-				if (ImGui.Button("Debug info", new Vector2(-2, ImGui.GetFrameHeight()))) MidiBard.Debug ^= true;
-			}
 		}
 	}
 }
