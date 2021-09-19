@@ -296,13 +296,11 @@ namespace MidiBard
 			{
 				CurrentPlayback = GetFilePlayback(midiFile, PlaylistManager.Filelist[index].trackName);
 				PlaylistManager.CurrentPlaying = index;
-				{
-					Task.Run(async () =>
-					{
-						await SwitchInstrument.WaitSwitchInstrumentForSong(PlaylistManager.Filelist[index].trackName);
-						if (wasPlaying || startPlaying) CurrentPlayback?.Start();
-					});
-				}
+				//Task.Run(async () =>
+				//{
+				//	await SwitchInstrument.WaitSwitchInstrumentForSong(PlaylistManager.Filelist[index].trackName);
+				if (wasPlaying || startPlaying) CurrentPlayback?.Start();
+				//});
 				return true;
 			}
 		}

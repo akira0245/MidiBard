@@ -13,39 +13,42 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="lib\**" />
+    <EmbeddedResource Remove="lib\**" />
+    <None Remove="lib\**" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="DalamudPackager" Version="2.1.2" />
     <PackageReference Include="ILRepack" Version="2.0.18" />
     <PackageReference Include="Melanchall.DryWetMidi" Version="5.2.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Buddy.Coroutines">
+      <HintPath>..\lib\Buddy.Coroutines.dll</HintPath>
+    </Reference>
+    <Reference Include="Dalamud">
+      <HintPath>..\..\..\..\Downloads\Compressed\dalamud-artifactbuild\dalamud-artifact\Dalamud.dll</HintPath>
+    </Reference>
+    <Reference Include="FFXIVClientStructs">
+      <HintPath>..\..\..\..\Downloads\Compressed\dalamud-artifactbuild\dalamud-artifact\FFXIVClientStructs.dll</HintPath>
+    </Reference>
+    <Reference Include="ImGui.NET">
+      <HintPath>..\..\..\..\Downloads\Compressed\dalamud-artifactbuild\dalamud-artifact\ImGui.NET.dll</HintPath>
+    </Reference>
+    <Reference Include="Lumina">
+      <HintPath>..\..\..\..\Downloads\Compressed\dalamud-artifactbuild\dalamud-artifact\Lumina.dll</HintPath>
+    </Reference>
+    <Reference Include="Lumina.Excel">
+      <HintPath>..\..\..\..\Downloads\Compressed\dalamud-artifactbuild\dalamud-artifact\Lumina.Excel.dll</HintPath>
+    </Reference>
+    <Reference Include="playlib">
+      <HintPath>..\lib\playlib.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <PropertyGroup>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Reference Include="Dalamud">
-      <HintPath>..\..\..\Downloads\Compressed\dalamud-artifactbuild\dalamud-artifact\Dalamud.dll</HintPath>
-    </Reference>
-    <Reference Include="FFXIVClientStructs">
-      <HintPath>..\..\..\Downloads\Compressed\dalamud-artifactbuild\dalamud-artifact\FFXIVClientStructs.dll</HintPath>
-    </Reference>
-    <Reference Include="ImGui.NET">
-      <HintPath>..\..\..\Downloads\Compressed\dalamud-artifactbuild\dalamud-artifact\ImGui.NET.dll</HintPath>
-    </Reference>
-    <Reference Include="Lumina">
-      <HintPath>..\..\..\Downloads\Compressed\dalamud-artifactbuild\dalamud-artifact\Lumina.dll</HintPath>
-    </Reference>
-    <Reference Include="Lumina.Excel">
-      <HintPath>..\..\..\Downloads\Compressed\dalamud-artifactbuild\dalamud-artifact\Lumina.Excel.dll</HintPath>
-    </Reference>
-    <Reference Include="playlib">
-      <HintPath>lib\playlib.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="lib\" />
-  </ItemGroup>
 
   <Target Name="CleanOutDir" AfterTargets="Build">
     <ItemGroup>

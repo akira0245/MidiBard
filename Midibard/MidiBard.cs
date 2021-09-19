@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Buddy.Coroutines;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Logging;
 using Dalamud.Plugin;
@@ -36,7 +37,6 @@ namespace MidiBard
 #else
 		public static bool Debug = false;
 #endif
-
 		internal static BardPlayDevice CurrentOutputDevice { get; set; }
 		internal static MidiFile CurrentOpeningMidiFile { get; }
 		internal static Playback CurrentPlayback { get; set; }
@@ -108,6 +108,8 @@ namespace MidiBard
 
 		private void Tick(Dalamud.Game.Framework framework)
 		{
+			ExecuteCoroutine();
+
 			if (config.AutoOpenPlayerWhenPerforming)
 			{
 				if (AgentPerformance.InPerformanceMode)
@@ -143,6 +145,35 @@ namespace MidiBard
 			}
 		}
 
+		private async Task<bool> AsyncRoot()
+		{
+			if (SwitchInstrument.WantSwitchInstrument is { } id)
+			{
+				SwitchInstrument.WantSwitchInstrument = null;
+				return await SwitchInstrument.CoroutineSwitchTo(id);
+			}
+
+			return false;
+		}
+
+		private Coroutine coroutine;
+		private void ExecuteCoroutine()
+		{
+			if (coroutine == null || coroutine.IsFinished)
+			{
+				coroutine = new Coroutine(AsyncRoot);
+			}
+
+			try
+			{
+				coroutine.Resume();
+			}
+			catch (CoroutineException ex)
+			{
+				PluginLog.Error(ex.ToString());
+			}
+		}
+
 		[Command("/midibard")]
 		[HelpMessage("Toggle MidiBard window.")]
 		public void Command1(string command, string args) => OnCommand(command, args);
@@ -174,22 +205,23 @@ namespace MidiBard
 						{
 							if (uint.TryParse(instrumentInput, out var instrumentId) && instrumentId < InstrumentStrings.Length)
 							{
-								Task.Run(async () => await SwitchInstrument.SwitchTo(instrumentId));
+								//Task.Run(async () => await SwitchInstrument.SwitchTo(instrumentId));
+								SwitchInstrument.WantSwitchInstrument = instrumentId;
 							}
 							else
 							{
-								Perform possibleInstrumentName = InstrumentSheet.FirstOrDefault(i => i.Instrument?.RawString.ToLowerInvariant() == instrumentInput);
-								Perform possibleGMName = InstrumentSheet.FirstOrDefault(i => i.Name.RawString.ToLowerInvariant().Contains(instrumentInput));
+								//Perform possibleInstrumentName = InstrumentSheet.FirstOrDefault(i => i.Instrument?.RawString.ToLowerInvariant() == instrumentInput);
+								//Perform possibleGMName = InstrumentSheet.FirstOrDefault(i => i.Name.RawString.ToLowerInvariant().Contains(instrumentInput));
 
-								var possibleInstrument = possibleInstrumentName ?? possibleGMName;
-								if (possibleInstrument != null)
-								{
-									Task.Run(async () => await SwitchInstrument.SwitchTo(possibleInstrument.RowId));
-								}
-								else
-								{
-									throw new ArgumentException();
-								}
+								//var possibleInstrument = possibleInstrumentName ?? possibleGMName;
+								//if (possibleInstrument != null)
+								//{
+								//	Task.Run(async () => await SwitchInstrument.SwitchTo(possibleInstrument.RowId));
+								//}
+								//else
+								//{
+								//	throw new ArgumentException();
+								//}
 							}
 						}
 					}
@@ -271,6 +303,7 @@ namespace MidiBard
 			Framework.Update -= Tick;
 			PluginInterface.UiBuilder.Draw -= Ui.Draw;
 
+			coroutine.Dispose();
 			EnsembleManager.Instance.Dispose();
 			NetworkManager.Instance.Dispose();
 			InputDeviceManager.DisposeDevice();

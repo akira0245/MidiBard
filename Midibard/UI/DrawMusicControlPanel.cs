@@ -131,14 +131,14 @@ namespace MidiBard
 			if (ImGui.Combo("Instrument".Localize(), ref UIcurrentInstrument, MidiBard.InstrumentStrings,
 				MidiBard.InstrumentStrings.Length, 20))
 			{
-				Task.Run(async () => await SwitchInstrument.SwitchTo((uint)UIcurrentInstrument));
+				SwitchInstrument.WantSwitchInstrument = (uint)UIcurrentInstrument;
 			}
 
 			ToolTip("Select current instrument. \nRight click to quit performance mode.".Localize());
 
 			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
 			{
-				Task.Run(async () => await SwitchInstrument.SwitchTo(0));
+				SwitchInstrument.WantSwitchInstrument = 0;
 				MidiPlayerControl.Pause();
 			}
 		}
