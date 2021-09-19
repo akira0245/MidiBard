@@ -104,118 +104,124 @@ namespace MidiBard
 		{
 			List<string> ret = new List<string>(fileNames);
 
-			foreach (string fileName in fileNames)
+			Task.Run(async () =>
 			{
-				MidiFile file = LoadMidiFile(fileName);
-				if (addToSavedConfigFileList && file != null)
+				foreach (string fileName in fileNames)
 				{
-					MidiBard.config.Playlist.Add(fileName);
-				}
+					MidiFile file = await LoadMidiFile(fileName);
+					if (addToSavedConfigFileList && file != null)
+					{
+						MidiBard.config.Playlist.Add(fileName);
+					}
 
-				if (file == null)
-				{
-					ret.Remove(fileName);
+					if (file == null)
+					{
+						ret.Remove(fileName);
+					}
+					else
+					{
+						Filelist.Add((fileName, Path.GetFileNameWithoutExtension(fileName)));
+					}
 				}
-				else
-				{
-					Filelist.Add((fileName, Path.GetFileNameWithoutExtension(fileName)));
-				}
-			}
+			});
+			
 
 			return ret;
 		}
 
-		internal static MidiFile LoadMidiFile(int index, out string trackName)
+		//internal static async Task<MidiFile> LoadMidiFile(int index, out string trackName)
+		//{
+		//	if (index < 0 || index >= Filelist.Count)
+		//	{
+		//		trackName = null;
+		//		return null;
+		//	}
+		//	trackName = Filelist[index].trackName;
+		//	return await LoadMidiFile(Filelist[index].path);
+		//}
+
+		internal static async Task<MidiFile> LoadMidiFile(int index)
 		{
 			if (index < 0 || index >= Filelist.Count)
 			{
-				trackName = null;
-				return null;
-			}
-			trackName = Filelist[index].trackName;
-			return LoadMidiFile(Filelist[index].path);
-		}
-
-		internal static MidiFile LoadMidiFile(int index)
-		{
-			if (index < 0 || index >= Filelist.Count)
-			{
 				return null;
 			}
 
-			return LoadMidiFile(Filelist[index].path);
+			return await LoadMidiFile(Filelist[index].path);
 		}
 
-		internal static MidiFile LoadMidiFile(string filePath)
+		internal static async Task<MidiFile> LoadMidiFile(string filePath)
 		{
 			PluginLog.Log($"-> {filePath} START");
 			MidiFile loaded = null;
-			try
+			await Task.Run(() =>
 			{
-				using (var f = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+				try
 				{
-					loaded = MidiFile.Read(f, readingSettings);
-					//PluginLog.Log(f.Name);
-					//PluginLog.LogDebug($"{loaded.OriginalFormat}, {loaded.TimeDivision}, Duration: {loaded.GetDuration<MetricTimeSpan>().Hours:00}:{loaded.GetDuration<MetricTimeSpan>().Minutes:00}:{loaded.GetDuration<MetricTimeSpan>().Seconds:00}:{loaded.GetDuration<MetricTimeSpan>().Milliseconds:000}");
-					//foreach (var chunk in loaded.Chunks) PluginLog.LogDebug($"{chunk}");
-
-					try
+					using (var f = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 					{
-						var chordStopwatch = Stopwatch.StartNew();
-						loaded.ProcessChords(chord =>
+						loaded = MidiFile.Read(f, readingSettings);
+						//PluginLog.Log(f.Name);
+						//PluginLog.LogDebug($"{loaded.OriginalFormat}, {loaded.TimeDivision}, Duration: {loaded.GetDuration<MetricTimeSpan>().Hours:00}:{loaded.GetDuration<MetricTimeSpan>().Minutes:00}:{loaded.GetDuration<MetricTimeSpan>().Seconds:00}:{loaded.GetDuration<MetricTimeSpan>().Milliseconds:000}");
+						//foreach (var chunk in loaded.Chunks) PluginLog.LogDebug($"{chunk}");
+
+						try
 						{
-							try
-							{
-								//PluginLog.Verbose($"{chord} {chord.Time} {chord.Length} {chord.Notes.Count()}");
-								var i = 0;
-								foreach (var chordNote in chord.Notes.OrderBy(j => j.NoteNumber))
-								{
-									//var starttime = chordNote.GetTimedNoteOnEvent().Time;
-									//var offtime = chordNote.GetTimedNoteOffEvent().Time;
-
-									chordNote.Time += i;
-									if (chordNote.Length - i < 0)
-									{
-										chordNote.Length = 0;
-									}
-									else
-									{
-										chordNote.Length -= i;
-									}
-
-
-									i++;
-
-									//PluginLog.Verbose($"[{i}]{chordNote} [{starttime}/{chordNote.GetTimedNoteOnEvent().Time} {offtime}/{chordNote.GetTimedNoteOffEvent().Time}]");
-								}
-							}
-							catch (Exception e)
+							var chordStopwatch = Stopwatch.StartNew();
+							loaded.ProcessChords(chord =>
 							{
 								try
 								{
-									PluginLog.Verbose($"{chord.Channel} {chord} {chord.Time} {e}");
-								}
-								catch (Exception exception)
-								{
-									PluginLog.Verbose($"error when processing a chord: {exception}");
-								}
-							}
-						}, chord => chord.Notes.Count() > 1);
-						PluginLog.Debug($"chord processing took {chordStopwatch.Elapsed.TotalMilliseconds:F3}ms");
-					}
-					catch (Exception e)
-					{
-						PluginLog.Error(e, $"error when processing chords on {filePath}");
-					}
-				}
+									//PluginLog.Verbose($"{chord} {chord.Time} {chord.Length} {chord.Notes.Count()}");
+									var i = 0;
+									foreach (var chordNote in chord.Notes.OrderBy(j => j.NoteNumber))
+									{
+										//var starttime = chordNote.GetTimedNoteOnEvent().Time;
+										//var offtime = chordNote.GetTimedNoteOffEvent().Time;
 
-				PluginLog.Log($"-> {filePath} OK!");
-			}
-			catch (Exception ex)
-			{
-				PluginLog.LogError(ex, "Failed to load file at {0}", filePath);
-				//_hasError = true;
-			}
+										chordNote.Time += i;
+										if (chordNote.Length - i < 0)
+										{
+											chordNote.Length = 0;
+										}
+										else
+										{
+											chordNote.Length -= i;
+										}
+
+
+										i++;
+
+										//PluginLog.Verbose($"[{i}]{chordNote} [{starttime}/{chordNote.GetTimedNoteOnEvent().Time} {offtime}/{chordNote.GetTimedNoteOffEvent().Time}]");
+									}
+								}
+								catch (Exception e)
+								{
+									try
+									{
+										PluginLog.Verbose($"{chord.Channel} {chord} {chord.Time} {e}");
+									}
+									catch (Exception exception)
+									{
+										PluginLog.Verbose($"error when processing a chord: {exception}");
+									}
+								}
+							}, chord => chord.Notes.Count() > 1);
+							PluginLog.Debug($"chord processing took {chordStopwatch.Elapsed.TotalMilliseconds:F3}ms");
+						}
+						catch (Exception e)
+						{
+							PluginLog.Error(e, $"error when processing chords on {filePath}");
+						}
+					}
+
+					PluginLog.Log($"-> {filePath} OK!");
+				}
+				catch (Exception ex)
+				{
+					PluginLog.LogError(ex, "Failed to load file at {0}", filePath);
+				}
+			});
 
 			return loaded;
 		}

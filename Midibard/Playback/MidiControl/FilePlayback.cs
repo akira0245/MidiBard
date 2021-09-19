@@ -187,7 +187,7 @@ namespace MidiBard
 
 		private static void Playback_Finished(object sender, EventArgs e)
 		{
-			Task.Run(() =>
+			Task.Run(async () =>
 			{
 				try
 				{
@@ -214,7 +214,7 @@ namespace MidiBard
 						case PlayMode.ListOrdered:
 							if (PlaylistManager.CurrentPlaying + 1 < PlaylistManager.Filelist.Count)
 							{
-								if (LoadPlayback(PlaylistManager.CurrentPlaying + 1, true))
+								if (await LoadPlayback(PlaylistManager.CurrentPlaying + 1, true))
 								{
 
 								}
@@ -225,14 +225,14 @@ namespace MidiBard
 						case PlayMode.ListRepeat:
 							if (PlaylistManager.CurrentPlaying + 1 < PlaylistManager.Filelist.Count)
 							{
-								if (LoadPlayback(PlaylistManager.CurrentPlaying + 1, true))
+								if (await LoadPlayback(PlaylistManager.CurrentPlaying + 1, true))
 								{
 
 								}
 							}
 							else
 							{
-								if (LoadPlayback(0, true))
+								if (await LoadPlayback(0, true))
 								{
 
 								}
@@ -257,7 +257,7 @@ namespace MidiBard
 									nexttrack = r.Next(0, PlaylistManager.Filelist.Count);
 								} while (nexttrack == PlaylistManager.CurrentPlaying);
 
-								if (LoadPlayback(nexttrack, true))
+								if (await LoadPlayback(nexttrack, true))
 								{
 
 								}
@@ -280,12 +280,12 @@ namespace MidiBard
 			});
 		}
 
-		internal static bool LoadPlayback(int index, bool startPlaying = false)
+		internal static async Task<bool> LoadPlayback(int index, bool startPlaying = false)
 		{
 			var wasPlaying = IsPlaying;
 			CurrentPlayback?.Dispose();
 			CurrentPlayback = null;
-			MidiFile midiFile = PlaylistManager.LoadMidiFile(index, out var trackName);
+			MidiFile midiFile = await PlaylistManager.LoadMidiFile(index);
 			if (midiFile == null)
 			{
 				// delete file if can't be loaded(likely to be deleted locally)

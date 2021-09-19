@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if DEBUG
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
@@ -8,6 +9,7 @@ using Dalamud.Interface;
 using Dalamud.Logging;
 using Dalamud.Memory;
 using Dalamud.Utility;
+using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Common.Configuration;
 using ImGuiNET;
@@ -433,7 +435,7 @@ namespace MidiBard
 							var variable = $"{i.Name} +{value - (long)DalamudApi.DalamudApi.SigScanner.Module.BaseAddress:X}\n{value:X} ";
 							TextUnformatted(variable);
 							SameLine();
-							if (ImGui.SmallButton($"C##{i.Name}"))
+							if (SmallButton($"C##{i.Name}"))
 							{
 								SetClipboardText(value.ToString("X"));
 							}
@@ -460,14 +462,14 @@ namespace MidiBard
 
 					for (int i = Testhooks.min; i <= Testhooks.max; i++)
 					{
-						if (ImGui.Button($"{i:00}##b{i}"))
+						if (Button($"{i:00}##b{i}"))
 						{
 							Testhooks.Instance.noteOn(i);
 						}
 
 						if ((i - Testhooks.min + 1) % 12 != 0)
 						{
-							ImGui.SameLine();
+							SameLine();
 						}
 					}
 
@@ -476,7 +478,7 @@ namespace MidiBard
 						Testhooks.Instance.noteOff();
 					}
 					Dummy(Vector2.Zero);
-					var framework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance();
+					var framework = Framework.Instance();
 					var configBase = framework->SystemConfig.CommonSystemConfig.ConfigBase;
 					var configBaseConfigCount = configBase.ConfigCount;
 					//Util.ShowObject(configBase);
@@ -511,12 +513,12 @@ namespace MidiBard
 
 			if (MidiBard.Debug)
 			{
-				if (ImGui.Begin("agentStatus"))
+				if (Begin("agentStatus"))
 				{
 					Util.ShowObject(*MidiBard.AgentPerformance.Struct);
 				}
 				End();
-				if (ImGui.Begin("agents"))
+				if (Begin("agents"))
 				{
 					//var systemConfig = &(FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->SystemConfig);
 					//var CommonSystemConfig = &(FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->SystemConfig.CommonSystemConfig);
@@ -524,12 +526,12 @@ namespace MidiBard
 					//TextUnformatted($"{(long)systemConfig:X}");
 					//TextUnformatted($"{(long)CommonSystemConfig:X}");
 					//TextUnformatted($"{(long)ConfigBase:X}");
-					ConfigModule* configModule = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->UIModule->GetConfigModule();
+					ConfigModule* configModule = Framework.Instance()->UIModule->GetConfigModule();
 					var offset = (long)Testhooks.Instance.SetoptionHook.Address - (long)Process.GetCurrentProcess().MainModule.BaseAddress;
-					ImGui.Button(offset.ToString("X")); ImGui.SameLine();
-					if (ImguiUtil.IconButton(FontAwesomeIcon.Clipboard, "c")) ImGui.SetClipboardText((offset).ToString("X"));
-					ImGui.Button(((long)configModule).ToString("X")); ImGui.SameLine();
-					if (ImguiUtil.IconButton(FontAwesomeIcon.Clipboard, "c")) ImGui.SetClipboardText(((long)configModule).ToString("X"));
+					Button(offset.ToString("X")); SameLine();
+					if (ImguiUtil.IconButton(FontAwesomeIcon.Clipboard, "c")) SetClipboardText((offset).ToString("X"));
+					Button(((long)configModule).ToString("X")); SameLine();
+					if (ImguiUtil.IconButton(FontAwesomeIcon.Clipboard, "c")) SetClipboardText(((long)configModule).ToString("X"));
 					if (InputInt("configIndex", ref configIndex))
 					{
 
@@ -555,7 +557,7 @@ namespace MidiBard
 						configValue = configValue == 1 ? 0 : 1;
 					}
 
-					ImGui.Dummy(Vector2.Zero);
+					Dummy(Vector2.Zero);
 
 					InputText("", ref filter, 10000);
 					foreach (var agentInterface in AgentManager.Instance.AgentTable)
@@ -590,3 +592,4 @@ namespace MidiBard
 		public static string filter = String.Empty;
 	}
 }
+#endif

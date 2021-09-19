@@ -16,22 +16,25 @@ namespace MidiBard
 		{
 			if (CurrentPlayback == null)
 			{
-				if (!PlaylistManager.Filelist.Any()) PluginLog.Information("empty playlist");
-				try
+				Task.Run(async () =>
 				{
-					FilePlayback.LoadPlayback(PlaylistManager.CurrentPlaying);
-				}
-				catch (Exception e)
-				{
+					if (!PlaylistManager.Filelist.Any()) PluginLog.Information("empty playlist");
 					try
 					{
-						FilePlayback.LoadPlayback(0);
+						await FilePlayback.LoadPlayback(PlaylistManager.CurrentPlaying);
 					}
-					catch (Exception exception)
+					catch (Exception e)
 					{
-						PluginLog.Error(exception, "error when getting playback.");
+						try
+						{
+							await FilePlayback.LoadPlayback(0);
+						}
+						catch (Exception exception)
+						{
+							PluginLog.Error(exception, "error when getting playback.");
+						}
 					}
-				}
+				});
 			}
 
 			try
@@ -87,45 +90,49 @@ namespace MidiBard
 			{
 				try
 				{
-					var wasplaying = IsPlaying;
-					CurrentPlayback?.Dispose();
-					CurrentPlayback = null;
-
-					switch ((PlayMode)config.PlayMode)
+					Task.Run(async () =>
 					{
-						case PlayMode.Single:
-						case PlayMode.ListOrdered:
-						case PlayMode.SingleRepeat:
-							FilePlayback.LoadPlayback(PlaylistManager.CurrentPlaying + 1);
-							break;
-						case PlayMode.ListRepeat:
-							var next = PlaylistManager.CurrentPlaying + 1;
-							next %= PlaylistManager.Filelist.Count;
-							FilePlayback.LoadPlayback(next);
-							break;
-						case PlayMode.Random:
-							var r = new Random();
-							int nextTrack;
-							do
+						var wasplaying = IsPlaying;
+						CurrentPlayback?.Dispose();
+						CurrentPlayback = null;
+
+						switch ((PlayMode)config.PlayMode)
+						{
+							case PlayMode.Single:
+							case PlayMode.ListOrdered:
+							case PlayMode.SingleRepeat:
+								await FilePlayback.LoadPlayback(PlaylistManager.CurrentPlaying + 1);
+								break;
+							case PlayMode.ListRepeat:
+								var next = PlaylistManager.CurrentPlaying + 1;
+								next %= PlaylistManager.Filelist.Count;
+								await FilePlayback.LoadPlayback(next);
+								break;
+							case PlayMode.Random:
+								var r = new Random();
+								int nextTrack;
+								do
+								{
+									nextTrack = r.Next(0, PlaylistManager.Filelist.Count);
+								} while (nextTrack == PlaylistManager.CurrentPlaying);
+
+								await FilePlayback.LoadPlayback(nextTrack);
+								break;
+						}
+
+						if (wasplaying)
+						{
+							try
 							{
-								nextTrack = r.Next(0, PlaylistManager.Filelist.Count);
-							} while (nextTrack == PlaylistManager.CurrentPlaying);
-							FilePlayback.LoadPlayback(nextTrack);
-							break;
-					}
-
-					if (wasplaying)
-					{
-						try
-						{
-							// ReSharper disable once PossibleNullReferenceException
-							CurrentPlayback.Start();
+								// ReSharper disable once PossibleNullReferenceException
+								CurrentPlayback?.Start();
+							}
+							catch (Exception e)
+							{
+								PluginLog.Error(e, "error when try playing next song.");
+							}
 						}
-						catch (Exception e)
-						{
-							PluginLog.Error(e, "error when try playing next song.");
-						}
-					}
+					});
 				}
 				catch (Exception e)
 				{
@@ -145,34 +152,37 @@ namespace MidiBard
 			{
 				try
 				{
-					var wasplaying = IsPlaying;
-
-					switch ((PlayMode)config.PlayMode)
+					Task.Run(async () =>
 					{
-						case PlayMode.Single:
-						case PlayMode.ListOrdered:
-						case PlayMode.SingleRepeat:
-							FilePlayback.LoadPlayback(PlaylistManager.CurrentPlaying - 1);
-							break;
-						case PlayMode.Random:
-						case PlayMode.ListRepeat:
-							var next = PlaylistManager.CurrentPlaying - 1;
-							if (next < 0) next = PlaylistManager.Filelist.Count - 1;
-							FilePlayback.LoadPlayback(next);
-							break;
-					}
+						var wasplaying = IsPlaying;
 
-					if (wasplaying)
-					{
-						try
+						switch ((PlayMode)config.PlayMode)
 						{
-							CurrentPlayback.Start();
+							case PlayMode.Single:
+							case PlayMode.ListOrdered:
+							case PlayMode.SingleRepeat:
+								await FilePlayback.LoadPlayback(PlaylistManager.CurrentPlaying - 1);
+								break;
+							case PlayMode.Random:
+							case PlayMode.ListRepeat:
+								var next = PlaylistManager.CurrentPlaying - 1;
+								if (next < 0) next = PlaylistManager.Filelist.Count - 1;
+								await FilePlayback.LoadPlayback(next);
+								break;
 						}
-						catch (Exception e)
+
+						if (wasplaying)
 						{
-							PluginLog.Error(e, "error when try playing next song.");
+							try
+							{
+								CurrentPlayback.Start();
+							}
+							catch (Exception e)
+							{
+								PluginLog.Error(e, "error when try playing next song.");
+							}
 						}
-					}
+					});
 				}
 				catch (Exception e)
 				{
@@ -196,10 +206,13 @@ namespace MidiBard
 			PlaylistManager.CurrentPlaying = number;
 			try
 			{
-				var wasplaying = IsPlaying;
-				FilePlayback.LoadPlayback(PlaylistManager.CurrentPlaying);
-				if (wasplaying && startPlaying)
-					CurrentPlayback?.Start();
+				Task.Run(async () =>
+				{
+					var wasplaying = IsPlaying;
+					await FilePlayback.LoadPlayback(PlaylistManager.CurrentPlaying);
+					if (wasplaying && startPlaying)
+						CurrentPlayback?.Start();
+				});
 			}
 			catch (Exception e)
 			{

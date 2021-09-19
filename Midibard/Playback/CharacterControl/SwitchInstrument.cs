@@ -17,7 +17,7 @@ namespace MidiBard
 	static class SwitchInstrument
 	{
 		public static uint? WantSwitchInstrument { get; set; }
-		public static async Task<bool> CoroutineSwitchTo(uint instrumentId, int timeOut = 3000)
+		public static async Task<bool> CoroutineSwitchTo(uint instrumentId, int timeOut = 5000)
 		{
 			if (MidiBard.CurrentInstrument == instrumentId) return true;
 			var playing = MidiBard.IsPlaying;
@@ -31,7 +31,7 @@ namespace MidiBard
 			if (await Coroutine.Wait(timeOut, () => MidiBard.CurrentInstrument == 0))
 			{
 				MidiBard.DoPerformAction(OffsetManager.Instance.PerformInfos, instrumentId);
-				if (await Coroutine.Wait(timeOut, () => MidiBard.CurrentInstrument == instrumentId))
+				if (await Coroutine.Wait(timeOut - (int)sw.ElapsedMilliseconds, () => MidiBard.CurrentInstrument == instrumentId))
 				{
 					PluginLog.Debug($"instrument switch succeed in {sw.Elapsed.TotalMilliseconds} ms");
 					if (playing) MidiBard.CurrentPlayback?.Start();

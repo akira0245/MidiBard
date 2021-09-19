@@ -37,7 +37,7 @@ namespace MidiBard
 					return false;
 				case NoteOnEvent noteOnEvent:
 					{
-						PluginLog.Verbose($"[NoteOnEvent] [{trackIndex}:{noteOnEvent.Channel}] {noteOnEvent.NoteNumber,-3}");
+						//PluginLog.Verbose($"[NoteOnEvent] [{trackIndex}:{noteOnEvent.Channel}] {noteOnEvent.NoteNumber,-3}");
 
 						if (MidiBard.PlayingGuitar && MidiBard.config.OverrideGuitarTones)
 						{
@@ -75,6 +75,7 @@ namespace MidiBard
 
 						if (noteNum is < 0 or > 36) return false;
 
+#if DEBUG
 						if (Testhooks.Instance.playnoteHook.IsEnabled)
 						{
 							Testhooks.Instance.noteOff();
@@ -82,6 +83,7 @@ namespace MidiBard
 							return true;
 						}
 						else
+#endif
 						{
 							unsafe
 							{
@@ -91,12 +93,14 @@ namespace MidiBard
 					}
 				case NoteOffEvent noteOffEvent:
 					{
-						PluginLog.Verbose($"[NoteOffEvent] [{trackIndex}:{noteOffEvent.Channel}] {noteOffEvent.NoteNumber,-3}");
+						//PluginLog.Verbose($"[NoteOffEvent] [{trackIndex}:{noteOffEvent.Channel}] {noteOffEvent.NoteNumber,-3}");
+#if DEBUG
 						if (Testhooks.Instance.playnoteHook.IsEnabled)
 						{
 							Testhooks.Instance.noteOff();
 							return true;
 						}
+#endif
 						var noteNum = noteOffEvent.NoteNumber - 48 +
 									  MidiBard.config.TransposeGlobal +
 									  (MidiBard.config.EnableTransposePerTrack ? MidiBard.config.TransposePerTrack[trackIndex] : 0);
