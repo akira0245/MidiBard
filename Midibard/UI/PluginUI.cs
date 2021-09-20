@@ -22,7 +22,7 @@ namespace MidiBard
 		public bool IsVisible;
 
 		private static string searchstring = "";
-		
+
 		public unsafe void Draw()
 		{
 			if (!IsVisible)
@@ -46,10 +46,10 @@ namespace MidiBard
 				//	isListeningForEvents ? " - Listening Events" : string.Empty);
 				var flag = config.miniPlayer ? ImGuiWindowFlags.NoDecoration : ImGuiWindowFlags.None;
 				ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(5, 5));
-				ImGui.SetNextWindowSizeConstraints(new Vector2(ImGui.GetIO().FontGlobalScale*357, 0),new Vector2(ImGui.GetIO().FontGlobalScale*357, float.MaxValue));
+				ImGui.SetNextWindowSizeConstraints(new Vector2(ImGui.GetIO().FontGlobalScale * 357, 0), new Vector2(ImGui.GetIO().FontGlobalScale * 357, float.MaxValue));
 #if DEBUG
 				if (ImGui.Begin($"MidiBard - {DalamudApi.DalamudApi.ClientState.LocalPlayer?.Name.TextValue} PID{Process.GetCurrentProcess().Id}###MIDIBARD", ref IsVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | flag))
-					#else
+#else
 				if (ImGui.Begin("MidiBard###MIDIBARD", ref IsVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | flag))
 #endif
 				{

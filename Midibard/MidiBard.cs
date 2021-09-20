@@ -162,7 +162,7 @@ namespace MidiBard
 		{
 			PluginLog.Debug($"command: {command}, {args}");
 
-			var argStrings = args.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Select(i => i.Trim()).ToList();
+			var argStrings = args.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
 			if (argStrings.Any())
 			{
 				if (argStrings[0] == "perform")
@@ -172,30 +172,15 @@ namespace MidiBard
 						var instrumentInput = argStrings[1];
 						if (instrumentInput == "cancel")
 						{
-							PerformActions.DoPerformAction(OffsetManager.Instance.PerformInfos, 0);
+							PerformActions.DoPerformAction(0);
 						}
-						else
+						else if (uint.TryParse(instrumentInput, out var id1) && id1 < InstrumentStrings.Length)
 						{
-							if (uint.TryParse(instrumentInput, out var instrumentId) && instrumentId < InstrumentStrings.Length)
-							{
-								//Task.Run(async () => await SwitchInstrument.SwitchTo(instrumentId));
-								SwitchInstrument.SwitchToContinue(instrumentId);
-							}
-							else
-							{
-								//Perform possibleInstrumentName = InstrumentSheet.FirstOrDefault(i => i.Instrument?.RawString.ToLowerInvariant() == instrumentInput);
-								//Perform possibleGMName = InstrumentSheet.FirstOrDefault(i => i.Name.RawString.ToLowerInvariant().Contains(instrumentInput));
-
-								//var possibleInstrument = possibleInstrumentName ?? possibleGMName;
-								//if (possibleInstrument != null)
-								//{
-								//	Task.Run(async () => await SwitchInstrument.SwitchTo(possibleInstrument.RowId));
-								//}
-								//else
-								//{
-								//	throw new ArgumentException();
-								//}
-							}
+							SwitchInstrument.SwitchToContinue(id1);
+						}
+						else if (SwitchInstrument.TryParseInstrumentName(instrumentInput, out var id2))
+						{
+							SwitchInstrument.SwitchToContinue(id2);
 						}
 					}
 					catch (Exception e)

@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Logging;
 using Lumina.Excel.GeneratedSheets;
 using MidiBard.Managers;
@@ -45,14 +46,15 @@ namespace MidiBard.Control.CharacterControl
 			{
 				if (MidiBard.CurrentInstrument != 0)
 				{
-					PerformActions.DoPerformAction(OffsetManager.Instance.PerformInfos, 0);
+					PerformActions.DoPerformAction(0);
 					await Util.Coroutine.WaitUntil(() => MidiBard.CurrentInstrument == 0, timeOut);
 				}
 
-				PerformActions.DoPerformAction(OffsetManager.Instance.PerformInfos, instrumentId);
+				PerformActions.DoPerformAction(instrumentId);
 				await Util.Coroutine.WaitUntil(() => MidiBard.CurrentInstrument == instrumentId, timeOut);
 				await Task.Delay(200);
 				PluginLog.Debug($"instrument switching succeed in {sw.Elapsed.TotalMilliseconds} ms");
+				DalamudApi.DalamudApi.PluginInterface.UiBuilder.AddNotification($"Switched to {MidiBard.InstrumentStrings[instrumentId]}", "MidiBard", NotificationType.Success, 5000);
 			}
 			catch (Exception e)
 			{
@@ -65,7 +67,7 @@ namespace MidiBard.Control.CharacterControl
 		}
 
 		static Regex regex = new Regex(@"^#(.*?)([-|+][0-9]+)?#", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-		static void GetInstrumentIdFromString(string inputString, out uint? instrumentId, out int? transpose)
+		static void ParseTrackName(string inputString, out uint? instrumentId, out int? transpose)
 		{
 			var match = regex.Match(inputString);
 			if (match.Success)
@@ -75,16 +77,7 @@ namespace MidiBard.Control.CharacterControl
 
 				PluginLog.Debug($"input: \"{inputString}\", instrumentString: {capturedInstrumentString}, transposeString: {capturedTransposeString}");
 				transpose = int.TryParse(capturedTransposeString, out var t) ? t : null;
-
-				Perform equal = MidiBard.InstrumentSheet.FirstOrDefault(i =>
-					i?.Instrument?.RawString.Equals(capturedInstrumentString, StringComparison.InvariantCultureIgnoreCase) == true);
-				Perform contains = MidiBard.InstrumentSheet.FirstOrDefault(i =>
-					i?.Instrument?.RawString?.ContainsIgnoreCase(capturedInstrumentString) == true);
-				Perform gmName = MidiBard.InstrumentSheet.FirstOrDefault(i =>
-					i?.Name?.RawString?.ContainsIgnoreCase(capturedInstrumentString) == true);
-
-				instrumentId = (equal ?? contains ?? gmName)?.RowId;
-				PluginLog.Debug($"equal: {equal?.Instrument?.RawString}, contains: {contains?.Instrument?.RawString}, gmName: {gmName?.Name?.RawString} finalId: {instrumentId}");
+				instrumentId = TryParseInstrumentName(capturedInstrumentString, out var id) ? id : null;
 				return;
 			}
 
@@ -92,9 +85,32 @@ namespace MidiBard.Control.CharacterControl
 			transpose = null;
 		}
 
+		public static bool TryParseInstrumentName(string capturedInstrumentString, out uint instrumentId)
+		{
+			Perform equal = MidiBard.InstrumentSheet.FirstOrDefault(i =>
+				i?.Instrument?.RawString.Equals(capturedInstrumentString, StringComparison.InvariantCultureIgnoreCase) == true);
+			Perform contains = MidiBard.InstrumentSheet.FirstOrDefault(i =>
+				i?.Instrument?.RawString?.ContainsIgnoreCase(capturedInstrumentString) == true);
+			Perform gmName = MidiBard.InstrumentSheet.FirstOrDefault(i =>
+				i?.Name?.RawString?.ContainsIgnoreCase(capturedInstrumentString) == true);
+
+			var rowId = (equal ?? contains ?? gmName)?.RowId;
+			PluginLog.Debug($"equal: {equal?.Instrument?.RawString}, contains: {contains?.Instrument?.RawString}, gmName: {gmName?.Name?.RawString} finalId: {rowId}");
+			if (rowId is null)
+			{
+				instrumentId = 0;
+				return false;
+			}
+			else
+			{
+				instrumentId = rowId.Value;
+				return true;
+			}
+		}
+
 		internal static async Task WaitSwitchInstrumentForSong(string trackName)
 		{
-			GetInstrumentIdFromString(trackName, out var instrumentId, out var transpose);
+			ParseTrackName(trackName, out var instrumentId, out var transpose);
 
 			if (MidiBard.config.autoSwitchInstrumentByFileName && instrumentId != null)
 			{
