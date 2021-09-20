@@ -1,25 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Dalamud.Logging;
-using Dalamud.Plugin;
-using Melanchall.DryWetMidi.Common;
-using Melanchall.DryWetMidi.Composing;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Interaction;
-using Melanchall.DryWetMidi.MusicTheory;
 using Melanchall.DryWetMidi.Standards;
-using MidiBard.Managers.Agents;
+using MidiBard.Control.CharacterControl;
+using MidiBard.Control.MidiControl.PlaybackInstance;
 using static MidiBard.MidiBard;
-using Note = Melanchall.DryWetMidi.Interaction.Note;
 
-namespace MidiBard
+namespace MidiBard.Control.MidiControl
 {
 	public static class FilePlayback
 	{
@@ -27,52 +21,61 @@ namespace MidiBard
 
 		public static BardPlayback GetFilePlayback(MidiFile midifile, string trackName)
 		{
+			var stopwatch = Stopwatch.StartNew();
+			PluginLog.Debug($"[LoadPlayback] -> {trackName} START");
 			try
 			{
 				CurrentTMap = midifile.GetTempoMap();
 			}
 			catch (Exception e)
 			{
-				PluginLog.Error("error when getting file TempoMap, using default TempoMap instead.");
+				PluginLog.Error("[LoadPlayback] error when getting file TempoMap, using default TempoMap instead.");
 				CurrentTMap = TempoMap.Default;
 			}
 
 			try
 			{
 				CurrentTracks = midifile.GetTrackChunks()
-				  .Where(i => i.GetNotes().Any())
-				  .Select(i =>
-				  {
-					  var notes = i.GetNotes()
-			  .ToList();
-					  var notesCount = notes.Count;
-					  var notesHighest = notes.MaxElement(j => (int)j.NoteNumber);
-					  var notesLowest = notes.MinElement(j => (int)j.NoteNumber);
+					.Where(i => i.GetNotes().Any())
+					.Select(i =>
+					{
+						var notes = i.GetNotes()
+							.ToList();
+						var notesCount = notes.Count;
+						var notesHighest = notes.MaxElement(j => (int)j.NoteNumber);
+						var notesLowest = notes.MinElement(j => (int)j.NoteNumber);
 
-					  return (i, new TrackInfo
-					  {
-						  TrackNameEventsText = i.Events.OfType<SequenceTrackNameEvent>().Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct(),
-						  TextEventsText = i.Events.OfType<TextEvent>().Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct(),
-						  ProgramChangeEvent = i.Events.OfType<ProgramChangeEvent>().Select(j => $"channel {j.Channel}, {(GeneralMidiProgram)(byte)j.ProgramNumber}").Distinct(),
-						  HighestNote = notesHighest,
-						  LowestNote = notesLowest,
-						  NoteCount = notesCount,
-						  Duration = i.GetTimedEvents().LastOrDefault(e => e.Event is NoteOffEvent)?.TimeAs<MetricTimeSpan>(CurrentTMap) ?? new MetricTimeSpan()
-					  });
-				  }).ToList();
+						return (i, new TrackInfo
+						{
+							TrackNameEventsText = i.Events.OfType<SequenceTrackNameEvent>()
+								.Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct(),
+							TextEventsText = i.Events.OfType<TextEvent>()
+								.Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct(),
+							ProgramChangeEvent = i.Events.OfType<ProgramChangeEvent>().Select(j =>
+								$"channel {j.Channel}, {(GeneralMidiProgram)(byte)j.ProgramNumber}").Distinct(),
+							HighestNote = notesHighest,
+							LowestNote = notesLowest,
+							NoteCount = notesCount,
+							Duration = i.GetTimedEvents().LastOrDefault(e => e.Event is NoteOffEvent)
+								?.TimeAs<MetricTimeSpan>(CurrentTMap) ?? new MetricTimeSpan()
+						});
+					}).ToList();
 			}
 			catch (Exception exception1)
 			{
-				PluginLog.Error($"error when parsing tracks, falling back to generated MidiEvent playback. \n{exception1}");
+				PluginLog.Warning(
+					$"[LoadPlayback] error when parsing tracks, falling back to generated MidiEvent playback. \n{exception1}");
 
 				try
 				{
-					PluginLog.Debug($"file.Chunks.Count {midifile.Chunks.Count}");
+					PluginLog.Debug($"[LoadPlayback] file.Chunks.Count {midifile.Chunks.Count}");
 					var trackChunks = midifile.GetTrackChunks().ToList();
-					PluginLog.Debug($"file.GetTrackChunks.Count {trackChunks.Count}");
-					PluginLog.Debug($"file.GetTrackChunks.First {trackChunks.First()}");
-					PluginLog.Debug($"file.GetTrackChunks.Events.Count {trackChunks.First().Events.Count}");
-					PluginLog.Debug($"file.GetTrackChunks.Events.OfType<NoteEvent>.Count {trackChunks.First().Events.OfType<NoteEvent>().Count()}");
+					PluginLog.Debug($"[LoadPlayback] file.GetTrackChunks.Count {trackChunks.Count}");
+					PluginLog.Debug($"[LoadPlayback] file.GetTrackChunks.First {trackChunks.First()}");
+					PluginLog.Debug(
+						$"[LoadPlayback] file.GetTrackChunks.Events.Count {trackChunks.First().Events.Count}");
+					PluginLog.Debug(
+						$"[LoadPlayback] file.GetTrackChunks.Events.OfType<NoteEvent>.Count {trackChunks.First().Events.OfType<NoteEvent>().Count()}");
 
 					CurrentTracks = trackChunks.Select(i =>
 					{
@@ -84,9 +87,12 @@ namespace MidiBard
 						var trackChunk = new TrackChunk(i.Events.OfType<NoteEvent>());
 						return (trackChunk, new TrackInfo
 						{
-							TrackNameEventsText = i.Events.OfType<SequenceTrackNameEvent>().Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct(),
-							TextEventsText = i.Events.OfType<TextEvent>().Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct(),
-							ProgramChangeEvent = i.Events.OfType<ProgramChangeEvent>().Select(j => $"{j.Channel} {(GeneralMidiProgram)(byte)j.ProgramNumber}").Distinct(),
+							TrackNameEventsText = i.Events.OfType<SequenceTrackNameEvent>()
+								.Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct(),
+							TextEventsText = i.Events.OfType<TextEvent>()
+								.Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct(),
+							ProgramChangeEvent = i.Events.OfType<ProgramChangeEvent>()
+								.Select(j => $"{j.Channel} {(GeneralMidiProgram)(byte)j.ProgramNumber}").Distinct(),
 							HighestNote = notesHighest,
 							LowestNote = notesLowest,
 							NoteCount = notesCount
@@ -95,7 +101,7 @@ namespace MidiBard
 				}
 				catch (Exception exception2)
 				{
-					PluginLog.Error(exception2, "still errors? check your file");
+					PluginLog.Error(exception2, "[LoadPlayback] still errors? check your file");
 					throw;
 				}
 			}
@@ -117,62 +123,20 @@ namespace MidiBard
 			//}
 
 			var timedEvents = CurrentTracks.Select(i => i.Item1)
-		.SelectMany((chunk, index) => chunk.GetTimedEvents().Select(e => new TimedEventWithTrackChunkIndex(e.Event, e.Time, index)))
-		.OrderBy(e => e.Time);
+				.SelectMany((chunk, index) => chunk.GetTimedEvents()
+					.Select(e => new TimedEventWithTrackChunkIndex(e.Event, e.Time, index)))
+				.OrderBy(e => e.Time);
 
 
 			var playback = new BardPlayback(timedEvents, CurrentTMap, new MidiClockSettings())
 			{
 				InterruptNotesOnStop = true,
-				Speed = config.playSpeed
+				Speed = config.playSpeed,
+				TrackNotes = true
 			};
 
-			if (config.autoTransposeByFileName)
-			{
-				var match = regex.Match(trackName);
-
-				if (match.Success && int.TryParse(match.Groups[1].Value, out var demandedNoteOffset))
-				{
-					PluginLog.Debug($"DemandedNoteOffset: {demandedNoteOffset}");
-					config.TransposeGlobal = demandedNoteOffset;
-				}
-				else
-				{
-					//config.NoteNumberOffset = 0;
-				}
-
-				playback.Finished += (sender, args) =>
-				{
-					switch ((PlayMode)config.PlayMode)
-					{
-						case PlayMode.Single:
-							break;
-
-						case PlayMode.SingleRepeat:
-							break;
-
-						case PlayMode.ListOrdered:
-							if (match.Success)
-								config.TransposeGlobal = 0;
-							break;
-
-						case PlayMode.ListRepeat:
-							if (match.Success)
-								config.TransposeGlobal = 0;
-							break;
-
-						case PlayMode.Random:
-							if (match.Success)
-								config.TransposeGlobal = 0;
-							break;
-
-						default:
-							throw new ArgumentOutOfRangeException();
-					}
-				};
-			}
-
 			playback.Finished += Playback_Finished;
+			PluginLog.Debug($"[LoadPlayback] -> {trackName} OK! in {stopwatch.Elapsed.TotalMilliseconds} ms");
 
 			return playback;
 		}
@@ -289,19 +253,27 @@ namespace MidiBard
 			if (midiFile == null)
 			{
 				// delete file if can't be loaded(likely to be deleted locally)
+				PluginLog.Debug($"[LoadPlayback] removing {PlaylistManager.Filelist[index].path}");
 				PlaylistManager.Filelist.RemoveAt(index);
 				return false;
 			}
 			else
 			{
-				CurrentPlayback = GetFilePlayback(midiFile, PlaylistManager.Filelist[index].trackName);
+				CurrentPlayback = await Task.Run(() => GetFilePlayback(midiFile, PlaylistManager.Filelist[index].trackName));
 				PlaylistManager.CurrentPlaying = index;
-				//Task.Run(async () =>
-				//{
-				//	await SwitchInstrument.WaitSwitchInstrumentForSong(PlaylistManager.Filelist[index].trackName);
+				try
+				{
+					var trackName = PlaylistManager.Filelist[index].trackName;
+					await SwitchInstrument.WaitSwitchInstrumentForSong(trackName);
+				}
+				catch (Exception e)
+				{
+					PluginLog.Warning(e.ToString());
+				}
 				if (wasPlaying || startPlaying) CurrentPlayback?.Start();
-				//});
 				return true;
+
+
 			}
 		}
 

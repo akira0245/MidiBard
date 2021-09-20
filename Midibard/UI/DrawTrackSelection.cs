@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
-using static MidiBard.ImguiUtil;
+using static MidiBard.ImGuiUtil;
 
 namespace MidiBard
 {

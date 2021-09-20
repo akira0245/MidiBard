@@ -9,7 +9,6 @@ using Dalamud.Logging;
 
 namespace MidiBard.Managers
 {
-	[SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Local")]
 	public class OffsetManager
 	{
 		[StaticAddress("48 8D 05 ?? ?? ?? ?? 48 89 03 48 8D 4B 40")]

@@ -25,9 +25,6 @@
     <PackageReference Include="Melanchall.DryWetMidi" Version="5.2.1" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Buddy.Coroutines">
-      <HintPath>..\lib\Buddy.Coroutines.dll</HintPath>
-    </Reference>
     <Reference Include="Dalamud">
       <HintPath>..\..\..\..\Downloads\Compressed\dalamud-artifactbuild\dalamud-artifact\Dalamud.dll</HintPath>
     </Reference>

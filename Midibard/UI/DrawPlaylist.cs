@@ -2,7 +2,8 @@
 using System.Numerics;
 using Dalamud.Interface;
 using ImGuiNET;
-using static MidiBard.ImguiUtil;
+using MidiBard.Control.MidiControl;
+using static MidiBard.ImGuiUtil;
 
 namespace MidiBard
 {

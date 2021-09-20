@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using Buddy.Coroutines;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Logging;
 using Dalamud.Plugin;
@@ -20,6 +19,9 @@ using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.MusicTheory;
+using MidiBard.Control;
+using MidiBard.Control.CharacterControl;
+using MidiBard.Control.MidiControl;
 using MidiBard.DalamudApi;
 using MidiBard.Managers;
 using MidiBard.Managers.Agents;
@@ -54,8 +56,7 @@ namespace MidiBard
 		internal static ExcelSheet<Perform> InstrumentSheet { get; set; }
 		internal static string[] InstrumentStrings { get; set; }
 
-		internal delegate void DoPerformActionDelegate(IntPtr performInfoPtr, uint instrumentId, int a3 = 0);
-		internal static DoPerformActionDelegate DoPerformAction { get; set; }
+
 
 		internal static byte InstrumentOffset;
 		internal static byte CurrentInstrument => Marshal.ReadByte(OffsetManager.Instance.PerformInfos + 3 + InstrumentOffset);
@@ -84,7 +85,6 @@ namespace MidiBard
 
 			AgentMetronome = new AgentMetronome(AgentManager.Instance.FindAgentInterfaceByVtable(OffsetManager.Instance.MetronomeAgent));
 			AgentPerformance = new AgentPerformance(AgentManager.Instance.FindAgentInterfaceByVtable(OffsetManager.Instance.PerformanceAgent));
-			DoPerformAction = Marshal.GetDelegateForFunctionPointer<DoPerformActionDelegate>(OffsetManager.Instance.DoPerformAction);
 			InstrumentOffset = Marshal.ReadByte(OffsetManager.Instance.InstrumentOffset);
 
 			InstrumentSheet = DataManager.Excel.GetSheet<Perform>();
@@ -105,21 +105,23 @@ namespace MidiBard
 			if (PluginInterface.IsDev) Ui.IsVisible = true;
 		}
 
-
 		private void Tick(Dalamud.Game.Framework framework)
 		{
-			ExecuteCoroutine();
-
 			if (config.AutoOpenPlayerWhenPerforming)
-			{
-				if (AgentPerformance.InPerformanceMode)
-				{
-					if (!Ui.IsVisible)
-					{
-						Ui.IsVisible = true;
-					}
-				}
-			}
+				PerformanceEvents.Instance.InPerformanceMode = AgentPerformance.InPerformanceMode;
+
+			//ExecuteCoroutine();
+
+			//if (config.AutoOpenPlayerWhenPerforming)
+			//{
+			//	if (AgentPerformance.InPerformanceMode)
+			//	{
+			//		if (!Ui.IsVisible)
+			//		{
+			//			Ui.IsVisible = true;
+			//		}
+			//	}
+			//}
 
 			if (Ui.IsVisible)
 			{
@@ -145,47 +147,18 @@ namespace MidiBard
 			}
 		}
 
-		private async Task<bool> AsyncRoot()
-		{
-			if (SwitchInstrument.WantSwitchInstrument is { } id)
-			{
-				SwitchInstrument.WantSwitchInstrument = null;
-				return await SwitchInstrument.CoroutineSwitchTo(id);
-			}
-
-			return false;
-		}
-
-		private Coroutine coroutine;
-		private void ExecuteCoroutine()
-		{
-			if (coroutine == null || coroutine.IsFinished)
-			{
-				coroutine = new Coroutine(AsyncRoot);
-			}
-
-			try
-			{
-				coroutine.Resume();
-			}
-			catch (CoroutineException ex)
-			{
-				PluginLog.Error(ex.ToString());
-			}
-		}
-
 		[Command("/midibard")]
 		[HelpMessage("Toggle MidiBard window.")]
 		public void Command1(string command, string args) => OnCommand(command, args);
 
 		[Command("/mbard")]
-		[HelpMessage("Toggle MidiBard window.\n/mbard perform <instrument name/instrument ID> → Switch to specified instrument.\n/mbard perform cancel → Quit performance mode.\n/mbard <play/pause/playpause/stop/next/last> → Player control.")]
+		[HelpMessage("Toggle MidiBard window.\n/mbard perform <instrument name/instrument ID> → Switch to specified instrument.\n/mbard perform cancel → Quit performance mode.\n/mbard <play/pause/playpause/stop/next/prev> → Player control.")]
 		public void Command2(string command, string args)
 		{
 			OnCommand(command, args);
 		}
 
-		void OnCommand(string command, string args)
+		async Task OnCommand(string command, string args)
 		{
 			PluginLog.Debug($"command: {command}, {args}");
 
@@ -199,14 +172,14 @@ namespace MidiBard
 						var instrumentInput = argStrings[1];
 						if (instrumentInput == "cancel")
 						{
-							DoPerformAction(OffsetManager.Instance.PerformInfos, 0);
+							PerformActions.DoPerformAction(OffsetManager.Instance.PerformInfos, 0);
 						}
 						else
 						{
 							if (uint.TryParse(instrumentInput, out var instrumentId) && instrumentId < InstrumentStrings.Length)
 							{
 								//Task.Run(async () => await SwitchInstrument.SwitchTo(instrumentId));
-								SwitchInstrument.WantSwitchInstrument = instrumentId;
+								SwitchInstrument.SwitchToContinue(instrumentId);
 							}
 							else
 							{
@@ -257,9 +230,9 @@ namespace MidiBard
 					MidiPlayerControl.Next();
 				}
 
-				else if (argStrings[0] == "last")
+				else if (argStrings[0] == "prev")
 				{
-					MidiPlayerControl.Last();
+					MidiPlayerControl.Prev();
 				}
 			}
 			else
@@ -303,7 +276,6 @@ namespace MidiBard
 			Framework.Update -= Tick;
 			PluginInterface.UiBuilder.Draw -= Ui.Draw;
 
-			coroutine.Dispose();
 			EnsembleManager.Instance.Dispose();
 			NetworkManager.Instance.Dispose();
 			InputDeviceManager.DisposeDevice();

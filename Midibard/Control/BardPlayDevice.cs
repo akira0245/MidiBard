@@ -1,16 +1,12 @@
 ﻿using System;
-using System.Linq;
 using Dalamud.Logging;
-using Dalamud.Plugin;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Devices;
-using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.Standards;
 using MidiBard.Managers;
-using MidiBard.Managers.Agents;
 using playlibnamespace;
 
-namespace MidiBard
+namespace MidiBard.Control
 {
 	class BardPlayDevice : IOutputDevice
 	{
@@ -42,11 +38,14 @@ namespace MidiBard
 						if (MidiBard.PlayingGuitar && MidiBard.config.OverrideGuitarTones)
 						{
 							playlib.GuitarSwitchTone(MidiBard.config.TonesPerTrack[trackIndex]);
+							unsafe
+							{
+								//MidiBard.AgentPerformance.Struct->GroupTone = MidiBard.config.TonesPerTrack[trackIndex];
+							}
 						}
 
-						var noteNum = noteOnEvent.NoteNumber - 48 +
-									  MidiBard.config.TransposeGlobal +
-									  (MidiBard.config.EnableTransposePerTrack ? MidiBard.config.TransposePerTrack[trackIndex] : 0);
+						var noteNum = GetTransposedNoteNum(noteOnEvent.NoteNumber, trackIndex);
+
 						var adaptedOctave = 0;
 						if (MidiBard.config.AdaptNotesOOR)
 						{
@@ -62,7 +61,7 @@ namespace MidiBard
 							}
 						}
 
-						var s = $"[{trackIndex}:{noteOnEvent.Channel}] {noteOnEvent.GetNoteName().ToString().Replace("Sharp", "#")}{noteOnEvent.GetNoteOctave()} ({noteNum})";
+						var s = $"[DW][{trackIndex}:{noteOnEvent.Channel}] {noteOnEvent.GetNoteName().ToString().Replace("Sharp", "#")}{noteOnEvent.GetNoteOctave()} ({noteNum})";
 						if (noteNum < 0 || noteNum > 36)
 						{
 							s += "(out of range)";
@@ -87,6 +86,13 @@ namespace MidiBard
 						{
 							unsafe
 							{
+								if (MidiBard.InstrumentSheet.GetRow(MidiBard.CurrentInstrument)?.Unknown1 == true && MidiBard.AgentPerformance.noteNumber - 39 == noteNum)
+								{
+									// release repeated note in order to press it again
+									PluginLog.Verbose($"[UP][{trackIndex}:{noteOnEvent.Channel}] {noteOnEvent.GetNoteName().ToString().Replace("Sharp", "#")}{noteOnEvent.GetNoteOctave()} ({noteNum})");
+									playlib.ReleaseKey(noteNum);
+								}
+
 								return playlib.PressKey(noteNum, ref MidiBard.AgentPerformance.Struct->NoteOffset, ref MidiBard.AgentPerformance.Struct->OctaveOffset);
 							}
 						}
@@ -101,9 +107,7 @@ namespace MidiBard
 							return true;
 						}
 #endif
-						var noteNum = noteOffEvent.NoteNumber - 48 +
-									  MidiBard.config.TransposeGlobal +
-									  (MidiBard.config.EnableTransposePerTrack ? MidiBard.config.TransposePerTrack[trackIndex] : 0);
+						var noteNum = GetTransposedNoteNum(noteOffEvent.NoteNumber, trackIndex);
 
 						if (MidiBard.config.AdaptNotesOOR)
 						{
@@ -117,11 +121,35 @@ namespace MidiBard
 							}
 						}
 						if (noteNum is < 0 or > 36) return false;
-						return playlib.ReleaseKey(noteNum);
+						if (MidiBard.InstrumentSheet.GetRow(MidiBard.CurrentInstrument)?.Unknown1 == true)
+						{
+							if (MidiBard.AgentPerformance.noteNumber - 39 == noteNum)
+							{
+								// only release it when a key been pressing
+								//if (MidiBard.config.lazyNoteRelease)
+								PluginLog.Verbose($"[UP][{trackIndex}:{noteOffEvent.Channel}] {noteOffEvent.GetNoteName().ToString().Replace("Sharp", "#")}{noteOffEvent.GetNoteOctave()} ({noteNum})");
+								return playlib.ReleaseKey(noteNum);
+							}
+							else
+							{
+								return false;
+							}
+						}
+						else
+						{
+							PluginLog.Verbose($"[UP][{trackIndex}:{noteOffEvent.Channel}] {noteOffEvent.GetNoteName().ToString().Replace("Sharp", "#")}{noteOffEvent.GetNoteOctave()} ({noteNum})");
+							return playlib.ReleaseKey(noteNum);
+						}
 					}
-				default:
-					return false;
 			}
+			return false;
+		}
+
+		private static int GetTransposedNoteNum(int rawNoteNumber, int trackIndex)
+		{
+			return rawNoteNumber - 48 +
+				   MidiBard.config.TransposeGlobal +
+				   (MidiBard.config.EnableTransposePerTrack ? MidiBard.config.TransposePerTrack[trackIndex] : 0);
 		}
 
 		//bool GetKey( ,int midiNoteNumber, int trackIndex, out int key, out int octave)
@@ -145,13 +173,13 @@ namespace MidiBard
 		//		}
 		//	}
 
-			
+
 		//}
 
 
 		public void SendEvent(MidiEvent midiEvent)
 		{
-			SendEventWithMetadata(midiEvent, 99);
+			SendEventWithMetadata(midiEvent, 0);
 		}
 
 		public event EventHandler<MidiEventSentEventArgs> EventSent;

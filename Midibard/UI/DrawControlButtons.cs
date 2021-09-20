@@ -3,7 +3,8 @@ using Dalamud.Interface;
 using Dalamud.Logging;
 using Dalamud.Plugin;
 using ImGuiNET;
-using static MidiBard.ImguiUtil;
+using MidiBard.Control.MidiControl;
+using static MidiBard.ImGuiUtil;
 
 namespace MidiBard
 {
@@ -95,7 +96,7 @@ namespace MidiBard
 
 			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
 			{
-				MidiPlayerControl.Last();
+				MidiPlayerControl.Prev();
 			}
 		}
 

@@ -42,9 +42,9 @@ namespace MidiBard
             zh.Add("Ensemble Mode Preparing", "合奏模式准备小节");
             zh.Add("Import midi files to start performing!", "导入一些MIDI文件来开始演奏！");
 
-            zh.Add($"tracks in playlist.", "首歌曲在播放列表中。");
+            zh.Add($"tracks in playlist.", "首乐曲在播放列表中。");
             zh.Add($"Playing: ", "正在播放：");
-            zh.Add($"track in playlist.", "首歌曲在播放列表中。");
+            zh.Add($"track in playlist.", "首乐曲在播放列表中。");
 
             zh.Add($"Playmode: ", "播放模式：");
             zh.Add("Single", "单曲播放（单曲结束后停止）");

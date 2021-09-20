@@ -13,12 +13,12 @@ namespace MidiBard
 
 		private void ButtonImport()
 		{
-			if (ImguiUtil.IconButton((FontAwesomeIcon)FontAwesomeIcon.Plus, (string)"buttonimport"))
+			if (ImGuiUtil.IconButton((FontAwesomeIcon)FontAwesomeIcon.Plus, (string)"buttonimport"))
 			{
 				RunImportTask();
 			}
 
-			ImguiUtil.ToolTip("Import midi file.".Localize());
+			ImGuiUtil.ToolTip("Import midi file.".Localize());
 		}
 
 		private void ButtonImportInProgress()

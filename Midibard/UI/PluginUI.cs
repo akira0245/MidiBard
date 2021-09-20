@@ -12,7 +12,7 @@ using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Interaction;
 using MidiBard.Managers;
 using static MidiBard.MidiBard;
-using static MidiBard.ImguiUtil;
+using static MidiBard.ImGuiUtil;
 
 namespace MidiBard
 {
@@ -157,10 +157,7 @@ namespace MidiBard
 					}
 
 #if DEBUG
-					if (DalamudApi.DalamudApi.PluginInterface.IsDev)
-					{
-						if (ImGui.Button("Debug info", new Vector2(-2, ImGui.GetFrameHeight()))) MidiBard.Debug ^= true;
-					}
+					if (ImGui.Button("Debug info", new Vector2(-2, ImGui.GetFrameHeight()))) MidiBard.Debug ^= true;
 					if (MidiBard.Debug) DrawDebugWindow();
 #endif
 
@@ -238,10 +235,6 @@ namespace MidiBard
 				"\n　点击窗口左上角的“+”按钮来将乐曲文件导入到播放列表，仅支持.mid格式的乐曲。" +
 				"\n　导入时按Ctrl或Shift可以选择多个文件一同导入。" +
 				"\n　双击播放列表中要演奏的乐曲后点击播放按钮开始演奏。\n");
-			ImGui.BulletText(
-				"为什么点击播放之后没有正常演奏？" +
-				"\n　MIDIBARD仅使用37键演奏模式。" +
-				"\n　请在游戏“乐器演奏操作设置”的“键盘操作”类别下启用“全音阶一同显示、设置按键”的选项。\n");
 			ImGui.BulletText(
 				"如何使用MIDIBARD进行多人合奏？" +
 				"\n　MIDIBARD使用游戏中的合奏助手来完成合奏，请在合奏时打开游戏的节拍器窗口。" +

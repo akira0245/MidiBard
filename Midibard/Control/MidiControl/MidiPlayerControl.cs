@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Dalamud.Logging;
-using Dalamud.Plugin;
 using Melanchall.DryWetMidi.Interaction;
+using MidiBard.Control.CharacterControl;
 using static MidiBard.MidiBard;
 
-namespace MidiBard
+namespace MidiBard.Control.MidiControl
 {
 	internal static class MidiPlayerControl
 	{
@@ -21,13 +19,13 @@ namespace MidiBard
 					if (!PlaylistManager.Filelist.Any()) PluginLog.Information("empty playlist");
 					try
 					{
-						await FilePlayback.LoadPlayback(PlaylistManager.CurrentPlaying);
+						await FilePlayback.LoadPlayback(PlaylistManager.CurrentPlaying, true);
 					}
 					catch (Exception e)
 					{
 						try
 						{
-							await FilePlayback.LoadPlayback(0);
+							await FilePlayback.LoadPlayback(0, true);
 						}
 						catch (Exception exception)
 						{
@@ -49,7 +47,7 @@ namespace MidiBard
 			catch (Exception e)
 			{
 				PluginLog.Error(e,
-					"error when try to start playing, maybe the playback has been disopsed?");
+					"error when try to start playing, maybe the playback has been disposed?");
 			}
 		}
 
@@ -61,7 +59,7 @@ namespace MidiBard
 
 		internal static void PlayPause()
 		{
-			if (CurrentPlayback?.IsRunning == false)
+			if (CurrentPlayback?.IsRunning != true)
 				Play();
 			else
 				Pause();
@@ -146,49 +144,57 @@ namespace MidiBard
 			}
 		}
 
-		internal static void Last()
+		internal static void Prev()
 		{
 			if (CurrentPlayback != null)
 			{
-				try
-				{
-					Task.Run(async () =>
+				Task.Run(async () =>
 					{
-						var wasplaying = IsPlaying;
-
-						switch ((PlayMode)config.PlayMode)
+						try
 						{
-							case PlayMode.Single:
-							case PlayMode.ListOrdered:
-							case PlayMode.SingleRepeat:
-								await FilePlayback.LoadPlayback(PlaylistManager.CurrentPlaying - 1);
-								break;
-							case PlayMode.Random:
-							case PlayMode.ListRepeat:
-								var next = PlaylistManager.CurrentPlaying - 1;
-								if (next < 0) next = PlaylistManager.Filelist.Count - 1;
-								await FilePlayback.LoadPlayback(next);
-								break;
+							if (CurrentPlayback.GetCurrentTime<MetricTimeSpan>() > new MetricTimeSpan(0, 0, 2))
+							{
+								CurrentPlayback.MoveToStart();
+							}
+							else
+							{
+								var wasplaying = IsPlaying;
+
+								switch ((PlayMode)config.PlayMode)
+								{
+									case PlayMode.Single:
+									case PlayMode.ListOrdered:
+									case PlayMode.SingleRepeat:
+										await FilePlayback.LoadPlayback(PlaylistManager.CurrentPlaying - 1);
+										break;
+									case PlayMode.Random:
+									case PlayMode.ListRepeat:
+										var next = PlaylistManager.CurrentPlaying - 1;
+										if (next < 0) next = PlaylistManager.Filelist.Count - 1;
+										await FilePlayback.LoadPlayback(next);
+										break;
+								}
+
+								if (wasplaying)
+								{
+									try
+									{
+										CurrentPlayback.Start();
+									}
+									catch (Exception e)
+									{
+										PluginLog.Error(e, "error when try playing next song.");
+									}
+								}
+							}
 						}
-
-						if (wasplaying)
+						catch (Exception e)
 						{
-							try
-							{
-								CurrentPlayback.Start();
-							}
-							catch (Exception e)
-							{
-								PluginLog.Error(e, "error when try playing next song.");
-							}
+							CurrentPlayback = null;
+							PlaylistManager.CurrentPlaying = -1;
 						}
 					});
-				}
-				catch (Exception e)
-				{
-					CurrentPlayback = null;
-					PlaylistManager.CurrentPlaying = -1;
-				}
+
 			}
 			else
 			{

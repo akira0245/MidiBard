@@ -124,7 +124,7 @@ namespace MidiBard
 					}
 				}
 			});
-			
+
 
 			return ret;
 		}
@@ -152,8 +152,9 @@ namespace MidiBard
 
 		internal static async Task<MidiFile> LoadMidiFile(string filePath)
 		{
-			PluginLog.Log($"-> {filePath} START");
+			PluginLog.Debug($"[LoadMidiFile] -> {filePath} START");
 			MidiFile loaded = null;
+			var stopwatch = Stopwatch.StartNew();
 			await Task.Run(() =>
 			{
 				try
@@ -167,7 +168,6 @@ namespace MidiBard
 
 						try
 						{
-							var chordStopwatch = Stopwatch.StartNew();
 							loaded.ProcessChords(chord =>
 							{
 								try
@@ -207,7 +207,6 @@ namespace MidiBard
 									}
 								}
 							}, chord => chord.Notes.Count() > 1);
-							PluginLog.Debug($"chord processing took {chordStopwatch.Elapsed.TotalMilliseconds:F3}ms");
 						}
 						catch (Exception e)
 						{
@@ -215,13 +214,14 @@ namespace MidiBard
 						}
 					}
 
-					PluginLog.Log($"-> {filePath} OK!");
+					PluginLog.Debug($"[LoadMidiFile] -> {filePath} OK! in {stopwatch.Elapsed.TotalMilliseconds} ms");
 				}
 				catch (Exception ex)
 				{
 					PluginLog.LogError(ex, "Failed to load file at {0}", filePath);
 				}
 			});
+
 
 			return loaded;
 		}

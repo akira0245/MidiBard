@@ -25,28 +25,31 @@ namespace MidiBard.Managers
 
 		private unsafe void SoloRecv(uint sourceId, IntPtr data)
 		{
+#if DEBUG
 			//var ipc = Marshal.PtrToStructure<SoloPerformanceIpc>(data);
 			//PluginLog.Information($"[{nameof(SoloRecv)}] {toString(ipc.NoteNumbers)} : {toString(ipc.NoteTones)}");
+#endif
 		}
 
 		private unsafe void EnsembleSend(IntPtr dataptr)
 		{
+#if DEBUG
 			Span<byte> notes = new Span<byte>((dataptr + 0x10).ToPointer(), 60);
 			Span<byte> tones = new Span<byte>((dataptr + 0x10 + 60).ToPointer(), 60);
-			if (MidiBard.Debug)
-			{
-				PluginLog.Information($"[{nameof(EnsembleSend)}] [MYSELF] {notes.toString()} : {tones.toString()}");
-			}
+			PluginLog.Information($"[{nameof(EnsembleSend)}] [MYSELF] {notes.toString()} : {tones.toString()}");
+#endif
 		}
 
 		private unsafe void EnsembleRecv(uint sourceId, IntPtr data)
 		{
+#if DEBUG
 			var ipc = Marshal.PtrToStructure<EnsemblePerformanceIpc>(data);
 			if (MidiBard.Debug)
 				foreach (var perCharacterData in ipc.EnsembleCharacterDatas.Where(i => i.IsValid))
 				{
 					PluginLog.Information($"[{nameof(EnsembleRecv)}] {perCharacterData.CharacterId:X} {perCharacterData.NoteNumbers.toString()}");
 				}
+#endif
 		}
 
 		delegate IntPtr sub_14070A1C0(uint sourceId, IntPtr data);

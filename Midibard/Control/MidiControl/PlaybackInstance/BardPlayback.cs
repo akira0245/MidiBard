@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Interaction;
 
-namespace MidiBard
+namespace MidiBard.Control.MidiControl.PlaybackInstance
 {
 	public sealed class BardPlayback : Playback
 	{

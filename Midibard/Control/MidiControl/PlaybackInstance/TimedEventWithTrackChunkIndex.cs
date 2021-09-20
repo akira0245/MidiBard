@@ -1,13 +1,8 @@
-﻿using System;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Melanchall.DryWetMidi.Common;
+﻿using Melanchall.DryWetMidi.Common;
 using Melanchall.DryWetMidi.Core;
-using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Interaction;
 
-namespace MidiBard
+namespace MidiBard.Control.MidiControl.PlaybackInstance
 {
 	sealed class TimedEventWithTrackChunkIndex : TimedEvent, IMetadata
 	{

@@ -60,6 +60,7 @@ namespace MidiBard
 		public Vector4 themeColorDark = ImGui.ColorConvertU32ToFloat4(0x9C60FF8E) * new Vector4(0.25f, 0.25f, 0.25f, 1);
 		public Vector4 themeColorTransparent = ImGui.ColorConvertU32ToFloat4(0x9C60FF8E) * new Vector4(1, 1, 1, 0.33f);
 
+		public bool lazyNoteRelease = true;
 		//public int testLength = 40;
 		//public int testInterval;
 		//public int testRepeat;

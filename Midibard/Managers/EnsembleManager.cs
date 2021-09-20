@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Dalamud.Hooking;
 using Dalamud.Logging;
 using Melanchall.DryWetMidi.Interaction;
+using MidiBard.Control.MidiControl;
 using MidiBard.Managers.Agents;
 
 namespace MidiBard.Managers
@@ -28,21 +29,28 @@ namespace MidiBard.Managers
 			UpdateMetronomeHook.Enable();
 		}
 
-		private unsafe IntPtr HandleUpdateMetronome(IntPtr agentMetronome, byte currentBeat)
+		private IntPtr HandleUpdateMetronome(IntPtr agentMetronome, byte currentBeat)
 		{
 			try
 			{
 				var original = UpdateMetronomeHook.Original(agentMetronome, currentBeat);
 				if (MidiBard.config.MonitorOnEnsemble)
 				{
-					var metronome = ((AgentMetronome.AgentMetronomeStruct*)agentMetronome);
-					var beatsPerBar = metronome->MetronomeBeatsPerBar;
-					var barElapsed = metronome->MetronomeBeatsElapsed;
+					byte mertonomeRunning;
+					byte beatsPerBar;
+					int barElapsed;
+					unsafe
+					{
+						var metronome = ((AgentMetronome.AgentMetronomeStruct*)agentMetronome);
+						beatsPerBar = metronome->MetronomeBeatsPerBar;
+						barElapsed = metronome->MetronomeBeatsElapsed;
+						mertonomeRunning = metronome->EnsembleModeRunning;
+					}
 
 					if (barElapsed == 0 && currentBeat == 0)
 					{
-						PluginLog.Warning($"Start: ensemble: {metronome->EnsembleModeRunning}");
-						if (metronome->EnsembleModeRunning != 0)
+						PluginLog.Warning($"Start: ensemble: {mertonomeRunning}");
+						if (mertonomeRunning != 0)
 						{
 							EnsembleStart?.Invoke();
 
@@ -59,18 +67,18 @@ namespace MidiBard.Managers
 
 					if (barElapsed == -2 && currentBeat == 0)
 					{
-						PluginLog.Warning($"Prepare: ensemble: {metronome->EnsembleModeRunning}");
-						if (metronome->EnsembleModeRunning != 0)
+						PluginLog.Warning($"Prepare: ensemble: {mertonomeRunning}");
+						if (mertonomeRunning != 0)
 						{
 							EnsemblePrepare?.Invoke();
 
-							Task.Run(() =>
+							Task.Run(async () =>
 							{
 								try
 								{
 									if (PlaylistManager.CurrentPlaying != -1)
 									{
-										FilePlayback.LoadPlayback(PlaylistManager.CurrentPlaying);
+										await FilePlayback.LoadPlayback(PlaylistManager.CurrentPlaying);
 									}
 
 									MidiBard.CurrentPlayback.Stop();

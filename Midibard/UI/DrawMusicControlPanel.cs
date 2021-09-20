@@ -2,7 +2,9 @@
 using System.Threading.Tasks;
 using ImGuiNET;
 using Melanchall.DryWetMidi.Interaction;
-using static MidiBard.ImguiUtil;
+using MidiBard.Control.CharacterControl;
+using MidiBard.Control.MidiControl;
+using static MidiBard.ImGuiUtil;
 
 namespace MidiBard
 {
@@ -128,17 +130,21 @@ namespace MidiBard
 		private static void ComboBoxSwitchInstrument()
 		{
 			UIcurrentInstrument = MidiBard.CurrentInstrument;
+			if (MidiBard.PlayingGuitar)
+			{
+				UIcurrentInstrument = MidiBard.AgentPerformance.CurrentGroupTone + MidiBard.guitarGroup[0];;
+			}
 			if (ImGui.Combo("Instrument".Localize(), ref UIcurrentInstrument, MidiBard.InstrumentStrings,
 				MidiBard.InstrumentStrings.Length, 20))
 			{
-				SwitchInstrument.WantSwitchInstrument = (uint)UIcurrentInstrument;
+				SwitchInstrument.SwitchToContinue((uint)UIcurrentInstrument);
 			}
 
 			ToolTip("Select current instrument. \nRight click to quit performance mode.".Localize());
 
 			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
 			{
-				SwitchInstrument.WantSwitchInstrument = 0;
+				SwitchInstrument.SwitchToContinue(0);
 				MidiPlayerControl.Pause();
 			}
 		}

@@ -6,7 +6,7 @@ namespace MidiBard.Managers.Agents
 	public sealed unsafe class AgentPerformance : AgentInterface
 	{
 		public AgentPerformance(AgentInterface agentInterface) : base(agentInterface.Pointer, agentInterface.Id) { }
-
+		public static AgentPerformance Instance => MidiBard.AgentPerformance;
 		public new AgentPerformanceStruct* Struct => (AgentPerformanceStruct*)Pointer;
 
 		[StructLayout(LayoutKind.Explicit)]
@@ -19,10 +19,10 @@ namespace MidiBard.Managers.Agents
 			[FieldOffset(0x5C)] public int NoteOffset;
 			[FieldOffset(0x60)] public int PressingNoteNumber;
 			[FieldOffset(0xFC)] public int OctaveOffset;
-			[FieldOffset(0x1B0)] public int CurrentGroupTone;
+			[FieldOffset(0x1B0)] public int GroupTone;
 		}
 
-		internal int CurrentGroupTone => Struct->CurrentGroupTone;
+		internal int CurrentGroupTone => Struct->GroupTone;
 		internal bool InPerformanceMode => Struct->InPerformanceMode != 0;
 		internal bool notePressed => Struct->PressingNoteNumber != -100;
 		internal int noteNumber => Struct->PressingNoteNumber;

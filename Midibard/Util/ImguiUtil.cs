@@ -1,10 +1,11 @@
-﻿using System.Numerics;
+﻿using System.Collections.Generic;
+using System.Numerics;
 using Dalamud.Interface;
 using ImGuiNET;
 
 namespace MidiBard
 {
-	public static class ImguiUtil
+	public static class ImGuiUtil
 	{
 		public static void HelpMarker(string desc, bool sameline = true)
 		{
@@ -52,6 +53,43 @@ namespace MidiBard
 			ImGui.PushStyleColor(ImGuiCol.ButtonHovered, color);
 			ImGui.Button(content, new Vector2(-1, ImGui.GetFrameHeight()));
 			ImGui.PopStyleColor(2);
+		}
+
+		/// <summary>ColorPicker with palette with color picker options.</summary>
+		/// <param name="id">Id for the color picker.</param>
+		/// <param name="description">The description of the color picker.</param>
+		/// <param name="originalColor">The current color.</param>
+		/// <param name="flags">Flags to customize color picker.</param>
+		/// <returns>Selected color.</returns>
+		public static void ColorPickerWithPalette(int id, string description, ref Vector4 originalColor, ImGuiColorEditFlags flags)
+		{
+			Vector4 col = originalColor;
+			List<Vector4> vector4List = ImGuiHelpers.DefaultColorPalette(36);
+			if (ImGui.ColorButton(string.Format("{0}###ColorPickerButton{1}", (object)description, (object)id), originalColor, flags))
+				ImGui.OpenPopup(string.Format("###ColorPickerPopup{0}", (object)id));
+			if (ImGui.BeginPopup(string.Format("###ColorPickerPopup{0}", (object)id)))
+			{
+				if (ImGui.ColorPicker4(string.Format("###ColorPicker{0}", (object)id), ref col, flags))
+				{
+					originalColor = col;
+				}
+				for (int index1 = 0; index1 < 4; ++index1)
+				{
+					ImGui.Spacing();
+					for (int index2 = index1 * 9; index2 < index1 * 9 + 9; ++index2)
+					{
+						if (ImGui.ColorButton(string.Format("###ColorPickerSwatch{0}{1}{2}", (object)id, (object)index1, (object)index2), vector4List[index2]))
+						{
+							originalColor = vector4List[index2];
+							ImGui.CloseCurrentPopup();
+							ImGui.EndPopup();
+							return;
+						}
+						ImGui.SameLine();
+					}
+				}
+				ImGui.EndPopup();
+			}
 		}
 
 		public const uint ColorRed = 0xFF0000C8;

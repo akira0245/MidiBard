@@ -3,6 +3,7 @@ using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 using Melanchall.DryWetMidi.Interaction;
+using MidiBard.Control.MidiControl;
 
 namespace MidiBard
 {
@@ -14,7 +15,7 @@ namespace MidiBard
 			{
 				var fmt = $"{PlaylistManager.CurrentPlaying + 1:000} {PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].trackName}";
 				ImGui.PushStyleColor(ImGuiCol.Text, MidiBard.config.themeColor * new Vector4(1, 1, 1, 1.3f));
-				ImGui.TextWrapped(fmt);
+				ImGui.TextUnformatted(fmt);
 				ImGui.PopStyleColor();
 			}
 			else
@@ -35,17 +36,14 @@ namespace MidiBard
 			MetricTimeSpan currentTime = new MetricTimeSpan(0);
 			MetricTimeSpan duration = new MetricTimeSpan(0);
 			float progress = 0;
-
+			ImGui.PushStyleColor(ImGuiCol.PlotHistogram, FilePlayback.isWaiting ? *ImGui.GetStyleColorVec4(ImGuiCol.Text) : MidiBard.config.themeColor);
+			ImGui.PushStyleColor(ImGuiCol.FrameBg, MidiBard.config.themeColorDark);
 			if (FilePlayback.isWaiting)
 			{
-				ImGui.PushStyleColor(ImGuiCol.PlotHistogram, ImGui.GetColorU32(ImGuiCol.PlotHistogram));
-				ImGui.PushStyleColor(ImGuiCol.FrameBg, ImGui.GetColorU32(ImGuiCol.FrameBg));
 				ImGui.ProgressBar(FilePlayback.waitProgress, new Vector2(-1, 3));
-				ImGui.PopStyleColor();
 			}
 			else
 			{
-				ImGui.PushStyleColor(ImGuiCol.PlotHistogram, MidiBard.config.themeColor);
 				if (MidiBard.CurrentPlayback != null)
 				{
 					currentTime = MidiBard.CurrentPlayback.GetCurrentTime<MetricTimeSpan>();
@@ -59,16 +57,14 @@ namespace MidiBard
 						//
 					}
 
-					ImGui.PushStyleColor(ImGuiCol.FrameBg, MidiBard.config.themeColorDark);
 					ImGui.ProgressBar(progress, new Vector2(-1, 3));
-					ImGui.PopStyleColor();
 				}
 				else
 				{
 					ImGui.ProgressBar(progress, new Vector2(-1, 3));
 				}
 			}
-
+			ImGui.PopStyleColor();
 
 			ImGui.TextUnformatted($"{currentTime.Hours}:{currentTime.Minutes:00}:{currentTime.Seconds:00}");
 			var durationText = $"{duration.Hours}:{duration.Minutes:00}:{duration.Seconds:00}";
