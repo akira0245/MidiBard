@@ -214,15 +214,12 @@ namespace MidiBard.Control.MidiControl
 			{
 				Task.Run(async () =>
 				{
-					var wasplaying = IsPlaying;
-					await FilePlayback.LoadPlayback(PlaylistManager.CurrentPlaying);
-					if (wasplaying && startPlaying)
-						CurrentPlayback?.Start();
+					await FilePlayback.LoadPlayback(PlaylistManager.CurrentPlaying, startPlaying);
 				});
 			}
 			catch (Exception e)
 			{
-				//
+				PluginLog.Debug(e, "error when switching song");
 			}
 		}
 	}

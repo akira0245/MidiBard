@@ -26,7 +26,7 @@ using MidiBard.DalamudApi;
 using MidiBard.Managers;
 using MidiBard.Managers.Agents;
 using playlibnamespace;
-using static MidiBard.DalamudApi.DalamudApi;
+using static MidiBard.DalamudApi.api;
 
 namespace MidiBard
 {
@@ -59,7 +59,7 @@ namespace MidiBard
 
 
 		internal static byte InstrumentOffset;
-		internal static byte CurrentInstrument => Marshal.ReadByte(OffsetManager.Instance.PerformInfos + 3 + InstrumentOffset);
+		internal static byte CurrentInstrument => Marshal.ReadByte(Offsets.Instance.PerformInfos + 3 + InstrumentOffset);
 		internal static readonly byte[] guitarGroup = { 24, 25, 26, 27, 28 };
 		internal static bool PlayingGuitar => guitarGroup.Contains(CurrentInstrument);
 
@@ -69,7 +69,7 @@ namespace MidiBard
 
 		public unsafe MidiBard(DalamudPluginInterface pi)
 		{
-			DalamudApi.DalamudApi.Initialize(this, pi);
+			DalamudApi.api.Initialize(this, pi);
 			LoadConfig();
 
 			_ = OffsetManager.Instance;
@@ -83,9 +83,9 @@ namespace MidiBard
 			playlib.init(this);
 			CurrentOutputDevice = new BardPlayDevice();
 
-			AgentMetronome = new AgentMetronome(AgentManager.Instance.FindAgentInterfaceByVtable(OffsetManager.Instance.MetronomeAgent));
-			AgentPerformance = new AgentPerformance(AgentManager.Instance.FindAgentInterfaceByVtable(OffsetManager.Instance.PerformanceAgent));
-			InstrumentOffset = Marshal.ReadByte(OffsetManager.Instance.InstrumentOffset);
+			AgentMetronome = new AgentMetronome(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.Instance.MetronomeAgent));
+			AgentPerformance = new AgentPerformance(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.Instance.PerformanceAgent));
+			InstrumentOffset = Marshal.ReadByte(Offsets.Instance.InstrumentOffset);
 
 			InstrumentSheet = DataManager.Excel.GetSheet<Perform>();
 			InstrumentStrings = InstrumentSheet.Where(i => !string.IsNullOrWhiteSpace(i.Instrument) || i.RowId == 0).Select(i => $"{(i.RowId == 0 ? "None" : $"{i.RowId:00} {i.Instrument.RawString} ({i.Name})")}").ToArray();
@@ -289,7 +289,7 @@ namespace MidiBard
 			{
 				PluginLog.Error(e, "error when saving config file");
 			}
-			DalamudApi.DalamudApi.Dispose();
+			DalamudApi.api.Dispose();
 		}
 
 		public void Dispose()

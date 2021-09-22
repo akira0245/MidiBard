@@ -28,7 +28,7 @@ using Dalamud.Plugin;
 
 namespace MidiBard.DalamudApi
 {
-    public class DalamudApi
+    public class api
     {
         [PluginService]
         //[RequiredVersion("1.0")]
@@ -120,11 +120,11 @@ namespace MidiBard.DalamudApi
 
         private static PluginCommandManager<IDalamudPlugin> _pluginCommandManager;
 
-        public DalamudApi() { }
+        public api() { }
 
-        public DalamudApi(IDalamudPlugin plugin) => _pluginCommandManager ??= new(plugin);
+        public api(IDalamudPlugin plugin) => _pluginCommandManager ??= new(plugin);
 
-        public DalamudApi(IDalamudPlugin plugin, DalamudPluginInterface pluginInterface)
+        public api(IDalamudPlugin plugin, DalamudPluginInterface pluginInterface)
         {
             if (!pluginInterface.Inject(this))
             {
@@ -135,9 +135,9 @@ namespace MidiBard.DalamudApi
             _pluginCommandManager ??= new(plugin);
         }
 
-        public static DalamudApi operator +(DalamudApi container, object o)
+        public static api operator +(api container, object o)
         {
-            foreach (var f in typeof(DalamudApi).GetProperties())
+            foreach (var f in typeof(api).GetProperties())
             {
                 if (f.PropertyType != o.GetType()) continue;
                 if (f.GetValue(container) != null) break;
@@ -147,7 +147,7 @@ namespace MidiBard.DalamudApi
             throw new InvalidOperationException();
         }
 
-        public static void Initialize(IDalamudPlugin plugin, DalamudPluginInterface pluginInterface) => _ = new DalamudApi(plugin, pluginInterface);
+        public static void Initialize(IDalamudPlugin plugin, DalamudPluginInterface pluginInterface) => _ = new api(plugin, pluginInterface);
 
         public static void Dispose() => _pluginCommandManager?.Dispose();
     }
@@ -172,13 +172,13 @@ namespace MidiBard.DalamudApi
         private void AddCommandHandlers()
         {
             foreach (var (command, commandInfo) in _pluginCommands)
-                DalamudApi.CommandManager.AddHandler(command, commandInfo);
+                api.CommandManager.AddHandler(command, commandInfo);
         }
 
         private void RemoveCommandHandlers()
         {
             foreach (var (command, _) in _pluginCommands)
-                DalamudApi.CommandManager.RemoveHandler(command);
+                api.CommandManager.RemoveHandler(command);
         }
 
         private IEnumerable<(string, CommandInfo)> GetCommandInfoTuple(MethodInfo method)

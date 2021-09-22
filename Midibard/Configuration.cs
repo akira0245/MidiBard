@@ -45,7 +45,7 @@ namespace MidiBard
 		public int[] TonesPerTrack = new int[100];
 		public bool EnableTransposePerTrack = false;
 		public int[] TransposePerTrack = new int[100];
-		public int uiLang = DalamudApi.DalamudApi.PluginInterface.UiLanguage == "zh" ? 1 : 0;
+		public int uiLang = DalamudApi.api.PluginInterface.UiLanguage == "zh" ? 1 : 0;
 		public bool showMusicControlPanel = true;
 		public bool showSettingsPanel = true;
 		public int playlistSizeY = 10;
@@ -74,7 +74,7 @@ namespace MidiBard
 		public void Save()
 		{
 			var startNew = Stopwatch.StartNew();
-			DalamudApi.DalamudApi.PluginInterface.SavePluginConfig(this);
+			DalamudApi.api.PluginInterface.SavePluginConfig(this);
 			PluginLog.Verbose($"config saved in {startNew.Elapsed.TotalMilliseconds}.");
 		}
 	}

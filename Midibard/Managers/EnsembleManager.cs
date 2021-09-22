@@ -25,7 +25,7 @@ namespace MidiBard.Managers
 
 		private EnsembleManager()
 		{
-			UpdateMetronomeHook = new Hook<sub_140C87B40>(OffsetManager.Instance.UpdateMetronome, HandleUpdateMetronome);
+			UpdateMetronomeHook = new Hook<sub_140C87B40>(Offsets.Instance.UpdateMetronome, HandleUpdateMetronome);
 			UpdateMetronomeHook.Enable();
 		}
 

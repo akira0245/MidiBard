@@ -9,8 +9,12 @@ using Dalamud.Logging;
 
 namespace MidiBard.Managers
 {
-	public class OffsetManager
+	public class Offsets
 	{
+		private Offsets() => _ = OffsetManager.Instance;
+
+		public static Offsets Instance { get; } = new ();
+
 		[StaticAddress("48 8D 05 ?? ?? ?? ?? 48 89 03 48 8D 4B 40")]
 		public IntPtr MetronomeAgent { get; private set; }
 
@@ -41,6 +45,8 @@ namespace MidiBard.Managers
 		[Function("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 0F B6 FA 48 8B D9 84 D2 ")]
 		public IntPtr UpdateMetronome { get; private set; }
 
+#if DEBUG
+
 		[Function("48 89 ? ? ? 48 89 ? ? ? 57 48 83 EC ? 8B FA 41 0F ? ? 03 79")]
 		public IntPtr PressNote { get; private set; }
 
@@ -53,45 +59,21 @@ namespace MidiBard.Managers
 		[Function("89 54 24 10 53 55 57 41 54 41 55 41 56 48 83 EC 48 8B C2 45 8B E0 44 8B D2 45 32 F6 44 8B C2 45 32 ED")]
 		public IntPtr SetOption { get; private set; }
 		
+		[Function("E8 ?? ?? ?? ?? 48 03 87 ?? ?? ?? ?? ")]
+		public IntPtr GetErozeaTime { get; private set; }
+#endif
 
+	}
 
-
-
-
-
-
-
-		#region Manager
-
+	public class OffsetManager
+	{
 		public static OffsetManager Instance { get; } = new();
-
-		private abstract class SigAttribute : Attribute
-		{
-			protected SigAttribute(string sigString, int offset = 0)
-			{
-				this.SigString = sigString;
-				Offset = offset;
-			}
-
-			public readonly string SigString;
-			public readonly int Offset;
-		}
-
-		private sealed class StaticAddressAttribute : SigAttribute
-		{
-			public StaticAddressAttribute(string sigString, int offset = 0) : base(sigString, offset) { }
-		}
-
-		private sealed class FunctionAttribute : SigAttribute
-		{
-			public FunctionAttribute(string sigString, int offset = 0) : base(sigString, offset) { }
-		}
 
 		private OffsetManager()
 		{
-			var scanner = DalamudApi.DalamudApi.SigScanner;
+			var scanner = DalamudApi.api.SigScanner;
 
-			var props = this.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(i => i.PropertyType == typeof(IntPtr))
+			var props = Offsets.Instance.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(i => i.PropertyType == typeof(IntPtr))
 				.Select(i => (prop: i, Attribute: i.GetCustomAttribute<SigAttribute>())).Where(i => i.Attribute != null);
 
 			bool haserror = false;
@@ -112,11 +94,11 @@ namespace MidiBard.Managers
 
 					address += sigAttribute.Offset;
 					prop.SetValue(this, address);
-					PluginLog.Information($"[{nameof(OffsetManager)}][{prop?.Name}] found: {address.ToInt64():X}");
+					PluginLog.Information($"[{nameof(OffsetManager)}][{prop?.Name}] {address.ToInt64():X}");
 				}
 				catch (Exception e)
 				{
-					PluginLog.Error(e, $"[{nameof(OffsetManager)}][{prop?.Name}] cannot find sig: {sigAttribute?.SigString}");
+					PluginLog.Error(e, $"[{nameof(OffsetManager)}][{prop?.Name}] no sig found : {sigAttribute?.SigString}");
 					haserror = true;
 				}
 			}
@@ -126,7 +108,27 @@ namespace MidiBard.Managers
 				//throw new ("plugin stopped.");
 			}
 		}
+	}
 
-		#endregion
+	internal abstract class SigAttribute : Attribute
+	{
+		protected SigAttribute(string sigString, int offset = 0)
+		{
+			this.SigString = sigString;
+			Offset = offset;
+		}
+
+		public readonly string SigString;
+		public readonly int Offset;
+	}
+
+	internal sealed class StaticAddressAttribute : SigAttribute
+	{
+		public StaticAddressAttribute(string sigString, int offset = 0) : base(sigString, offset) { }
+	}
+
+	internal sealed class FunctionAttribute : SigAttribute
+	{
+		public FunctionAttribute(string sigString, int offset = 0) : base(sigString, offset) { }
 	}
 }

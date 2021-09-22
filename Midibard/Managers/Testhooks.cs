@@ -20,6 +20,9 @@ namespace MidiBard.Managers
 		public delegate void sub_140C7ED20(IntPtr agentPerformance, int note, byte isPressing);
 		public Hook<sub_140C7ED20> playnoteHook;
 
+			public delegate long sub_1401EF560(long a1);
+			public Hook<sub_1401EF560> GetETHook;
+
 
 
 		public delegate byte sub_140C7D860(long a1, long a2);
@@ -58,6 +61,14 @@ namespace MidiBard.Managers
 
 		private Testhooks()
 		{
+			GetETHook = new Hook<sub_1401EF560>(OffsetManager.Instance.GetErozeaTime, a1 =>
+			{
+				var original = GetETHook.Original(a1);
+				PluginLog.Information(original.ToString());
+				return original;
+			});
+			//GetETHook.Enable();
+
 			SetoptionHook = new Hook<SetOptionDelegate>(OffsetManager.Instance.SetOption,
 				(module, id, value, unknown, unk2, unk3) =>
 				{
@@ -93,6 +104,7 @@ namespace MidiBard.Managers
 
 		public void Dispose()
 		{
+			GetETHook?.Dispose();
 			SetoptionHook?.Dispose();
 			ChangeKeyboardLayoutHook?.Dispose();
 			playnoteHook?.Dispose();

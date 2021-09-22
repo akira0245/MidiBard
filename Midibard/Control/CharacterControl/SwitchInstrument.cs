@@ -54,7 +54,7 @@ namespace MidiBard.Control.CharacterControl
 				await Util.Coroutine.WaitUntil(() => MidiBard.CurrentInstrument == instrumentId, timeOut);
 				await Task.Delay(200);
 				PluginLog.Debug($"instrument switching succeed in {sw.Elapsed.TotalMilliseconds} ms");
-				DalamudApi.DalamudApi.PluginInterface.UiBuilder.AddNotification($"Switched to {MidiBard.InstrumentStrings[instrumentId]}", "MidiBard", NotificationType.Success, 5000);
+				DalamudApi.api.PluginInterface.UiBuilder.AddNotification($"Switched to {MidiBard.InstrumentStrings[instrumentId]}", "MidiBard", NotificationType.Success, 5000);
 			}
 			catch (Exception e)
 			{

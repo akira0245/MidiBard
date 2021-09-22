@@ -98,7 +98,7 @@ namespace MidiBard
 			{
 				if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
 				{
-					MidiPlayerControl.SwitchSong(i, true);
+					MidiPlayerControl.SwitchSong(i);
 				}
 				else
 				{

@@ -11,7 +11,7 @@ namespace MidiBard.Control.MidiControl.PlaybackInstance
 		{
 
 		}
-
+		
 		protected override bool TryPlayEvent(MidiEvent midiEvent, object metadata)
 		{
 			// Place your logic here

@@ -12,11 +12,11 @@ namespace MidiBard.Control.CharacterControl
 	static class PerformActions
 	{
 		internal delegate void DoPerformActionDelegate(IntPtr performInfoPtr, uint instrumentId, int a3 = 0);
-		private static DoPerformActionDelegate doPerformAction { get; } = Marshal.GetDelegateForFunctionPointer<DoPerformActionDelegate>(OffsetManager.Instance.DoPerformAction);
+		private static DoPerformActionDelegate doPerformAction { get; } = Marshal.GetDelegateForFunctionPointer<DoPerformActionDelegate>(Offsets.Instance.DoPerformAction);
 		public static void DoPerformAction(uint instrumentId)
 		{
 			PluginLog.Information($"[DoPerformAction] instrumentId: {instrumentId}");
-			doPerformAction(OffsetManager.Instance.PerformInfos, instrumentId);
+			doPerformAction(Offsets.Instance.PerformInfos, instrumentId);
 		}
 	}
 }
