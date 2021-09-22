@@ -1,4 +1,5 @@
 ﻿using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Dalamud.Interface;
 using ImGuiNET;
@@ -63,8 +64,11 @@ namespace MidiBard
 				{
 					if (result == DialogResult.OK)
 					{
-						PlaylistManager.LoadMidiFileList(filePath, true);
-						MidiBard.SaveConfig();
+						Task.Run(async () =>
+						{
+							await PlaylistManager.Add(filePath);
+							MidiBard.SaveConfig();
+						});
 					}
 
 					_isImportRunning = false;

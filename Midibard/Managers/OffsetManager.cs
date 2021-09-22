@@ -76,7 +76,7 @@ namespace MidiBard.Managers
 			var props = Offsets.Instance.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(i => i.PropertyType == typeof(IntPtr))
 				.Select(i => (prop: i, Attribute: i.GetCustomAttribute<SigAttribute>())).Where(i => i.Attribute != null);
 
-			bool haserror = false;
+			List<Exception> exceptions = new List<Exception>(100);
 			foreach ((PropertyInfo prop, SigAttribute sigAttribute) in props)
 			{
 				try
@@ -93,19 +93,19 @@ namespace MidiBard.Managers
 					};
 
 					address += sigAttribute.Offset;
-					prop.SetValue(this, address);
+					prop.SetValue(Offsets.Instance, address);
 					PluginLog.Information($"[{nameof(OffsetManager)}][{prop?.Name}] {address.ToInt64():X}");
 				}
 				catch (Exception e)
 				{
 					PluginLog.Error(e, $"[{nameof(OffsetManager)}][{prop?.Name}] no sig found : {sigAttribute?.SigString}");
-					haserror = true;
+					exceptions.Add(e);
 				}
 			}
 
-			if (haserror)
+			if (exceptions.Any())
 			{
-				//throw new ("plugin stopped.");
+				throw new AggregateException(exceptions);
 			}
 		}
 	}

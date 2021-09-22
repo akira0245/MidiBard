@@ -94,39 +94,33 @@ namespace MidiBard
 				MidiBard.config.EnabledTracks = enabledTracks;
 			}
 
-			Filelist.Clear();
 			// update playlist in case any files is being deleted
-			MidiBard.config.Playlist = LoadMidiFileList(MidiBard.config.Playlist.ToArray(), false);
+			Task.Run(async () => await Reload(MidiBard.config.Playlist.ToArray()));
 		}
 
-
-		internal static List<string> LoadMidiFileList(string[] fileNames, bool addToSavedConfigFileList)
+		internal static async Task Reload(string[] filePaths)
 		{
-			List<string> ret = new List<string>(fileNames);
+			MidiBard.config.Playlist.Clear();
+			Filelist.Clear();
+			await Add(filePaths);
+		}
 
-			Task.Run(async () =>
+		internal static async Task Add(string[] filePaths)
+		{
+			await foreach (var path in GetPathsAvailable(filePaths))
 			{
-				foreach (string fileName in fileNames)
-				{
-					MidiFile file = await LoadMidiFile(fileName);
-					if (addToSavedConfigFileList && file != null)
-					{
-						MidiBard.config.Playlist.Add(fileName);
-					}
+				MidiBard.config.Playlist.Add(path);
+				Filelist.Add((path, Path.GetFileNameWithoutExtension(path)));
+			}
+		}
 
-					if (file == null)
-					{
-						ret.Remove(fileName);
-					}
-					else
-					{
-						Filelist.Add((fileName, Path.GetFileNameWithoutExtension(fileName)));
-					}
-				}
-			});
-
-
-			return ret;
+		internal static async IAsyncEnumerable<string> GetPathsAvailable(string[] filePaths)
+		{
+			foreach (var path in filePaths)
+			{
+				MidiFile file = await LoadMidiFile(path);
+				if (file is not null) yield return path;
+			}
 		}
 
 		//internal static async Task<MidiFile> LoadMidiFile(int index, out string trackName)
@@ -159,6 +153,7 @@ namespace MidiBard
 			{
 				try
 				{
+					if (!File.Exists(filePath)) return;
 					using (var f = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 					{
 						loaded = MidiFile.Read(f, readingSettings);
