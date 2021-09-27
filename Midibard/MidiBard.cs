@@ -59,8 +59,6 @@ namespace MidiBard
 			.Where(i => !string.IsNullOrWhiteSpace(i.Instrument) || i.RowId == 0).Select(i =>
 				$"{(i.RowId == 0 ? "None" : $"{i.RowId:00} {i.Instrument.RawString} ({i.Name})")}").ToArray();
 
-
-
 		internal static byte CurrentInstrument => Marshal.ReadByte(Offsets.PerformInfos + 3 + Offsets.InstrumentOffset);
 		internal static readonly byte[] guitarGroup = { 24, 25, 26, 27, 28 };
 		internal static bool PlayingGuitar => guitarGroup.Contains(CurrentInstrument);
@@ -273,12 +271,6 @@ namespace MidiBard
 			{
 				PluginLog.Error($"{e}");
 			}
-		}
-
-		protected virtual void Dispose(bool disposing)
-		{
-			FreeUnmanagedResources();
-			if (!disposing) return;
 
 			try
 			{
@@ -288,12 +280,13 @@ namespace MidiBard
 			{
 				PluginLog.Error(e, "error when saving config file");
 			}
+
 			DalamudApi.api.Dispose();
 		}
-
+		
 		public void Dispose()
 		{
-			Dispose(true);
+			FreeUnmanagedResources();
 			GC.SuppressFinalize(this);
 		}
 

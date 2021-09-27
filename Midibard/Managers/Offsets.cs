@@ -19,7 +19,7 @@ namespace MidiBard.Managers
 		public static IntPtr DoPerformAction { get; private set; }
 
 		[Offset("40 88 ?? ?? 66 89 ?? ?? 40 84", +3)]
-		public static int InstrumentOffset { get; private set; }
+		public static byte InstrumentOffset { get; private set; }
 
 		[Function("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 0F B6 FA 48 8B D9 84 D2 ")]
 		public static IntPtr UpdateMetronome { get; private set; }

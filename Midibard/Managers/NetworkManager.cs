@@ -14,13 +14,55 @@ namespace MidiBard.Managers
 {
 	class NetworkManager : IDisposable
 	{
+		//[StructLayout(LayoutKind.Explicit, Size = 1)]
+		//public struct Note
+		//{
+		//	[FieldOffset(0)] public byte note;
+
+		//	public override string ToString()
+		//	{
+		//		return new Melanchall.DryWetMidi.MusicTheory.Note();
+		//	}
+		//}
 
 		private unsafe void SoloSend(IntPtr dataptr)
 		{
 #if DEBUG
 			Span<byte> notes = new Span<byte>((dataptr + 0x10).ToPointer(), 10);
 			Span<byte> tones = new Span<byte>((dataptr + 0x10 + 10).ToPointer(), 10);
-			PluginLog.Information($"[{nameof(SoloSend)}] {notes.toString()} : {tones.toString()}");
+			//for (int i = 0; i < notes.Length; i++)
+			//{
+			//	if (notes[i] is not (0xFF or 0xFE))
+			//	{
+			//		tones[i] = 3;
+			//	}
+			//}
+			StringBuilder sb = new StringBuilder();
+			sb.Append($"[{nameof(SoloSend)}] ");
+			for (int i = 0; i < 10; i++)
+			{
+				var t = tones[i] switch
+				{
+					0 => "A",
+					1 => "B",
+					2 => "C",
+					3 => "D",
+					4 => "E",
+					_ => throw new ArgumentOutOfRangeException()
+				};
+
+				var s = notes[i] switch
+				{
+					0xff => "    ",
+					0xfe => "----",
+					var n => $"{n:00} {t}"
+				};
+
+				sb.Append(s + "|");
+			}
+			//PluginLog.Information($"[{nameof(SoloSend)}] {notes.toString()} : {tones.toString()}");
+			PluginLog.Information(sb.ToString());
+
 #endif
 		}
 
