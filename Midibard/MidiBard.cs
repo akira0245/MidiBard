@@ -53,8 +53,11 @@ namespace MidiBard
 		private static int configSaverTick;
 		private static bool wasEnsembleModeRunning = false;
 
-		internal static ExcelSheet<Perform> InstrumentSheet { get; set; }
-		internal static string[] InstrumentStrings { get; set; }
+		internal static ExcelSheet<Perform> InstrumentSheet { get; } = DataManager.Excel.GetSheet<Perform>();
+
+		internal static string[] InstrumentStrings { get; } = InstrumentSheet
+			.Where(i => !string.IsNullOrWhiteSpace(i.Instrument) || i.RowId == 0).Select(i =>
+				$"{(i.RowId == 0 ? "None" : $"{i.RowId:00} {i.Instrument.RawString} ({i.Name})")}").ToArray();
 
 
 
@@ -86,9 +89,6 @@ namespace MidiBard
 			AgentMetronome = new AgentMetronome(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.Instance.MetronomeAgent));
 			AgentPerformance = new AgentPerformance(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.Instance.PerformanceAgent));
 			InstrumentOffset = Marshal.ReadByte(Offsets.Instance.InstrumentOffset);
-
-			InstrumentSheet = DataManager.Excel.GetSheet<Perform>();
-			InstrumentStrings = InstrumentSheet.Where(i => !string.IsNullOrWhiteSpace(i.Instrument) || i.RowId == 0).Select(i => $"{(i.RowId == 0 ? "None" : $"{i.RowId:00} {i.Instrument.RawString} ({i.Name})")}").ToArray();
 
 			Task.Run(() =>
 			{

@@ -11,6 +11,7 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Interaction;
+using MidiBard.DalamudApi;
 using MidiBard.Managers;
 using static MidiBard.MidiBard;
 using static MidiBard.ImGuiUtil;
@@ -49,7 +50,7 @@ namespace MidiBard
 				var flag = config.miniPlayer ? ImGuiWindowFlags.NoDecoration : ImGuiWindowFlags.None;
 				ImGui.SetNextWindowSizeConstraints(new Vector2(ImGui.GetIO().FontGlobalScale * 357, 0), new Vector2(ImGui.GetIO().FontGlobalScale * 357, float.MaxValue));
 #if DEBUG
-				if (ImGui.Begin($"MidiBard - {DalamudApi.DalamudApi.ClientState.LocalPlayer?.Name.TextValue} PID{Process.GetCurrentProcess().Id}###MIDIBARD", ref IsVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | flag))
+				if (ImGui.Begin($"MidiBard - {api.ClientState.LocalPlayer?.Name.TextValue} PID{Process.GetCurrentProcess().Id}###MIDIBARD", ref IsVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | flag))
 #else
 				if (ImGui.Begin("MidiBard###MIDIBARD", ref IsVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | flag))
 #endif

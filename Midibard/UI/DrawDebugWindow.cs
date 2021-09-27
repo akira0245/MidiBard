@@ -16,6 +16,7 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 using Melanchall.DryWetMidi.Devices;
+using MidiBard.DalamudApi;
 using MidiBard.Managers;
 using MidiBard.Managers.Agents;
 
@@ -104,7 +105,7 @@ namespace MidiBard
 					ImGui.Separator();
 					try
 					{
-						var performInfos = OffsetManager.Instance.PerformInfos;
+						var performInfos = Offsets.Instance.PerformInfos;
 						ImGui.TextUnformatted($"PerformInfos: {performInfos.ToInt64() + 3:X}");
 						ImGui.SameLine();
 						if (ImGui.SmallButton("C##PerformInfos")) ImGui.SetClipboardText($"{performInfos.ToInt64() + 3:X}");
@@ -126,7 +127,7 @@ namespace MidiBard
 					ImGui.TextUnformatted($"currentPlaying: {PlaylistManager.CurrentPlaying}");
 					ImGui.TextUnformatted($"currentSelected: {PlaylistManager.CurrentSelected}");
 					ImGui.TextUnformatted($"FilelistCount: {PlaylistManager.Filelist.Count}");
-					ImGui.TextUnformatted($"currentUILanguage: {DalamudApi.DalamudApi.PluginInterface.UiLanguage}");
+					ImGui.TextUnformatted($"currentUILanguage: {api.PluginInterface.UiLanguage}");
 
 
 				}
@@ -423,7 +424,7 @@ namespace MidiBard
 						{
 							var value = (long)(IntPtr)i.GetValue(offsetManager);
 							var variable =
-								$"{i.Name} +{value - (long)DalamudApi.DalamudApi.SigScanner.Module.BaseAddress:X}\n{value:X} ";
+								$"{i.Name} +{value - (long)api.SigScanner.Module.BaseAddress:X}\n{value:X} ";
 							ImGui.TextUnformatted(variable);
 							ImGui.SameLine();
 							if (ImGui.SmallButton($"C##{i.Name}"))

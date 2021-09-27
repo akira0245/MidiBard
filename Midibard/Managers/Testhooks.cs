@@ -61,15 +61,15 @@ namespace MidiBard.Managers
 
 		private Testhooks()
 		{
-			GetETHook = new Hook<sub_1401EF560>(OffsetManager.Instance.GetErozeaTime, a1 =>
-			{
-				var original = GetETHook.Original(a1);
-				PluginLog.Information(original.ToString());
-				return original;
-			});
+			//GetETHook = new Hook<sub_1401EF560>(Offsets.Instance.GetErozeaTime, a1 =>
+			//{
+			//	var original = GetETHook.Original(a1);
+			//	PluginLog.Information(original.ToString());
+			//	return original;
+			//});
 			//GetETHook.Enable();
 
-			SetoptionHook = new Hook<SetOptionDelegate>(OffsetManager.Instance.SetOption,
+			SetoptionHook = new Hook<SetOptionDelegate>(Offsets.Instance.SetOption,
 				(module, id, value, unknown, unk2, unk3) =>
 				{
 					PluginLog.Information($"{module.ToInt64():X}, kind: {id} value: {value}, unk: {unknown}, unk2: {unk2}, unk3: {unk3}");
@@ -79,7 +79,7 @@ namespace MidiBard.Managers
 				});
 			//SetoptionHook.Enable();
 
-			ChangeKeyboardLayoutHook = new Hook<sub_140C7D860>(OffsetManager.Instance.ChangeKeyboardLayout, (a1, a2) =>
+			ChangeKeyboardLayoutHook = new Hook<sub_140C7D860>(Offsets.Instance.ChangeKeyboardLayout, (a1, a2) =>
 			{
 				var a2p = sub_1404AF1A0(a2);
 				var ret = ChangeKeyboardLayoutHook.Original(a1, a2);
@@ -88,7 +88,7 @@ namespace MidiBard.Managers
 			});
 			//ChangeKeyboardLayoutHook.Enable();
 
-			playnoteHook = new Hook<sub_140C7ED20>(OffsetManager.Instance.PressNote, (agentPerformance, note, isPressing) =>
+			playnoteHook = new Hook<sub_140C7ED20>(Offsets.Instance.PressNote, (agentPerformance, note, isPressing) =>
 			{
 				//PluginLog.Verbose($"{agentPerformance.ToInt64():X}, {note}, {isPressing}");
 				if (!MidiBard.IsPlaying || note != off)
