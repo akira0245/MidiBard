@@ -66,7 +66,7 @@ namespace MidiBard.Managers
 
 		private NetworkManager()
 		{
-			ensembleSendHook = new Hook<sub_14119B120>(Offsets.Instance.EnsembleSendHandler, (dataptr) =>
+			ensembleSendHook = new Hook<sub_14119B120>(Offsets.EnsembleSendHandler, (dataptr) =>
 			{
 				try
 				{
@@ -80,7 +80,7 @@ namespace MidiBard.Managers
 				ensembleSendHook.Original(dataptr);
 			});
 
-			soloSendHook = new Hook<sub_14119B2E0>(Offsets.Instance.SoloSendHandler, (dataptr) =>
+			soloSendHook = new Hook<sub_14119B2E0>(Offsets.SoloSendHandler, (dataptr) =>
 			{
 				try
 				{
@@ -94,7 +94,7 @@ namespace MidiBard.Managers
 				soloSendHook.Original(dataptr);
 			});
 
-			soloReceivedHook = new Hook<sub_14070A1C0>(Offsets.Instance.SoloReceivedHandler, (id, data) =>
+			soloReceivedHook = new Hook<sub_14070A1C0>(Offsets.SoloReceivedHandler, (id, data) =>
 			{
 				try
 				{
@@ -107,7 +107,7 @@ namespace MidiBard.Managers
 				return soloReceivedHook.Original(id, data);
 			});
 
-			ensembleReceivedHook = new Hook<sub_14070A230>(Offsets.Instance.EnsembleReceivedHandler, (id, data) =>
+			ensembleReceivedHook = new Hook<sub_14070A230>(Offsets.EnsembleReceivedHandler, (id, data) =>
 			{
 				try
 				{

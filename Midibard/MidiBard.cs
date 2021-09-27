@@ -61,8 +61,7 @@ namespace MidiBard
 
 
 
-		internal static byte InstrumentOffset;
-		internal static byte CurrentInstrument => Marshal.ReadByte(Offsets.Instance.PerformInfos + 3 + InstrumentOffset);
+		internal static byte CurrentInstrument => Marshal.ReadByte(Offsets.PerformInfos + 3 + Offsets.InstrumentOffset);
 		internal static readonly byte[] guitarGroup = { 24, 25, 26, 27, 28 };
 		internal static bool PlayingGuitar => guitarGroup.Contains(CurrentInstrument);
 
@@ -75,7 +74,7 @@ namespace MidiBard
 			DalamudApi.api.Initialize(this, pi);
 			LoadConfig();
 
-			_ = OffsetManager.Instance;
+			OffsetManager.Setup(api.SigScanner);
 			_ = NetworkManager.Instance;
 			_ = EnsembleManager.Instance;
 
@@ -86,9 +85,8 @@ namespace MidiBard
 			playlib.init(this);
 			CurrentOutputDevice = new BardPlayDevice();
 
-			AgentMetronome = new AgentMetronome(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.Instance.MetronomeAgent));
-			AgentPerformance = new AgentPerformance(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.Instance.PerformanceAgent));
-			InstrumentOffset = Marshal.ReadByte(Offsets.Instance.InstrumentOffset);
+			AgentMetronome = new AgentMetronome(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.MetronomeAgent));
+			AgentPerformance = new AgentPerformance(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.PerformanceAgent));
 
 			Task.Run(() =>
 			{

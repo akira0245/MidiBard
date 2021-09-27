@@ -105,7 +105,7 @@ namespace MidiBard
 					ImGui.Separator();
 					try
 					{
-						var performInfos = Offsets.Instance.PerformInfos;
+						var performInfos = Offsets.PerformInfos;
 						ImGui.TextUnformatted($"PerformInfos: {performInfos.ToInt64() + 3:X}");
 						ImGui.SameLine();
 						if (ImGui.SmallButton("C##PerformInfos")) ImGui.SetClipboardText($"{performInfos.ToInt64() + 3:X}");
@@ -417,12 +417,11 @@ namespace MidiBard
 				{
 					try
 					{
-						var offsetManager = OffsetManager.Instance;
-						var type = offsetManager.GetType();
+						var type = typeof(Offsets);
 
-						foreach (var i in type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+						foreach (var i in type.GetProperties(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
 						{
-							var value = (long)(IntPtr)i.GetValue(offsetManager);
+							var value = (long)(IntPtr)i.GetValue(null);
 							var variable =
 								$"{i.Name} +{value - (long)api.SigScanner.Module.BaseAddress:X}\n{value:X} ";
 							ImGui.TextUnformatted(variable);
