@@ -21,6 +21,11 @@ namespace MidiBard.Managers
 		[Offset("40 88 ?? ?? 66 89 ?? ?? 40 84", +3)]
 		public static int InstrumentOffset { get; private set; }
 
+		[Function("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 0F B6 FA 48 8B D9 84 D2 ")]
+		public static IntPtr UpdateMetronome { get; private set; }
+
+#if DEBUG
+
 		[Function("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 48 8B DA 8B F9 ")]
 		public static IntPtr SoloReceivedHandler { get; private set; }
 
@@ -33,10 +38,7 @@ namespace MidiBard.Managers
 		[Function("40 55 57 41 56 48 8D AC 24 ?? ?? ?? ?? B8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 2B E0 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 85 ?? ?? ?? ?? 0F B6 79 09 ")]
 		public static IntPtr EnsembleSendHandler { get; private set; }
 
-		[Function("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 0F B6 FA 48 8B D9 84 D2 ")]
-		public static IntPtr UpdateMetronome { get; private set; }
 
-#if DEBUG
 
 		[Function("48 89 ? ? ? 48 89 ? ? ? 57 48 83 EC ? 8B FA 41 0F ? ? 03 79")]
 		public static IntPtr PressNote { get; private set; }

@@ -42,7 +42,7 @@ namespace MidiBard.Managers
 								address += sigAttribute.Offset;
 								var structure = Marshal.PtrToStructure(address, propertyInfo.PropertyType);
 								propertyInfo.SetValue(null, structure);
-								PluginLog.Information($"[{nameof(OffsetManager)}][{propertyInfo.Name}] {propertyInfo.PropertyType.Name} {structure}");
+								PluginLog.Information($"[{nameof(OffsetManager)}][{propertyInfo.Name}] {propertyInfo.PropertyType.FullName} {structure}");
 								continue;
 							}
 						default:

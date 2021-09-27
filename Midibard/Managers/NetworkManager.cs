@@ -9,6 +9,7 @@ using Dalamud.Logging;
 using Dalamud.Memory;
 using MidiBard.Structs;
 
+#if DEBUG
 namespace MidiBard.Managers
 {
 	class NetworkManager : IDisposable
@@ -138,3 +139,4 @@ namespace MidiBard.Managers
 		}
 	}
 }
+#endif

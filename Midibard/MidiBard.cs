@@ -75,10 +75,9 @@ namespace MidiBard
 			LoadConfig();
 
 			OffsetManager.Setup(api.SigScanner);
-			_ = NetworkManager.Instance;
 			_ = EnsembleManager.Instance;
-
 #if DEBUG
+			_ = NetworkManager.Instance;
 			_ = Testhooks.Instance;
 #endif
 
@@ -260,7 +259,9 @@ namespace MidiBard
 			PluginInterface.UiBuilder.Draw -= Ui.Draw;
 
 			EnsembleManager.Instance.Dispose();
+#if DEBUG
 			NetworkManager.Instance.Dispose();
+#endif
 			InputDeviceManager.DisposeDevice();
 			try
 			{
