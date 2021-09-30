@@ -52,8 +52,11 @@ namespace MidiBard
 		public bool miniPlayer = false;
 		public bool enableSearching = false;
 
-		public bool autoSwitchInstrumentByFileName = true;
-		public bool autoTransposeByFileName = true;
+		public bool autoSwitchInstrumentBySongName = true;
+		public bool autoTransposeBySongName = true;
+
+		public bool autoSwitchInstrumentByTrackName = false;
+		public bool autoTransposeByTrackName = false;
 		public bool OverrideGuitarTones = true;
 
 		public Vector4 themeColor = ImGui.ColorConvertU32ToFloat4(0x9C60FF8E);

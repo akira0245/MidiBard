@@ -43,7 +43,7 @@ namespace MidiBard
 		internal static MidiFile CurrentOpeningMidiFile { get; }
 		internal static Playback CurrentPlayback { get; set; }
 		internal static TempoMap CurrentTMap { get; set; }
-		internal static List<(TrackChunk, TrackInfo)> CurrentTracks { get; set; }
+		internal static List<(TrackChunk trackChunk, TrackInfo trackInfo)> CurrentTracks { get; set; }
 
 		internal static Localizer Localizer { get; set; }
 

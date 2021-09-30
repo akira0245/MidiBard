@@ -17,7 +17,7 @@ namespace MidiBard
 {
 	static class PlaylistManager
 	{
-		public static List<(string path, string trackName)> Filelist { get; set; } = new List<(string, string)>();
+		public static List<(string path, string songName)> Filelist { get; set; } = new List<(string, string)>();
 
 		public static int CurrentPlaying
 		{
