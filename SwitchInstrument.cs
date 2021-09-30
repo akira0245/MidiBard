@@ -174,125 +174,126 @@ namespace MidiBard
 			name = name.ToLower();
 
 			// below are to be compatible with BMP-ready MIDI files.
-			if (name == "harp")
+			if (name.Contains("harp"))
 			{
 				return 1;
 			}
-			else if (name == "piano")
+			else if (name.Contains("piano"))
 			{
 				return 2;
 			}
-			else if (name == "lute")
+			else if (name.Contains("lute") && !name.Contains("flute"))
 			{
 				return 3;
 			}
-			else if (name == "fiddle")
+			else if (name.Contains("fiddle"))
 			{
 				return 4;
 			}
-			else if (name == "flute")
+			else if (name.Contains("flute"))
 			{
 				return 5;
 			}
-			else if (name == "oboe")
+			else if (name.Contains("oboe"))
 			{
 				return 6;
 			}
-			else if (name == "clarinet")
+			else if (name.Contains("clarinet"))
 			{
 				return 7;
 			}
-			else if (name == "fife")
+			else if (name.Contains("fife"))
 			{
 				return 8;
 			}
-			else if (name == "panpipes")
+			else if (name.Contains("panpipes"))
 			{
 				return 9;
 			}
-			else if (name == "timpani")
+			else if (name.Contains("timpani"))
 			{
 				return 10;
 			}
-			else if (name == "bongo")
+			else if (name.Contains("bongo"))
 			{
 				return 11;
 			}
-			else if (name == "bass drum")
+			else if (name.Contains("bass drum"))
 			{
 				return 12;
 			}
-			else if (name == "snare drum")
+			else if (name.Contains("snare drum"))
 			{
 				return 13;
 			}
-			else if (name == "cymbal")
+			else if (name.Contains("cymbal"))
 			{
 				return 14;
 			}
-			else if (name == "trumpet")
+			else if (name.Contains("trumpet"))
 			{
 				return 15;
 			}
-			else if (name == "trombone")
+			else if (name.Contains("trombone"))
 			{
 				return 16;
 			}
-			else if (name == "tuba")
+			else if (name.Contains("tuba"))
 			{
 				return 17;
 			}
-			else if (name == "horn")
+			else if (name.Contains("horn"))
 			{
 				return 18;
 			}
-			else if (name == "saxophone")
+			else if (name.Contains("saxophone"))
 			{
 				return 19;
 			}
-			else if (name == "violin")
+			else if (name.Contains("violin"))
 			{
 				return 20;
 			}
-			else if (name == "viola")
+			else if (name.Contains("viola"))
 			{
 				return 21;
 			}
-			else if (name == "cello")
+			else if (name.Contains("cello"))
 			{
 				return 22;
 			}
-			else if (name == "double bass")
+			else if (name.Contains("double bass"))
 			{
 				return 23;
 			}
-			else if (name == "electricguitaroverdriven")
+			else if (name.Contains("electricguitaroverdriven") || name.Contains("electric guitar overdriven"))
 			{
 				return 24;
 			}
-			else if (name == "electricguitarclean")
+			else if (name.Contains("electricguitarclean") || name.Contains("electric guitar clean"))
 			{
 				return 25;
 			}
-			else if (name == "electricguitarmuted")
+			else if (name.Contains("electricguitarmuted") || name.Contains("electric guitar muted"))
 			{
 				return 26;
 			}
-			else if (name == "electricguitarpowerchords")
+			else if (name.Contains("electricguitarpowerchords") || name.Contains("electric guitar power chords"))
 			{
 				return 27;
 			}
-			else if (name == "electricguitarspecial")
+			else if (name.Contains("electricguitarspecial") || name.Contains("electric guitar special"))
 			{
 				return 28;
 			}
-			else if (name == "program:electricguitar")
+			else if (name.Contains("program:electricguitar"))
 			{
 				// program change on same track, although function not supported
 				return 24;
 			}
 
-			return 0;
+			// use piano as the default instrument
+			return 2;
 		}
 
 		public static int GetTransposeByName(string name)
