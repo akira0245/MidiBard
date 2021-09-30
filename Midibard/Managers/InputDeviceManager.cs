@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Dalamud.Logging;
 using Dalamud.Plugin;
+using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Devices;
 
 namespace MidiBard
@@ -58,6 +59,7 @@ namespace MidiBard
 			try
 			{
 				CurrentInputDevice = device;
+				CurrentInputDevice.SilentNoteOnPolicy = SilentNoteOnPolicy.NoteOff;
 				CurrentInputDevice.EventReceived += InputDevice_EventReceived;
 				CurrentInputDevice.StartEventsListening();
 			}
@@ -66,19 +68,21 @@ namespace MidiBard
 				PluginLog.Error(e, "midi device possibly being occupied.");
 				DisposeDevice();
 			}
-
 		}
 
 		internal static void DisposeDevice()
 		{
 			try
 			{
-				CurrentInputDevice.EventReceived -= InputDevice_EventReceived;
-				CurrentInputDevice.Reset();
+				if (CurrentInputDevice != null)
+				{
+					CurrentInputDevice.EventReceived -= InputDevice_EventReceived;
+					CurrentInputDevice.Reset();
+				}
 			}
 			catch (Exception e)
 			{
-				PluginLog.Debug($"possible null inputDevice. {e}");
+				PluginLog.Error(e, "error when disposing existing Input device");
 			}
 			finally
 			{
@@ -89,7 +93,7 @@ namespace MidiBard
 
 		private static void InputDevice_EventReceived(object sender, MidiEventReceivedEventArgs e)
 		{
-			//PluginLog.Verbose(e.Event.ToString());
+			PluginLog.Verbose($"[{sender}]{e.Event}");
 			MidiBard.CurrentOutputDevice.SendEvent(e.Event);
 		}
 	}

@@ -262,8 +262,7 @@ namespace MidiBard
 					"后台演奏时有轻微卡顿不流畅怎么办？" +
 					"\n　在游戏内“系统设置→显示设置→帧数限制”中取消勾选 “程序在游戏窗口处于非激活状态时限制帧数” 的选项并应用设置。\n");
 				ImGui.Indent();
-				IconButton(FontAwesomeIcon.Git, "qq");
-				if (ImGui.Button("加入QQ群"))
+				if (ImGui.Button("加入QQ群", new Vector2(ImGui.GetFrameHeight()*5, ImGui.GetFrameHeight())))
 				{
 					Task.Run(() =>
 					{
