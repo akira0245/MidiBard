@@ -950,8 +950,8 @@ namespace MidiBard
 			ImGui.Checkbox("Auto switch instrument".Localize(), ref config.autoSwitchInstrument);
 			HelpMarker("Auto switch instrument on demand. If you need this, \nplease add #instrument name# before file name.\nE.g. #harp#demo.mid".Localize());
 
-			ImGui.Checkbox("Auto switch instrument by track name", ref config.autoSwitchInstrumentByTrackName);
-			HelpMarker("Auto switch instrument by track name, compatible with any BMP ready MIDI files. Has no effect when playing or if the ensemble mode is active.");
+			ImGui.Checkbox("Auto switch instrument by MIDI track name".Localize(), ref config.autoSwitchInstrumentByTrackName);
+			HelpMarker("Auto switch instrument by MIDI track name, compatible with any BMP ready MIDI files. \nHas no effect when playing or if the ensemble mode is active.".Localize());
 
 			ImGui.Checkbox("Override guitar tones".Localize(), ref config.OverrideGuitarTones);
 			HelpMarker("Assign different guitar tones for each midi tracks".Localize());

@@ -114,6 +114,8 @@ namespace MidiBard
 			zh.Add("Enter to start the search", "输入开始搜索");
 			zh.Add("Delay", "间隔时间");
 			zh.Add("Delay time before play next track.", "在连续播放时每首乐曲播放结束后的等待时间。");
+			zh.Add("Auto switch instrument by MIDI track name", "根据MIDI音轨名称自动切换乐器");
+			zh.Add("Auto switch instrument by MIDI track name, compatible with any BMP ready MIDI files. \nHas no effect when playing or if the ensemble mode is active.", "根据MIDI音轨名称自动切换乐器，和Bard MIDI Player的音轨命名标准兼容（音轨名为游戏中乐器英文名称）。\n当正在播放或合奏模式启动时，不会自动切换乐器。");
 		}
 	}
 }
