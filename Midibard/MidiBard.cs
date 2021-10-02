@@ -70,55 +70,42 @@ namespace MidiBard
 		public unsafe MidiBard(DalamudPluginInterface pi)
 		{
 			DalamudApi.api.Initialize(this, pi);
-			LoadConfig();
 
+			LoadConfig();
+			Localizer = new Localizer((UILang)config.uiLang);
+
+			playlib.init(this);
 			OffsetManager.Setup(api.SigScanner);
+
+			AgentMetronome = new AgentMetronome(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.MetronomeAgent));
+			AgentPerformance = new AgentPerformance(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.PerformanceAgent));
 			_ = EnsembleManager.Instance;
+
 #if DEBUG
 			_ = NetworkManager.Instance;
 			_ = Testhooks.Instance;
 #endif
 
-			playlib.init(this);
+			PlaylistManager.ReloadPlayListFromConfig();
+
 			CurrentOutputDevice = new BardPlayDevice();
+			InputDeviceManager.scanMidiDeviceThread.Start();
 
-			AgentMetronome = new AgentMetronome(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.MetronomeAgent));
-			AgentPerformance = new AgentPerformance(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.PerformanceAgent));
-
-			Task.Run(() =>
-			{
-				PlaylistManager.ReloadPlayListFromConfig();
-				SaveConfig();
-			});
-
-			Localizer = new Localizer((UILang)config.uiLang);
 			Ui = new PluginUI();
 			PluginInterface.UiBuilder.Draw += Ui.Draw;
 			Framework.Update += Tick;
-			PluginInterface.UiBuilder.OpenConfigUi += () => Ui.IsVisible ^= true;
+			PluginInterface.UiBuilder.OpenConfigUi += () => Ui.Toggle();
 
-			if (PluginInterface.IsDev) Ui.IsVisible = true;
+			if (PluginInterface.IsDev) Ui.Open();
+
+
 		}
 
 		private void Tick(Dalamud.Game.Framework framework)
 		{
-			if (config.AutoOpenPlayerWhenPerforming)
-				PerformanceEvents.Instance.InPerformanceMode = AgentPerformance.InPerformanceMode;
+			PerformanceEvents.Instance.InPerformanceMode = AgentPerformance.InPerformanceMode;
 
-			//ExecuteCoroutine();
-
-			//if (config.AutoOpenPlayerWhenPerforming)
-			//{
-			//	if (AgentPerformance.InPerformanceMode)
-			//	{
-			//		if (!Ui.IsVisible)
-			//		{
-			//			Ui.IsVisible = true;
-			//		}
-			//	}
-			//}
-
-			if (Ui.IsVisible)
+			if (Ui.IsOpened)
 			{
 				if (configSaverTick++ == 3600)
 				{
@@ -217,7 +204,7 @@ namespace MidiBard
 			}
 			else
 			{
-				Ui.IsVisible ^= true;
+				Ui.Toggle();
 			}
 		}
 
@@ -234,8 +221,7 @@ namespace MidiBard
 				catch (Exception e)
 				{
 					PluginLog.Error(e, "Error when saving config");
-					PluginInterface.UiBuilder.AddNotification(e.Message, "[Midibard] Error when saving config",
-						NotificationType.Error, 5000);
+					ImGuiUtil.AddNotification(NotificationType.Error, "Error when saving config");
 				}
 			});
 		}
@@ -253,6 +239,7 @@ namespace MidiBard
 #if DEBUG
 			Testhooks.Instance?.Dispose();
 #endif
+			InputDeviceManager.ShouldScanMidiDeviceThread = false;
 			Framework.Update -= Tick;
 			PluginInterface.UiBuilder.Draw -= Ui.Draw;
 
@@ -272,6 +259,12 @@ namespace MidiBard
 				PluginLog.Error($"{e}");
 			}
 
+
+			DalamudApi.api.Dispose();
+		}
+
+		public void Dispose()
+		{
 			try
 			{
 				SaveConfig();
@@ -281,11 +274,6 @@ namespace MidiBard
 				PluginLog.Error(e, "error when saving config file");
 			}
 
-			DalamudApi.api.Dispose();
-		}
-		
-		public void Dispose()
-		{
 			FreeUnmanagedResources();
 			GC.SuppressFinalize(this);
 		}

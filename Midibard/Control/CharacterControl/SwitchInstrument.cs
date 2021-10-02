@@ -55,7 +55,7 @@ namespace MidiBard.Control.CharacterControl
 				await Util.Coroutine.WaitUntil(() => MidiBard.CurrentInstrument == instrumentId, timeOut);
 				await Task.Delay(200);
 				PluginLog.Debug($"instrument switching succeed in {sw.Elapsed.TotalMilliseconds} ms");
-				DalamudApi.api.PluginInterface.UiBuilder.AddNotification($"Switched to {MidiBard.InstrumentStrings[instrumentId]}", "MidiBard", NotificationType.Success, 5000);
+				ImGuiUtil.AddNotification(NotificationType.Success,$"Switched to {MidiBard.InstrumentStrings[instrumentId]}");
 			}
 			catch (Exception e)
 			{
@@ -113,7 +113,7 @@ namespace MidiBard.Control.CharacterControl
 		{
 			var config = MidiBard.config;
 
-			if (config.autoTransposeBySongName && config.EnableTransposePerTrack)
+			if (config.bmpTrackNames && config.EnableTransposePerTrack)
 			{
 				var currentTracks = MidiBard.CurrentTracks;
 				foreach (var (_, trackInfo) in currentTracks)
@@ -127,7 +127,7 @@ namespace MidiBard.Control.CharacterControl
 				}
 			}
 
-			if (config.autoSwitchInstrumentByTrackName)
+			if (config.bmpTrackNames)
 			{
 				var firstEnabledTrack = MidiBard.CurrentTracks.Select(i => i.trackInfo).FirstOrDefault(i => i.IsEnabled);
 				var idFromTrackName = firstEnabledTrack?.InstrumentIDFromTrackName;

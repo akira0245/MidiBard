@@ -35,40 +35,30 @@ namespace MidiBard
 							ImGui.GetFontSize() * 5.5f);
 					}
 
+					bool soloing = MidiBard.config.SoloedTrack is not null;
+					int? soloingTrack = MidiBard.config.SoloedTrack;
 					bool showtooltip = true;
 					for (var i = 0; i < MidiBard.CurrentTracks.Count; i++)
 					{
 						ImGui.PushID($"tracks{i}");
 						ImGui.SetCursorPosX(0);
-						var configEnabledTrack = !MidiBard.config.EnabledTracks[i];
-						if (configEnabledTrack)
+						Vector4 color = *ImGui.GetStyleColorVec4(ImGuiCol.Text);
+						Vector4 colorCheckmark = *ImGui.GetStyleColorVec4(ImGuiCol.Text);
+						if (!MidiBard.config.EnabledTracks[i] || soloing)
 						{
-							ImGui.PushStyleColor(ImGuiCol.Text, *ImGui.GetStyleColorVec4(ImGuiCol.TextDisabled));
+							color = colorCheckmark = *ImGui.GetStyleColorVec4(ImGuiCol.TextDisabled);
 						}
 
-						if (ImGui.Checkbox("##checkbox", ref MidiBard.config.EnabledTracks[i]))
+						if (soloingTrack == i)
 						{
-							//try
-							//{
-							//	//var progress = currentPlayback.GetCurrentTime<MidiTimeSpan>();
-							//	//var wasplaying = IsPlaying;
-
-							//	currentPlayback?.Dispose();
-							//	//if (wasplaying)
-							//	//{
-
-							//	//}
-							//}
-							//catch (Exception e)
-							//{
-							//	PluginLog.Error(e, "error when disposing current playback while changing track selection");
-							//}
-							//finally
-							//{
-							//	currentPlayback = null;
-							//}
+							color = colorCheckmark = MidiBard.config.themeColor;
 						}
 
+						ImGui.PushStyleColor(ImGuiCol.Text, color);
+						ImGui.PushStyleColor(ImGuiCol.CheckMark, colorCheckmark);
+
+
+						ImGui.Checkbox("##checkbox", ref MidiBard.config.EnabledTracks[i]);
 
 
 						if (MidiBard.config.EnableTransposePerTrack)
@@ -84,15 +74,18 @@ namespace MidiBard
 						ImGui.SameLine();
 						ImGui.Dummy(Vector2.Zero);
 						ImGui.SameLine();
-						ImGui.TextUnformatted($"[{i + 1:00}] {MidiBard.CurrentTracks[i].Item2}");
-						if (configEnabledTrack)
-						{
-							ImGui.PopStyleColor();
-						}
+						ImGui.TextUnformatted((soloingTrack == i ? "[Soloing]" : $"[{i + 1:00}]") +
+						                      $" {MidiBard.CurrentTracks[i].Item2}");
+						ImGui.PopStyleColor(2);
 
 						if (ImGui.IsItemClicked())
 						{
 							MidiBard.config.EnabledTracks[i] ^= true;
+						}
+
+						if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
+						{
+							MidiBard.config.SoloedTrack = MidiBard.config.SoloedTrack == i ? null : i;
 						}
 
 						if (ImGui.IsItemHovered())
@@ -163,17 +156,16 @@ namespace MidiBard
 						ImGui.BeginTooltip();
 						ImGui.PushTextWrapPos(ImGui.GetFontSize() * 20.0f);
 						ImGui.TextUnformatted(
-							"Track Selection. \nMidiBard will only perform tracks been selected, which is useful in ensemble."
+							"Track Selection. \nMidiBard will only perform enabled tracks.\nLeft click to enable/disable a track, Right click to solo it."
 								.Localize());
 						ImGui.PopTextWrapPos();
 						ImGui.EndTooltip();
 					}
 
 					ImGui.PopStyleVar(3);
-					ImGui.EndChild();
 				}
 
-				//ImGui.PopStyleVar(3);
+				ImGui.EndChild();
 				ImGui.PopStyleColor();
 			}
 		}

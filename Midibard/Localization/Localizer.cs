@@ -8,16 +8,16 @@ namespace MidiBard
 {
 	static class LocalizerExtension
 	{
-		internal static string Localize(this string message)
-		{
-			return MidiBard.Localizer.Localize(message);
-		}
+		internal static string Localize(this string message) => MidiBard.Localizer.Localize(message);
+		internal static string Localize(this string format, params object[] objects) => string.Format(format, objects);
+
+
 	}
     class Localizer
     {
         public UILang Language;
-        private Dictionary<string, string> zh = new Dictionary<string, string> { };
-        private Dictionary<string, string> en = new Dictionary<string, string> { };
+        private Dictionary<string, string> zh = new();
+        private Dictionary<string, string> en = new();
         public Localizer(UILang language)
         {
             Language = language;
@@ -25,7 +25,7 @@ namespace MidiBard
         }
         public string Localize(string message)
         {
-            if (message == null) return message;
+            if (message == null) return null;
             if (Language == UILang.CN) return zh.ContainsKey(message) ? zh[message] : message;
             if (Language == UILang.EN) return en.ContainsKey(message) ? en[message] : message;
             return message;
@@ -56,7 +56,8 @@ namespace MidiBard
             zh.Add("Toggle player control panel", "演奏控制面板");
             zh.Add("Toggle settings panel", "播放器设置面板");
             zh.Add("Toggle mini player", "切换迷你播放器");
-            zh.Add("Track Selection. \r\nMidiBard will only perform tracks been selected, which is useful in ensemble.\r\nChange on this will interrupt ongoing performance.", "音轨选择。\r\nMIDIBARD只会播放被选中的音轨，在合奏中有用。\r\n请注意：在演奏中切换音轨将会打断当前演奏。");
+            zh.Add("Track Selection. \nMidiBard will only perform enabled tracks.\nLeft click to enable/disable a track, Right click to solo it.",
+	            "音轨选择。\r\nMIDIBARD只会演奏被选中的音轨。\n左键单击选择/取消选择音轨，右键单击Solo该音轨。");
             zh.Add("Track", "音轨");
             zh.Add($"notes)", "音符)");
             zh.Add("Transpose", "全音轨移调");
@@ -80,7 +81,6 @@ namespace MidiBard
             zh.Add("Auto open MidiBard", "自动打开MIDIBARD");
             zh.Add("Open MidiBard window automatically when entering performance mode", "在进入演奏模式时自动打开MIDIBARD窗口。");
             zh.Add("Import in progress...", "正在导入...");
-            zh.Add("One or more of your modpacks failed to import.\nPlease submit a bug report.", "你有一个或多个MID文件导入失败。");
             zh.Add("Select a mid file", "选择MID文件");
             zh.Add("Instrument", "乐器选择");
             zh.Add("Auto switch instrument", "自动切换乐器");

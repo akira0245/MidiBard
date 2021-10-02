@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Dalamud.Interface;
+using Dalamud.Interface.Windowing;
 using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
@@ -18,10 +19,31 @@ using static MidiBard.ImGuiUtil;
 
 namespace MidiBard
 {
+
 	public partial class PluginUI
 	{
 		private readonly string[] uilangStrings = { "EN", "ZH" };
-		public bool IsVisible;
+		private bool IsVisible;
+		public bool IsOpened => IsVisible;
+
+		public void Toggle()
+		{
+			if (IsVisible)
+				Close();
+			else
+				Open();
+		}
+
+		public void Open()
+		{
+			IsVisible = true;
+		}
+
+		public void Close()
+		{
+			IsVisible = false;
+		}
+
 
 		private static string searchstring = "";
 
@@ -69,7 +91,7 @@ namespace MidiBard
 
 					if (listeningForEvents)
 					{
-						DrawColoredBanner(violet, "Listening input device: ".Localize() + InputDeviceManager.CurrentInputDevice.ToDeviceString());
+						DrawColoredBanner(violet, "Listening input device: ".Localize() + InputDeviceManager.CurrentInputDevice.DeviceName());
 					}
 
 					if (!config.miniPlayer)

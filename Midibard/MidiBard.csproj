@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0-windows</TargetFramework>
     <LangVersion>9.0</LangVersion>
-    <AssemblyVersion>1.7.0.3</AssemblyVersion>
+    <AssemblyVersion>1.8.0.0</AssemblyVersion>
     <UseWindowsForms>true</UseWindowsForms>
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
   </PropertyGroup>
@@ -26,23 +26,23 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Dalamud">
-      <HintPath>..\..\..\..\Downloads\Compressed\dalamud-artifactbuild\dalamud-artifact\Dalamud.dll</HintPath>
-      <Private>false</Private>
+      <HintPath>$(AppData)\XIVLauncher\addon\Hooks\dev\Dalamud.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="FFXIVClientStructs">
-      <HintPath>..\..\..\..\Downloads\Compressed\dalamud-artifactbuild\dalamud-artifact\FFXIVClientStructs.dll</HintPath>
+      <HintPath>$(AppData)\XIVLauncher\addon\Hooks\dev\FFXIVClientStructs.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="ImGui.NET">
-      <HintPath>..\..\..\..\Downloads\Compressed\dalamud-artifactbuild\dalamud-artifact\ImGui.NET.dll</HintPath>
+      <HintPath>$(AppData)\XIVLauncher\addon\Hooks\dev\ImGui.NET.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="Lumina">
-      <HintPath>..\..\..\..\Downloads\Compressed\dalamud-artifactbuild\dalamud-artifact\Lumina.dll</HintPath>
+      <HintPath>$(AppData)\XIVLauncher\addon\Hooks\dev\Lumina.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="Lumina.Excel">
-      <HintPath>..\..\..\..\Downloads\Compressed\dalamud-artifactbuild\dalamud-artifact\Lumina.Excel.dll</HintPath>
+      <HintPath>$(AppData)\XIVLauncher\addon\Hooks\dev\Lumina.Excel.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="playlib">

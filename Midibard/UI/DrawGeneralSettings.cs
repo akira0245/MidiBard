@@ -24,7 +24,7 @@ namespace MidiBard
 
 			var inputDevices = InputDeviceManager.Devices;
 
-			if (ImGui.BeginCombo("Input Device".Localize(), InputDeviceManager.CurrentInputDevice.ToDeviceString()))
+			if (ImGui.BeginCombo("Input Device".Localize(), InputDeviceManager.CurrentInputDevice.DeviceName()))
 			{
 				if (ImGui.Selectable("None##device", InputDeviceManager.CurrentInputDevice is null))
 				{
@@ -50,6 +50,9 @@ namespace MidiBard
 
 			ImGuiUtil.ToolTip("Choose external midi input device. right click to reset.".Localize());
 
+			ImGui.Checkbox("Restore device on start", ref MidiBard.config.autoRestoreListening);
+			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
+			ImGui.Checkbox("Auto listening new device", ref MidiBard.config.autoStartNewListening);
 
 			if (ImGui.Combo("UI Language".Localize(), ref MidiBard.config.uiLang, uilangStrings, 2))
 			{
@@ -73,9 +76,7 @@ namespace MidiBard
 			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
 
 			ImGui.Checkbox("Auto transpose".Localize(), ref MidiBard.config.autoTransposeBySongName);
-			ImGuiUtil.ToolTip(
-				"Auto transpose notes on demand. If you need this, \nplease add #transpose number# before file name.\nE.g. #-12#demo.mid"
-					.Localize());
+			ImGuiUtil.ToolTip("Auto transpose notes on demand. If you need this, \nplease add #transpose number# before file name.\nE.g. #-12#demo.mid".Localize());
 
 			ImGui.Checkbox("Override guitar tones".Localize(), ref MidiBard.config.OverrideGuitarTones);
 			ImGuiUtil.ToolTip("Assign different guitar tones for each midi tracks".Localize());
@@ -96,6 +97,9 @@ namespace MidiBard
 			ImGui.SameLine();
 			ImGui.SetCursorPosX(ImGui.GetCursorPosX() - ImGui.GetStyle().ItemInnerSpacing.X);
 			ImGui.TextUnformatted("Theme color".Localize());
+
+			ImGui.Checkbox("BMP track name compatible".Localize(), ref MidiBard.config.bmpTrackNames);
+			ImGuiUtil.ToolTip("transpose/switch instrument based on first enabled midi track name.\nPlease know what you are doing before enabling this.".Localize());
 		}
 	}
 }

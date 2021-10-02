@@ -41,9 +41,19 @@ namespace MidiBard.Control
 			var trackIndex = (int?)metadata;
 			if (trackIndex != null)
 			{
-				if (!MidiBard.config.EnabledTracks[trackIndex.Value])
+				if (MidiBard.config.SoloedTrack is int soloing)
 				{
-					return false;
+					if (trackIndex != soloing)
+					{
+						return false;
+					}
+				}
+				else
+				{
+					if (!MidiBard.config.EnabledTracks[trackIndex.Value])
+					{
+						return false;
+					}
 				}
 
 				if (MidiBard.PlayingGuitar && MidiBard.config.OverrideGuitarTones && midiEvent is NoteOnEvent)

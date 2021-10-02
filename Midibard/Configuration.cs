@@ -42,6 +42,7 @@ namespace MidiBard
 		public bool MonitorOnEnsemble = true;
 		public bool AutoOpenPlayerWhenPerforming = true;
 		public bool[] EnabledTracks = Enumerable.Repeat(true, 100).ToArray();
+		public int? SoloedTrack = null;
 		public int[] TonesPerTrack = new int[100];
 		public bool EnableTransposePerTrack = false;
 		public int[] TransposePerTrack = new int[100];
@@ -55,15 +56,20 @@ namespace MidiBard
 		public bool autoSwitchInstrumentBySongName = true;
 		public bool autoTransposeBySongName = true;
 
-		public bool autoSwitchInstrumentByTrackName = false;
-		public bool autoTransposeByTrackName = false;
-		public bool OverrideGuitarTones = true;
+		public bool bmpTrackNames = true;
+
+		//public bool autoSwitchInstrumentByTrackName = false;
+		//public bool autoTransposeByTrackName = false;
+		public bool OverrideGuitarTones = false;
 
 		public Vector4 themeColor = ImGui.ColorConvertU32ToFloat4(0x9C60FF8E);
 		public Vector4 themeColorDark = ImGui.ColorConvertU32ToFloat4(0x9C60FF8E) * new Vector4(0.25f, 0.25f, 0.25f, 1);
 		public Vector4 themeColorTransparent = ImGui.ColorConvertU32ToFloat4(0x9C60FF8E) * new Vector4(1, 1, 1, 0.33f);
 
 		public bool lazyNoteRelease = true;
+		public string lastUsedMidiDeviceName = "";
+		public bool autoRestoreListening = false;
+		public bool autoStartNewListening = false;
 		//public int testLength = 40;
 		//public int testInterval;
 		//public int testRepeat;

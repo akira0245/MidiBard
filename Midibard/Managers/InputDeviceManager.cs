@@ -2,16 +2,80 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Logging;
 using Dalamud.Plugin;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Devices;
+using MidiBard.DalamudApi;
 
 namespace MidiBard
 {
 	static class InputDeviceManager
 	{
+		internal static Thread scanMidiDeviceThread = new Thread(() =>
+		{
+			PluginLog.Information("device scanning thread started.");
+
+			while (ShouldScanMidiDeviceThread)
+			{
+				try
+				{
+					Devices = InputDevice.GetAll().OrderBy(i => i.Id).ToArray();
+					var newDevicesNames = Devices.Select(i => i.DeviceName()).ToArray();
+					if (CurrentInputDevice is null)
+					{
+						if (MidiBard.config.autoStartNewListening)
+						{
+							if (LastDevicesNames.Any())
+							{
+								var newDeviceName = newDevicesNames.Where(i => !LastDevicesNames.Contains(i)).ToArray();
+								if (newDeviceName.Any())
+								{
+									PluginLog.Warning($"new device detected: {string.Join(", ", newDeviceName)}");
+									var newDevice = Devices.FirstOrDefault(i => i.DeviceName() == newDeviceName.First());
+									if (newDevice is not null)
+									{
+										SetDevice(newDevice);
+									}
+								}
+							}
+						}
+
+						if (ShouldReloadMidiDevice && MidiBard.config.autoRestoreListening)
+						{
+							PluginLog.Warning($"try restoring midi device: \"{MidiBard.config.lastUsedMidiDeviceName}\"");
+							ShouldReloadMidiDevice = false;
+							//auto switch back to last used midi device when start performance
+							if (newDevicesNames.Contains(MidiBard.config.lastUsedMidiDeviceName))
+							{
+								var newDevice = Devices?.FirstOrDefault(i => i.Name == MidiBard.config.lastUsedMidiDeviceName);
+								if (newDevice != null)
+								{
+									SetDevice(Devices?.FirstOrDefault(i => i.Name == MidiBard.config.lastUsedMidiDeviceName));
+								}
+							}
+						}
+					}
+
+					LastDevicesNames = newDevicesNames;
+				}
+				catch (Exception e)
+				{
+					PluginLog.Error(e, "error in midi device scanning thread");
+				}
+
+				Thread.Sleep(100);
+			}
+			PluginLog.Information("device scanning thread ended.");
+		})
+		{ IsBackground = true, Priority = ThreadPriority.BelowNormal };
+
+		internal static bool ShouldScanMidiDeviceThread = true;
+		internal static bool ShouldReloadMidiDevice = true;
+
 		internal static bool IsListeningForEvents
 		{
 			get
@@ -19,7 +83,7 @@ namespace MidiBard
 				var ret = false;
 				try
 				{
-					if (CurrentInputDevice != null) ret = CurrentInputDevice.IsListeningForEvents;
+					ret = CurrentInputDevice?.IsListeningForEvents == true;
 				}
 				catch (Exception e)
 				{
@@ -30,26 +94,16 @@ namespace MidiBard
 			}
 		}
 
-		internal static string ToDeviceString(this InputDevice device)
+		internal static string DeviceName(this InputDevice device)
 		{
-			if (device is null)
-			{
-				return "None";
-			}
-			return device.Name;
+			return device?.Name ?? "None";
 		}
 
-		internal static InputDevice CurrentInputDevice { get; set; }
+		internal static InputDevice CurrentInputDevice { get; private set; }
 
-		internal static InputDevice[] Devices
-		{
-			get
-			{
-				return InputDevice.GetAll().OrderBy(i => i.Id).ToArray();
-				//var alldevice = InputDevice.GetAll();
-				//return alldevice.Prepend(null);
-			}
-		}
+		internal static string[] LastDevicesNames { get; private set; } = { };
+
+		internal static InputDevice[] Devices { get; private set; } = { };
 
 		internal static void SetDevice(InputDevice device)
 		{
@@ -59,13 +113,20 @@ namespace MidiBard
 			try
 			{
 				CurrentInputDevice = device;
+				MidiBard.config.lastUsedMidiDeviceName = CurrentInputDevice.Name;
 				CurrentInputDevice.SilentNoteOnPolicy = SilentNoteOnPolicy.NoteOff;
 				CurrentInputDevice.EventReceived += InputDevice_EventReceived;
 				CurrentInputDevice.StartEventsListening();
+				ImGuiUtil.AddNotification(NotificationType.Success,
+					"Start event listening on \"{0}\".".Localize(CurrentInputDevice.Name),
+					"Listening input device".Localize());
 			}
 			catch (Exception e)
 			{
-				PluginLog.Error(e, "midi device possibly being occupied.");
+				ImGuiUtil.AddNotification(NotificationType.Error,
+					"\"{0}\" is not available now.\nPlease check log for further error information.".Localize(device.Name),
+					"Cannot start listening Midi device".Localize());
+				PluginLog.Error(e, "midi device is possibly being occupied.");
 				DisposeDevice();
 			}
 		}

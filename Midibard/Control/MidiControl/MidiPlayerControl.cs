@@ -69,12 +69,19 @@ namespace MidiBard.Control.MidiControl
 		{
 			try
 			{
-				CurrentPlayback?.Stop();
-				CurrentPlayback?.MoveToTime(new MidiTimeSpan(0));
+				if (CurrentPlayback == null)
+				{
+					CurrentTracks.Clear();
+				}
+				else
+				{
+					CurrentPlayback?.Stop();
+					CurrentPlayback?.MoveToTime(new MidiTimeSpan(0));
+				}
 			}
 			catch (Exception e)
 			{
-				PluginLog.Information("Already stopped!");
+				PluginLog.Warning("Already stopped!");
 			}
 			finally
 			{
