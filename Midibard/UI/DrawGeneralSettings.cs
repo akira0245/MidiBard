@@ -50,9 +50,11 @@ namespace MidiBard
 
 			ImGuiUtil.ToolTip("Choose external midi input device. right click to reset.".Localize());
 
-			ImGui.Checkbox("Restore device on start", ref MidiBard.config.autoRestoreListening);
+			ImGui.Checkbox("Restore device on start".Localize(), ref MidiBard.config.autoRestoreListening);
+			ImGuiUtil.ToolTip("Try restart listening last used midi device on plugin start.".Localize());
 			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
-			ImGui.Checkbox("Auto listening new device", ref MidiBard.config.autoStartNewListening);
+			ImGui.Checkbox("Auto listening new device".Localize(), ref MidiBard.config.autoStartNewListening);
+			ImGuiUtil.ToolTip("Auto start listening new midi input device when idle.".Localize());
 
 			if (ImGui.Combo("UI Language".Localize(), ref MidiBard.config.uiLang, uilangStrings, 2))
 			{
@@ -98,8 +100,10 @@ namespace MidiBard
 			ImGui.SetCursorPosX(ImGui.GetCursorPosX() - ImGui.GetStyle().ItemInnerSpacing.X);
 			ImGui.TextUnformatted("Theme color".Localize());
 
+#if DEBUG
 			ImGui.Checkbox("BMP track name compatible".Localize(), ref MidiBard.config.bmpTrackNames);
 			ImGuiUtil.ToolTip("transpose/switch instrument based on first enabled midi track name.\nPlease know what you are doing before enabling this.".Localize());
+#endif
 		}
 	}
 }

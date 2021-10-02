@@ -56,7 +56,7 @@ namespace MidiBard
 		public bool autoSwitchInstrumentBySongName = true;
 		public bool autoTransposeBySongName = true;
 
-		public bool bmpTrackNames = true;
+		public bool bmpTrackNames = false;
 
 		//public bool autoSwitchInstrumentByTrackName = false;
 		//public bool autoTransposeByTrackName = false;
