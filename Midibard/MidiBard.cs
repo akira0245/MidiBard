@@ -134,11 +134,8 @@ namespace MidiBard
 		public void Command1(string command, string args) => OnCommand(command, args);
 
 		[Command("/mbard")]
-		[HelpMessage("Toggle MidiBard window.\n/mbard perform <instrument name/instrument ID> → Switch to specified instrument.\n/mbard perform cancel → Quit performance mode.\n/mbard <play/pause/playpause/stop/next/prev> → Player control.")]
-		public void Command2(string command, string args)
-		{
-			OnCommand(command, args);
-		}
+		[HelpMessage("Toggle MidiBard window.\n/mbard perform <instrument name/instrument ID> → Switch to specified instrument.\n/mbard cancel → Quit performance mode.\n/mbard <play/pause/playpause/stop/next/prev> → Player control.")]
+		public void Command2(string command, string args) => OnCommand(command, args);
 
 		async Task OnCommand(string command, string args)
 		{
@@ -147,6 +144,10 @@ namespace MidiBard
 			var argStrings = args.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
 			if (argStrings.Any())
 			{
+				if (argStrings[0] == "cancel")
+				{
+					PerformActions.DoPerformAction(0);
+				}
 				if (argStrings[0] == "perform")
 				{
 					try

@@ -96,8 +96,8 @@ namespace MidiBard.Managers
 					playnoteHook.Original.Invoke(agentPerformance, note, isPressing);
 				}
 			});
-			
-			//playnoteHook.Enable();
+
+			playnoteHook.Enable();
 		}
 
 		public static Testhooks Instance { get; } = new Testhooks();

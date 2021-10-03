@@ -89,20 +89,20 @@ namespace MidiBard.Control
 						}
 
 						if (octave != 0) s += $"[adapted {octave:+#;-#;0} Oct]";
-#if DEBUG
-					if (Testhooks.Instance.playnoteHook.IsEnabled)
-					{
-						Testhooks.Instance.noteOff();
-						Testhooks.Instance.noteOn(noteNum + Testhooks.min);
-						return true;
-					}
-					else
-#endif
+
 						{
 							if (MidiBard.AgentPerformance.noteNumber - 39 == noteNum)
 							{
 								// release repeated note in order to press it again
 								PluginLog.Verbose($"[N][PUP ][{trackIndex}:{noteOnEvent.Channel}] {GetNoteName(noteOnEvent)} ({noteNum})");
+#if DEBUG
+								if (Testhooks.Instance.playnoteHook.IsEnabled)
+								{
+									Testhooks.Instance.noteOff();
+									MidiBard.AgentPerformance.Struct->PressingNoteNumber = -100;
+								}
+								else
+#endif
 								if (playlib.ReleaseKey(noteNum))
 								{
 									MidiBard.AgentPerformance.Struct->PressingNoteNumber = -100;
@@ -110,6 +110,15 @@ namespace MidiBard.Control
 							}
 
 							PluginLog.Verbose(s);
+#if DEBUG
+							if (Testhooks.Instance.playnoteHook.IsEnabled)
+							{
+								Testhooks.Instance.noteOn(noteNum + Testhooks.min);
+								MidiBard.AgentPerformance.Struct->PressingNoteNumber = noteNum + 39;
+								return true;
+							}
+							else
+#endif
 							if (playlib.PressKey(noteNum, ref MidiBard.AgentPerformance.Struct->NoteOffset,
 								ref MidiBard.AgentPerformance.Struct->OctaveOffset))
 							{
@@ -122,26 +131,28 @@ namespace MidiBard.Control
 					}
 				case NoteOffEvent noteOffEvent:
 					{
-#if DEBUG
-					if (Testhooks.Instance.playnoteHook.IsEnabled)
-					{
-						Testhooks.Instance.noteOff();
-						return true;
-					}
-#endif
 						var noteNum = GetTranlatedNoteNum(noteOffEvent.NoteNumber, trackIndex, out _);
 						if (noteNum is < 0 or > 36) return false;
 
 						if (MidiBard.AgentPerformance.Struct->PressingNoteNumber - 39 != noteNum)
 						{
 #if DEBUG
-						//PluginLog.Verbose($"[N][IGOR][{trackIndex}:{noteOffEvent.Channel}] {GetNoteName(noteOffEvent)} ({noteNum})");
+							//PluginLog.Verbose($"[N][IGOR][{trackIndex}:{noteOffEvent.Channel}] {GetNoteName(noteOffEvent)} ({noteNum})");
 #endif
 							return false;
 						}
 
 						// only release a key when it been pressing
 						PluginLog.Verbose($"[N][UP  ][{trackIndex}:{noteOffEvent.Channel}] {GetNoteName(noteOffEvent)} ({noteNum})");
+#if DEBUG
+						if (Testhooks.Instance.playnoteHook.IsEnabled)
+						{
+							Testhooks.Instance.noteOff();
+							MidiBard.AgentPerformance.Struct->PressingNoteNumber = -100;
+							return true;
+						}
+						else
+#endif
 						if (playlib.ReleaseKey(noteNum))
 						{
 							MidiBard.AgentPerformance.Struct->PressingNoteNumber = -100;
