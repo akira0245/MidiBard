@@ -28,8 +28,16 @@ namespace MidiBard.Managers
 		private unsafe void SoloSend(IntPtr dataptr)
 		{
 #if DEBUG
-			Span<byte> notes = new Span<byte>((dataptr + 0x10).ToPointer(), 10);
-			Span<byte> tones = new Span<byte>((dataptr + 0x10 + 10).ToPointer(), 10);
+			var l = 10;
+			LogNotes("SoloSend",dataptr, l);
+
+#endif
+		}
+
+		private unsafe void LogNotes(string label, IntPtr dataptr, int count)
+		{
+			Span<byte> notes = new Span<byte>((dataptr + 0x10).ToPointer(), count);
+			Span<byte> tones = new Span<byte>((dataptr + 0x10 + count).ToPointer(), count);
 			//for (int i = 0; i < notes.Length; i++)
 			//{
 			//	if (notes[i] is not (0xFF or 0xFE))
@@ -38,8 +46,8 @@ namespace MidiBard.Managers
 			//	}
 			//}
 			StringBuilder sb = new StringBuilder();
-			sb.Append($"[{nameof(SoloSend)}] ");
-			for (int i = 0; i < 10; i++)
+			sb.Append($"[{label}] ");
+			for (int i = 0; i < count; i++)
 			{
 				var t = tones[i] switch
 				{
@@ -60,10 +68,9 @@ namespace MidiBard.Managers
 
 				sb.Append(s + "|");
 			}
+
 			//PluginLog.Information($"[{nameof(SoloSend)}] {notes.toString()} : {tones.toString()}");
 			PluginLog.Information(sb.ToString());
-
-#endif
 		}
 
 		private unsafe void SoloRecv(uint sourceId, IntPtr data)
@@ -77,9 +84,7 @@ namespace MidiBard.Managers
 		private unsafe void EnsembleSend(IntPtr dataptr)
 		{
 #if DEBUG
-			Span<byte> notes = new Span<byte>((dataptr + 0x10).ToPointer(), 60);
-			Span<byte> tones = new Span<byte>((dataptr + 0x10 + 60).ToPointer(), 60);
-			PluginLog.Information($"[{nameof(EnsembleSend)}] [MYSELF] {notes.toString()} : {tones.toString()}");
+			LogNotes("EnsembleSend",dataptr, 60);
 #endif
 		}
 

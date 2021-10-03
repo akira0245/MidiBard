@@ -97,7 +97,7 @@ namespace MidiBard.Managers
 				}
 			});
 
-			playnoteHook.Enable();
+			//playnoteHook.Enable();
 		}
 
 		public static Testhooks Instance { get; } = new Testhooks();

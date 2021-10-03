@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Dalamud.Hooking;
 using Dalamud.Logging;
+using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Interaction;
 using MidiBard.Control.MidiControl;
 using MidiBard.Managers.Agents;
@@ -36,7 +37,7 @@ namespace MidiBard.Managers
 				var original = UpdateMetronomeHook.Original(agentMetronome, currentBeat);
 				if (MidiBard.config.MonitorOnEnsemble)
 				{
-					byte mertonomeRunning;
+					byte Ensemble;
 					byte beatsPerBar;
 					int barElapsed;
 					unsafe
@@ -44,19 +45,49 @@ namespace MidiBard.Managers
 						var metronome = ((AgentMetronome.AgentMetronomeStruct*)agentMetronome);
 						beatsPerBar = metronome->MetronomeBeatsPerBar;
 						barElapsed = metronome->MetronomeBeatsElapsed;
-						mertonomeRunning = metronome->EnsembleModeRunning;
+						Ensemble = metronome->EnsembleModeRunning;
 					}
 
 					if (barElapsed == 0 && currentBeat == 0)
 					{
-						PluginLog.Warning($"Start: ensemble: {mertonomeRunning}");
-						if (mertonomeRunning != 0)
+						if (Ensemble != 0)
 						{
-							EnsembleStart?.Invoke();
+							// 箭头后面是每种乐器的的延迟，所以要达成同步每种乐器需要提前于自己延迟的时间开始演奏
+							// 而提前开始又不可能， 所以把所有乐器的延迟时间减去延迟最大的鲁特琴（让所有乐器等待鲁特琴）
+							// 也就是105减去每种乐器各自的延迟
+							var compensation = 105 - MidiBard.CurrentInstrument switch
+							{
+								0 => 104,
+								1 => 85,
+								3 => 104,
+								2 or 4 => 90,
+								>= 5 and <= 8 => 95,
+								9 or 10 => 90,
+								11 or 12 => 80,
+								13 => 85,
+								>= 14 => 30
+							};
 
 							try
 							{
-								MidiBard.CurrentPlayback.Start();
+								var midiClock = new MidiClock(true, new HighPrecisionTickGenerator(), TimeSpan.FromMilliseconds(compensation));
+								midiClock.Restart();
+								PluginLog.Warning($"setup midiclock compensation: {compensation}");
+								midiClock.Ticked += OnMidiClockOnTicked;
+
+								void OnMidiClockOnTicked(object o, EventArgs eventArgs)
+								{
+									MidiBard.CurrentPlayback.Start();
+									EnsembleStart?.Invoke();
+									PluginLog.Warning($"Start ensemble: compensation: {midiClock.CurrentTime.TotalMilliseconds} ms / {midiClock.CurrentTime.Ticks} ticks");
+									midiClock.Ticked -= OnMidiClockOnTicked;
+								}
+
+								Task.Delay(1000).ContinueWith(_ =>
+								{
+									midiClock.Dispose();
+									PluginLog.Warning($"midi clock disposed.");
+								});
 							}
 							catch (Exception e)
 							{
@@ -67,8 +98,8 @@ namespace MidiBard.Managers
 
 					if (barElapsed == -2 && currentBeat == 0)
 					{
-						PluginLog.Warning($"Prepare: ensemble: {mertonomeRunning}");
-						if (mertonomeRunning != 0)
+						PluginLog.Warning($"Prepare: ensemble: {Ensemble}");
+						if (Ensemble != 0)
 						{
 							EnsemblePrepare?.Invoke();
 
@@ -76,9 +107,14 @@ namespace MidiBard.Managers
 							{
 								try
 								{
-									if (PlaylistManager.CurrentPlaying != -1)
+									var playing = PlaylistManager.CurrentPlaying;
+									if (playing == -1)
 									{
-										await FilePlayback.LoadPlayback(PlaylistManager.CurrentPlaying);
+										await FilePlayback.LoadPlayback(0);
+									}
+									else
+									{
+										await FilePlayback.LoadPlayback(playing);
 									}
 
 									MidiBard.CurrentPlayback.Stop();
