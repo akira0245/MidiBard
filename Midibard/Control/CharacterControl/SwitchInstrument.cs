@@ -13,7 +13,7 @@ using playlibnamespace;
 
 namespace MidiBard.Control.CharacterControl
 {
-	static class SwitchInstrument
+	internal static class SwitchInstrument
 	{
 		public static bool SwitchingInstrument { get; set; }
 
@@ -24,7 +24,8 @@ namespace MidiBard.Control.CharacterControl
 				var isPlaying = MidiBard.IsPlaying;
 				MidiBard.CurrentPlayback?.Stop();
 				await SwitchTo(instrumentId);
-				if (isPlaying) MidiBard.CurrentPlayback?.Start();
+				if (isPlaying)
+					MidiBard.CurrentPlayback?.Start();
 			});
 		}
 
@@ -39,7 +40,8 @@ namespace MidiBard.Control.CharacterControl
 				}
 			}
 
-			if (MidiBard.CurrentInstrument == instrumentId) return;
+			if (MidiBard.CurrentInstrument == instrumentId)
+				return;
 
 			SwitchingInstrument = true;
 			var sw = Stopwatch.StartNew();
@@ -55,7 +57,7 @@ namespace MidiBard.Control.CharacterControl
 				await Util.Coroutine.WaitUntil(() => MidiBard.CurrentInstrument == instrumentId, timeOut);
 				await Task.Delay(200);
 				PluginLog.Debug($"instrument switching succeed in {sw.Elapsed.TotalMilliseconds} ms");
-				ImGuiUtil.AddNotification(NotificationType.Success,$"Switched to {MidiBard.InstrumentStrings[instrumentId]}");
+				ImGuiUtil.AddNotification(NotificationType.Success, $"Switched to {MidiBard.InstrumentStrings[instrumentId]}");
 			}
 			catch (Exception e)
 			{
@@ -67,8 +69,9 @@ namespace MidiBard.Control.CharacterControl
 			}
 		}
 
-		static Regex regex = new Regex(@"^#(.*?)([-|+][0-9]+)?#", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-		static void ParseSongName(string inputString, out uint? instrumentId, out int? transpose)
+		private static Regex regex = new Regex(@"^#(.*?)([-|+][0-9]+)?#", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+		private static void ParseSongName(string inputString, out uint? instrumentId, out int? transpose)
 		{
 			var match = regex.Match(inputString);
 			if (match.Success)
@@ -113,17 +116,26 @@ namespace MidiBard.Control.CharacterControl
 		{
 			var config = MidiBard.config;
 
-			if (config.bmpTrackNames && config.EnableTransposePerTrack)
+			if (config.bmpTrackNames)
 			{
-				var currentTracks = MidiBard.CurrentTracks;
-				foreach (var (_, trackInfo) in currentTracks)
+				if (config.EnableTransposePerTrack)
 				{
-					var transposePerTrack = trackInfo.TransposeFromTrackName;
-					if (transposePerTrack != 0)
+					var currentTracks = MidiBard.CurrentTracks;
+					foreach (var (_, trackInfo) in currentTracks)
 					{
-						PluginLog.Information($"applying transpose {transposePerTrack:+#;-#;0} for track [{trackInfo.Index + 1}]{trackInfo.GetTrackName()}");
+						var transposePerTrack = trackInfo.TransposeFromTrackName;
+						if (transposePerTrack != 0)
+						{
+							PluginLog.Information($"applying transpose {transposePerTrack:+#;-#;0} for track [{trackInfo.Index + 1}]{trackInfo.GetTrackName()}");
+						}
+						config.TransposePerTrack[trackInfo.Index] = transposePerTrack;
 					}
-					config.TransposePerTrack[trackInfo.Index] = transposePerTrack;
+				}
+				else
+				{
+					var firstEnabledTrack = MidiBard.CurrentTracks.Select(i => i.trackInfo).FirstOrDefault(i => i.IsEnabled);
+					var transposePerTrack = firstEnabledTrack.TransposeFromTrackName;
+					config.TransposeGlobal = transposePerTrack;
 				}
 			}
 
@@ -138,7 +150,6 @@ namespace MidiBard.Control.CharacterControl
 
 				return;
 			}
-
 
 			ParseSongName(songName, out var idFromSongName, out var transposeGlobal);
 
