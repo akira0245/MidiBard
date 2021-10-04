@@ -89,7 +89,7 @@ namespace MidiBard
 			PlaylistManager.ReloadPlayListFromConfig();
 
 			CurrentOutputDevice = new BardPlayDevice();
-			InputDeviceManager.scanMidiDeviceThread.Start();
+			InputDeviceManager.ScanMidiDeviceThread.Start();
 
 			Ui = new PluginUI();
 			PluginInterface.UiBuilder.Draw += Ui.Draw;
@@ -248,7 +248,7 @@ namespace MidiBard
 #if DEBUG
 			NetworkManager.Instance.Dispose();
 #endif
-			InputDeviceManager.DisposeDevice();
+			InputDeviceManager.DisposeCurrentDevice();
 			try
 			{
 				CurrentPlayback?.Stop();

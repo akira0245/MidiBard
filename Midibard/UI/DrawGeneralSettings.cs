@@ -28,7 +28,7 @@ namespace MidiBard
 			{
 				if (ImGui.Selectable("None##device", InputDeviceManager.CurrentInputDevice is null))
 				{
-					InputDeviceManager.DisposeDevice();
+					InputDeviceManager.DisposeCurrentDevice();
 				}
 
 				for (int i = 0; i < inputDevices.Length; i++)
@@ -45,7 +45,7 @@ namespace MidiBard
 
 			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
 			{
-				InputDeviceManager.DisposeDevice();
+				InputDeviceManager.DisposeCurrentDevice();
 			}
 
 			ImGuiUtil.ToolTip("Choose external midi input device. right click to reset.".Localize());

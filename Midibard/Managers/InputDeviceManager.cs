@@ -15,7 +15,7 @@ namespace MidiBard
 {
 	static class InputDeviceManager
 	{
-		internal static Thread scanMidiDeviceThread = new Thread(() =>
+		internal static readonly Thread ScanMidiDeviceThread = new Thread(() =>
 		{
 			PluginLog.Information("device scanning thread started.");
 
@@ -25,21 +25,26 @@ namespace MidiBard
 				{
 					Devices = InputDevice.GetAll().OrderBy(i => i.Id).ToArray();
 					var newDevicesNames = Devices.Select(i => i.DeviceName()).ToArray();
-					if (CurrentInputDevice is null)
+					if (CurrentInputDevice is not null)
+					{
+						if (!newDevicesNames.Contains(CurrentInputDevice.DeviceName()))
+						{
+							DisposeCurrentDevice();
+						}
+					}
+					else
 					{
 						if (MidiBard.config.autoStartNewListening)
 						{
-							if (LastDevicesNames.Any())
+							var newDeviceName = newDevicesNames.Where(i => !LastDevicesNames.Contains(i)).ToArray();
+							if (newDeviceName.Any())
 							{
-								var newDeviceName = newDevicesNames.Where(i => !LastDevicesNames.Contains(i)).ToArray();
-								if (newDeviceName.Any())
+								PluginLog.Warning($"new device detected: {string.Join(", ", newDeviceName)}");
+								var newDevice =
+									Devices.FirstOrDefault(i => i.DeviceName() == newDeviceName.First());
+								if (newDevice is not null)
 								{
-									PluginLog.Warning($"new device detected: {string.Join(", ", newDeviceName)}");
-									var newDevice = Devices.FirstOrDefault(i => i.DeviceName() == newDeviceName.First());
-									if (newDevice is not null)
-									{
-										SetDevice(newDevice);
-									}
+									SetDevice(newDevice);
 								}
 							}
 						}
@@ -54,7 +59,7 @@ namespace MidiBard
 								var newDevice = Devices?.FirstOrDefault(i => i.Name == MidiBard.config.lastUsedMidiDeviceName);
 								if (newDevice != null)
 								{
-									SetDevice(Devices?.FirstOrDefault(i => i.Name == MidiBard.config.lastUsedMidiDeviceName));
+									SetDevice(newDevice);
 								}
 							}
 						}
@@ -107,7 +112,7 @@ namespace MidiBard
 
 		internal static void SetDevice(InputDevice device)
 		{
-			DisposeDevice();
+			DisposeCurrentDevice();
 			if (device is null) return;
 
 			try
@@ -127,11 +132,11 @@ namespace MidiBard
 					"\"{0}\" is not available now.\nPlease check log for further error information.".Localize(device.Name),
 					"Cannot start listening Midi device".Localize());
 				PluginLog.Error(e, "midi device is possibly being occupied.");
-				DisposeDevice();
+				DisposeCurrentDevice();
 			}
 		}
 
-		internal static void DisposeDevice()
+		internal static void DisposeCurrentDevice()
 		{
 			try
 			{
@@ -139,6 +144,7 @@ namespace MidiBard
 				{
 					CurrentInputDevice.EventReceived -= InputDevice_EventReceived;
 					CurrentInputDevice.Reset();
+					ImGuiUtil.AddNotification(NotificationType.Info, $"Stop event listening on \"{CurrentInputDevice.Name}\"	.", "Midi device disconnected");
 				}
 			}
 			catch (Exception e)

@@ -142,7 +142,7 @@ namespace MidiBard
 			if (ImGui.InputTextWithHint("##searchplaylist", "Enter to search".Localize(), ref searchstring, 255,
 				ImGuiInputTextFlags.AutoSelectAll | ImGuiInputTextFlags.EnterReturnsTrue))
 			{
-				MidiBard.config.enableSearching = false;
+				//MidiBard.config.enableSearching = false;
 			}
 		}
 

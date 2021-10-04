@@ -9,7 +9,7 @@ namespace MidiBard
 	static class LocalizerExtension
 	{
 		internal static string Localize(this string message) => MidiBard.Localizer.Localize(message);
-		internal static string Localize(this string format, params object[] objects) => string.Format(format, objects);
+		internal static string Localize(this string format, params object[] objects) => string.Format(MidiBard.Localizer.Localize(format), objects);
 
 
 	}
