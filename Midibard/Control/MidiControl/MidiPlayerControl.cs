@@ -69,12 +69,19 @@ namespace MidiBard.Control.MidiControl
 		{
 			try
 			{
-				CurrentPlayback?.Stop();
-				CurrentPlayback?.MoveToTime(new MidiTimeSpan(0));
+				if (CurrentPlayback == null)
+				{
+					CurrentTracks.Clear();
+				}
+				else
+				{
+					CurrentPlayback?.Stop();
+					CurrentPlayback?.MoveToTime(new MidiTimeSpan(0));
+				}
 			}
 			catch (Exception e)
 			{
-				PluginLog.Information("Already stopped!");
+				PluginLog.Warning("Already stopped!");
 			}
 			finally
 			{
@@ -152,39 +159,32 @@ namespace MidiBard.Control.MidiControl
 					{
 						try
 						{
-							if (CurrentPlayback.GetCurrentTime<MetricTimeSpan>() > new MetricTimeSpan(0, 0, 2))
+							var wasplaying = IsPlaying;
+
+							switch ((PlayMode)config.PlayMode)
 							{
-								CurrentPlayback.MoveToStart();
+								case PlayMode.Single:
+								case PlayMode.ListOrdered:
+								case PlayMode.SingleRepeat:
+									await FilePlayback.LoadPlayback(PlaylistManager.CurrentPlaying - 1);
+									break;
+								case PlayMode.Random:
+								case PlayMode.ListRepeat:
+									var next = PlaylistManager.CurrentPlaying - 1;
+									if (next < 0) next = PlaylistManager.Filelist.Count - 1;
+									await FilePlayback.LoadPlayback(next);
+									break;
 							}
-							else
+
+							if (wasplaying)
 							{
-								var wasplaying = IsPlaying;
-
-								switch ((PlayMode)config.PlayMode)
+								try
 								{
-									case PlayMode.Single:
-									case PlayMode.ListOrdered:
-									case PlayMode.SingleRepeat:
-										await FilePlayback.LoadPlayback(PlaylistManager.CurrentPlaying - 1);
-										break;
-									case PlayMode.Random:
-									case PlayMode.ListRepeat:
-										var next = PlaylistManager.CurrentPlaying - 1;
-										if (next < 0) next = PlaylistManager.Filelist.Count - 1;
-										await FilePlayback.LoadPlayback(next);
-										break;
+									CurrentPlayback.Start();
 								}
-
-								if (wasplaying)
+								catch (Exception e)
 								{
-									try
-									{
-										CurrentPlayback.Start();
-									}
-									catch (Exception e)
-									{
-										PluginLog.Error(e, "error when try playing next song.");
-									}
+									PluginLog.Error(e, "error when try playing next song.");
 								}
 							}
 						}

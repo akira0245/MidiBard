@@ -43,7 +43,7 @@ namespace MidiBard
 		internal static MidiFile CurrentOpeningMidiFile { get; }
 		internal static Playback CurrentPlayback { get; set; }
 		internal static TempoMap CurrentTMap { get; set; }
-		internal static List<(TrackChunk, TrackInfo)> CurrentTracks { get; set; }
+		internal static List<(TrackChunk trackChunk, TrackInfo trackInfo)> CurrentTracks { get; set; }
 
 		internal static Localizer Localizer { get; set; }
 
@@ -53,13 +53,13 @@ namespace MidiBard
 		private static int configSaverTick;
 		private static bool wasEnsembleModeRunning = false;
 
-		internal static ExcelSheet<Perform> InstrumentSheet { get; set; }
-		internal static string[] InstrumentStrings { get; set; }
+		internal static ExcelSheet<Perform> InstrumentSheet { get; } = DataManager.Excel.GetSheet<Perform>();
 
+		internal static string[] InstrumentStrings { get; } = InstrumentSheet
+			.Where(i => !string.IsNullOrWhiteSpace(i.Instrument) || i.RowId == 0).Select(i =>
+				$"{(i.RowId == 0 ? "None" : $"{i.RowId:00} {i.Instrument.RawString} ({i.Name})")}").ToArray();
 
-
-		internal static byte InstrumentOffset;
-		internal static byte CurrentInstrument => Marshal.ReadByte(Offsets.Instance.PerformInfos + 3 + InstrumentOffset);
+		internal static byte CurrentInstrument => Marshal.ReadByte(Offsets.PerformInfos + 3 + Offsets.InstrumentOffset);
 		internal static readonly byte[] guitarGroup = { 24, 25, 26, 27, 28 };
 		internal static bool PlayingGuitar => guitarGroup.Contains(CurrentInstrument);
 
@@ -70,60 +70,42 @@ namespace MidiBard
 		public unsafe MidiBard(DalamudPluginInterface pi)
 		{
 			DalamudApi.api.Initialize(this, pi);
-			LoadConfig();
 
-			_ = OffsetManager.Instance;
-			_ = NetworkManager.Instance;
+			LoadConfig();
+			Localizer = new Localizer((UILang)config.uiLang);
+
+			playlib.init(this);
+			OffsetManager.Setup(api.SigScanner);
+
+			AgentMetronome = new AgentMetronome(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.MetronomeAgent));
+			AgentPerformance = new AgentPerformance(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.PerformanceAgent));
 			_ = EnsembleManager.Instance;
 
 #if DEBUG
+			_ = NetworkManager.Instance;
 			_ = Testhooks.Instance;
 #endif
 
-			playlib.init(this);
+			PlaylistManager.ReloadPlayListFromConfig();
+
 			CurrentOutputDevice = new BardPlayDevice();
+			InputDeviceManager.ScanMidiDeviceThread.Start();
 
-			AgentMetronome = new AgentMetronome(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.Instance.MetronomeAgent));
-			AgentPerformance = new AgentPerformance(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.Instance.PerformanceAgent));
-			InstrumentOffset = Marshal.ReadByte(Offsets.Instance.InstrumentOffset);
-
-			InstrumentSheet = DataManager.Excel.GetSheet<Perform>();
-			InstrumentStrings = InstrumentSheet.Where(i => !string.IsNullOrWhiteSpace(i.Instrument) || i.RowId == 0).Select(i => $"{(i.RowId == 0 ? "None" : $"{i.RowId:00} {i.Instrument.RawString} ({i.Name})")}").ToArray();
-
-			Task.Run(() =>
-			{
-				PlaylistManager.ReloadPlayListFromConfig();
-				SaveConfig();
-			});
-
-			Localizer = new Localizer((UILang)config.uiLang);
 			Ui = new PluginUI();
 			PluginInterface.UiBuilder.Draw += Ui.Draw;
 			Framework.Update += Tick;
-			PluginInterface.UiBuilder.OpenConfigUi += () => Ui.IsVisible ^= true;
+			PluginInterface.UiBuilder.OpenConfigUi += () => Ui.Toggle();
 
-			if (PluginInterface.IsDev) Ui.IsVisible = true;
+			if (PluginInterface.IsDev) Ui.Open();
+
+
 		}
 
 		private void Tick(Dalamud.Game.Framework framework)
 		{
-			if (config.AutoOpenPlayerWhenPerforming)
-				PerformanceEvents.Instance.InPerformanceMode = AgentPerformance.InPerformanceMode;
+			PerformanceEvents.Instance.InPerformanceMode = AgentPerformance.InPerformanceMode;
 
-			//ExecuteCoroutine();
-
-			//if (config.AutoOpenPlayerWhenPerforming)
-			//{
-			//	if (AgentPerformance.InPerformanceMode)
-			//	{
-			//		if (!Ui.IsVisible)
-			//		{
-			//			Ui.IsVisible = true;
-			//		}
-			//	}
-			//}
-
-			if (Ui.IsVisible)
+			if (Ui.IsOpened)
 			{
 				if (configSaverTick++ == 3600)
 				{
@@ -152,11 +134,8 @@ namespace MidiBard
 		public void Command1(string command, string args) => OnCommand(command, args);
 
 		[Command("/mbard")]
-		[HelpMessage("Toggle MidiBard window.\n/mbard perform <instrument name/instrument ID> → Switch to specified instrument.\n/mbard perform cancel → Quit performance mode.\n/mbard <play/pause/playpause/stop/next/prev> → Player control.")]
-		public void Command2(string command, string args)
-		{
-			OnCommand(command, args);
-		}
+		[HelpMessage("Toggle MidiBard window.\n/mbard perform <instrument name/instrument ID> → Switch to specified instrument.\n/mbard cancel → Quit performance mode.\n/mbard <play/pause/playpause/stop/next/prev> → Player control.")]
+		public void Command2(string command, string args) => OnCommand(command, args);
 
 		async Task OnCommand(string command, string args)
 		{
@@ -165,6 +144,10 @@ namespace MidiBard
 			var argStrings = args.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
 			if (argStrings.Any())
 			{
+				if (argStrings[0] == "cancel")
+				{
+					PerformActions.DoPerformAction(0);
+				}
 				if (argStrings[0] == "perform")
 				{
 					try
@@ -222,7 +205,7 @@ namespace MidiBard
 			}
 			else
 			{
-				Ui.IsVisible ^= true;
+				Ui.Toggle();
 			}
 		}
 
@@ -239,8 +222,7 @@ namespace MidiBard
 				catch (Exception e)
 				{
 					PluginLog.Error(e, "Error when saving config");
-					PluginInterface.UiBuilder.AddNotification(e.Message, "[Midibard] Error when saving config",
-						NotificationType.Error, 5000);
+					ImGuiUtil.AddNotification(NotificationType.Error, "Error when saving config");
 				}
 			});
 		}
@@ -258,12 +240,15 @@ namespace MidiBard
 #if DEBUG
 			Testhooks.Instance?.Dispose();
 #endif
+			InputDeviceManager.ShouldScanMidiDeviceThread = false;
 			Framework.Update -= Tick;
 			PluginInterface.UiBuilder.Draw -= Ui.Draw;
 
 			EnsembleManager.Instance.Dispose();
+#if DEBUG
 			NetworkManager.Instance.Dispose();
-			InputDeviceManager.DisposeDevice();
+#endif
+			InputDeviceManager.DisposeCurrentDevice();
 			try
 			{
 				CurrentPlayback?.Stop();
@@ -274,13 +259,13 @@ namespace MidiBard
 			{
 				PluginLog.Error($"{e}");
 			}
+
+
+			DalamudApi.api.Dispose();
 		}
 
-		protected virtual void Dispose(bool disposing)
+		public void Dispose()
 		{
-			FreeUnmanagedResources();
-			if (!disposing) return;
-
 			try
 			{
 				SaveConfig();
@@ -289,12 +274,8 @@ namespace MidiBard
 			{
 				PluginLog.Error(e, "error when saving config file");
 			}
-			DalamudApi.api.Dispose();
-		}
 
-		public void Dispose()
-		{
-			Dispose(true);
+			FreeUnmanagedResources();
 			GC.SuppressFinalize(this);
 		}
 

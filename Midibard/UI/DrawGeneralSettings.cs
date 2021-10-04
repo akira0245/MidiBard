@@ -24,11 +24,11 @@ namespace MidiBard
 
 			var inputDevices = InputDeviceManager.Devices;
 
-			if (ImGui.BeginCombo("Input Device".Localize(), InputDeviceManager.CurrentInputDevice.ToDeviceString()))
+			if (ImGui.BeginCombo("Input Device".Localize(), InputDeviceManager.CurrentInputDevice.DeviceName()))
 			{
 				if (ImGui.Selectable("None##device", InputDeviceManager.CurrentInputDevice is null))
 				{
-					InputDeviceManager.DisposeDevice();
+					InputDeviceManager.DisposeCurrentDevice();
 				}
 
 				for (int i = 0; i < inputDevices.Length; i++)
@@ -45,11 +45,16 @@ namespace MidiBard
 
 			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
 			{
-				InputDeviceManager.DisposeDevice();
+				InputDeviceManager.DisposeCurrentDevice();
 			}
 
 			ImGuiUtil.ToolTip("Choose external midi input device. right click to reset.".Localize());
 
+			ImGui.Checkbox("Restore device on start".Localize(), ref MidiBard.config.autoRestoreListening);
+			ImGuiUtil.ToolTip("Try restart listening last used midi device on plugin start.".Localize());
+			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
+			ImGui.Checkbox("Auto listening new device".Localize(), ref MidiBard.config.autoStartNewListening);
+			ImGuiUtil.ToolTip("Auto start listening new midi input device when idle.".Localize());
 
 			if (ImGui.Combo("UI Language".Localize(), ref MidiBard.config.uiLang, uilangStrings, 2))
 			{
@@ -67,15 +72,13 @@ namespace MidiBard
 			ImGui.Checkbox("Monitor ensemble".Localize(), ref MidiBard.config.MonitorOnEnsemble);
 			ImGuiUtil.ToolTip("Auto start ensemble when entering in-game party ensemble mode.".Localize());
 
-			ImGui.Checkbox("Auto switch instrument".Localize(), ref MidiBard.config.autoSwitchInstrumentByFileName);
+			ImGui.Checkbox("Auto switch instrument".Localize(), ref MidiBard.config.autoSwitchInstrumentBySongName);
 			ImGuiUtil.ToolTip("Auto switch instrument on demand. If you need this, \nplease add #instrument name# before file name.\nE.g. #harp#demo.mid".Localize());
 
 			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
 
-			ImGui.Checkbox("Auto transpose".Localize(), ref MidiBard.config.autoTransposeByFileName);
-			ImGuiUtil.ToolTip(
-				"Auto transpose notes on demand. If you need this, \nplease add #transpose number# before file name.\nE.g. #-12#demo.mid"
-					.Localize());
+			ImGui.Checkbox("Auto transpose".Localize(), ref MidiBard.config.autoTransposeBySongName);
+			ImGuiUtil.ToolTip("Auto transpose notes on demand. If you need this, \nplease add #transpose number# before file name.\nE.g. #-12#demo.mid".Localize());
 
 			ImGui.Checkbox("Override guitar tones".Localize(), ref MidiBard.config.OverrideGuitarTones);
 			ImGuiUtil.ToolTip("Assign different guitar tones for each midi tracks".Localize());
@@ -96,6 +99,11 @@ namespace MidiBard
 			ImGui.SameLine();
 			ImGui.SetCursorPosX(ImGui.GetCursorPosX() - ImGui.GetStyle().ItemInnerSpacing.X);
 			ImGui.TextUnformatted("Theme color".Localize());
+
+#if DEBUG
+			ImGui.Checkbox("BMP track name compatible".Localize(), ref MidiBard.config.bmpTrackNames);
+			ImGuiUtil.ToolTip("transpose/switch instrument based on first enabled midi track name.\nPlease know what you are doing before enabling this.".Localize());
+#endif
 		}
 	}
 }

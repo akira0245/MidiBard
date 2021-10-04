@@ -8,6 +8,7 @@ using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Logging;
 using Lumina.Excel.GeneratedSheets;
 using MidiBard.Managers;
+using MidiBard.Managers.Agents;
 using playlibnamespace;
 
 namespace MidiBard.Control.CharacterControl
@@ -54,7 +55,7 @@ namespace MidiBard.Control.CharacterControl
 				await Util.Coroutine.WaitUntil(() => MidiBard.CurrentInstrument == instrumentId, timeOut);
 				await Task.Delay(200);
 				PluginLog.Debug($"instrument switching succeed in {sw.Elapsed.TotalMilliseconds} ms");
-				DalamudApi.api.PluginInterface.UiBuilder.AddNotification($"Switched to {MidiBard.InstrumentStrings[instrumentId]}", "MidiBard", NotificationType.Success, 5000);
+				ImGuiUtil.AddNotification(NotificationType.Success,$"Switched to {MidiBard.InstrumentStrings[instrumentId]}");
 			}
 			catch (Exception e)
 			{
@@ -67,7 +68,7 @@ namespace MidiBard.Control.CharacterControl
 		}
 
 		static Regex regex = new Regex(@"^#(.*?)([-|+][0-9]+)?#", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-		static void ParseTrackName(string inputString, out uint? instrumentId, out int? transpose)
+		static void ParseSongName(string inputString, out uint? instrumentId, out int? transpose)
 		{
 			var match = regex.Match(inputString);
 			if (match.Success)
@@ -108,24 +109,56 @@ namespace MidiBard.Control.CharacterControl
 			}
 		}
 
-		internal static async Task WaitSwitchInstrumentForSong(string trackName)
+		internal static async Task WaitSwitchInstrumentForSong(string songName)
 		{
-			ParseTrackName(trackName, out var instrumentId, out var transpose);
+			var config = MidiBard.config;
 
-			if (MidiBard.config.autoSwitchInstrumentByFileName && instrumentId != null)
+			if (config.bmpTrackNames && config.EnableTransposePerTrack)
 			{
-				await SwitchTo((uint)instrumentId);
+				var currentTracks = MidiBard.CurrentTracks;
+				foreach (var (_, trackInfo) in currentTracks)
+				{
+					var transposePerTrack = trackInfo.TransposeFromTrackName;
+					if (transposePerTrack != 0)
+					{
+						PluginLog.Information($"applying transpose {transposePerTrack:+#;-#;0} for track [{trackInfo.Index + 1}]{trackInfo.GetTrackName()}");
+					}
+					config.TransposePerTrack[trackInfo.Index] = transposePerTrack;
+				}
 			}
 
-			if (MidiBard.config.autoTransposeByFileName)
+			if (config.bmpTrackNames)
 			{
-				if (transpose != null)
+				var firstEnabledTrack = MidiBard.CurrentTracks.Select(i => i.trackInfo).FirstOrDefault(i => i.IsEnabled);
+				var idFromTrackName = firstEnabledTrack?.InstrumentIDFromTrackName;
+				if (idFromTrackName != null)
 				{
-					MidiBard.config.TransposeGlobal = (int)transpose;
+					await SwitchTo((uint)idFromTrackName);
+				}
+
+				return;
+			}
+
+
+			ParseSongName(songName, out var idFromSongName, out var transposeGlobal);
+
+			if (config.autoTransposeBySongName)
+			{
+				if (transposeGlobal != null)
+				{
+					config.TransposeGlobal = (int)transposeGlobal;
 				}
 				else
 				{
-					MidiBard.config.TransposeGlobal = 0;
+					config.TransposeGlobal = 0;
+				}
+			}
+
+			if (config.autoSwitchInstrumentBySongName)
+			{
+				if (idFromSongName != null)
+				{
+					await SwitchTo((uint)idFromSongName);
 				}
 			}
 		}

@@ -9,18 +9,68 @@ using Dalamud.Logging;
 using Dalamud.Memory;
 using MidiBard.Structs;
 
+#if DEBUG
 namespace MidiBard.Managers
 {
 	class NetworkManager : IDisposable
 	{
+		//[StructLayout(LayoutKind.Explicit, Size = 1)]
+		//public struct Note
+		//{
+		//	[FieldOffset(0)] public byte note;
+
+		//	public override string ToString()
+		//	{
+		//		return new Melanchall.DryWetMidi.MusicTheory.Note();
+		//	}
+		//}
 
 		private unsafe void SoloSend(IntPtr dataptr)
 		{
 #if DEBUG
-			Span<byte> notes = new Span<byte>((dataptr + 0x10).ToPointer(), 10);
-			Span<byte> tones = new Span<byte>((dataptr + 0x10 + 10).ToPointer(), 10);
-			PluginLog.Information($"[{nameof(SoloSend)}] {notes.toString()} : {tones.toString()}");
+			var l = 10;
+			LogNotes("SoloSend",dataptr, l);
+
 #endif
+		}
+
+		private unsafe void LogNotes(string label, IntPtr dataptr, int count)
+		{
+			Span<byte> notes = new Span<byte>((dataptr + 0x10).ToPointer(), count);
+			Span<byte> tones = new Span<byte>((dataptr + 0x10 + count).ToPointer(), count);
+			//for (int i = 0; i < notes.Length; i++)
+			//{
+			//	if (notes[i] is not (0xFF or 0xFE))
+			//	{
+			//		tones[i] = 3;
+			//	}
+			//}
+			StringBuilder sb = new StringBuilder();
+			sb.Append($"[{label}] ");
+			for (int i = 0; i < count; i++)
+			{
+				var t = tones[i] switch
+				{
+					0 => "A",
+					1 => "B",
+					2 => "C",
+					3 => "D",
+					4 => "E",
+					_ => throw new ArgumentOutOfRangeException()
+				};
+
+				var s = notes[i] switch
+				{
+					0xff => "    ",
+					0xfe => "----",
+					var n => $"{n:00} {t}"
+				};
+
+				sb.Append(s + "|");
+			}
+
+			//PluginLog.Information($"[{nameof(SoloSend)}] {notes.toString()} : {tones.toString()}");
+			PluginLog.Information(sb.ToString());
 		}
 
 		private unsafe void SoloRecv(uint sourceId, IntPtr data)
@@ -34,9 +84,7 @@ namespace MidiBard.Managers
 		private unsafe void EnsembleSend(IntPtr dataptr)
 		{
 #if DEBUG
-			Span<byte> notes = new Span<byte>((dataptr + 0x10).ToPointer(), 60);
-			Span<byte> tones = new Span<byte>((dataptr + 0x10 + 60).ToPointer(), 60);
-			PluginLog.Information($"[{nameof(EnsembleSend)}] [MYSELF] {notes.toString()} : {tones.toString()}");
+			LogNotes("EnsembleSend",dataptr, 60);
 #endif
 		}
 
@@ -66,7 +114,7 @@ namespace MidiBard.Managers
 
 		private NetworkManager()
 		{
-			ensembleSendHook = new Hook<sub_14119B120>(Offsets.Instance.EnsembleSendHandler, (dataptr) =>
+			ensembleSendHook = new Hook<sub_14119B120>(Offsets.EnsembleSendHandler, (dataptr) =>
 			{
 				try
 				{
@@ -80,7 +128,7 @@ namespace MidiBard.Managers
 				ensembleSendHook.Original(dataptr);
 			});
 
-			soloSendHook = new Hook<sub_14119B2E0>(Offsets.Instance.SoloSendHandler, (dataptr) =>
+			soloSendHook = new Hook<sub_14119B2E0>(Offsets.SoloSendHandler, (dataptr) =>
 			{
 				try
 				{
@@ -94,7 +142,7 @@ namespace MidiBard.Managers
 				soloSendHook.Original(dataptr);
 			});
 
-			soloReceivedHook = new Hook<sub_14070A1C0>(Offsets.Instance.SoloReceivedHandler, (id, data) =>
+			soloReceivedHook = new Hook<sub_14070A1C0>(Offsets.SoloReceivedHandler, (id, data) =>
 			{
 				try
 				{
@@ -107,7 +155,7 @@ namespace MidiBard.Managers
 				return soloReceivedHook.Original(id, data);
 			});
 
-			ensembleReceivedHook = new Hook<sub_14070A230>(Offsets.Instance.EnsembleReceivedHandler, (id, data) =>
+			ensembleReceivedHook = new Hook<sub_14070A230>(Offsets.EnsembleReceivedHandler, (id, data) =>
 			{
 				try
 				{
@@ -138,3 +186,4 @@ namespace MidiBard.Managers
 		}
 	}
 }
+#endif

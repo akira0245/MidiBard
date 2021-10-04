@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
 using Dalamud.Interface;
+using Dalamud.Interface.Internal.Notifications;
+using Dalamud.Logging;
 using ImGuiNET;
 
 namespace MidiBard
@@ -90,6 +92,12 @@ namespace MidiBard
 				}
 				ImGui.EndPopup();
 			}
+		}
+
+		public static void AddNotification(NotificationType type, string content, string title = null)
+		{
+			PluginLog.Debug($"[Notification] {type}:{title}:{content}");
+			DalamudApi.api.PluginInterface.UiBuilder.AddNotification(content, string.IsNullOrWhiteSpace(title) ? "Midibard" : "Midibard: " + title, type, 5000);
 		}
 
 		public const uint ColorRed = 0xFF0000C8;

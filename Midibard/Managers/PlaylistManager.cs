@@ -17,7 +17,7 @@ namespace MidiBard
 {
 	static class PlaylistManager
 	{
-		public static List<(string path, string trackName)> Filelist { get; set; } = new List<(string, string)>();
+		public static List<(string path, string songName)> Filelist { get; set; } = new List<(string, string)>();
 
 		public static int CurrentPlaying
 		{
@@ -153,7 +153,11 @@ namespace MidiBard
 			{
 				try
 				{
-					if (!File.Exists(filePath)) return;
+					if (!File.Exists(filePath))
+					{
+						PluginLog.Warning($"File not exist! path: {filePath}");
+						return;
+					}
 					using (var f = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 					{
 						loaded = MidiFile.Read(f, readingSettings);
@@ -213,7 +217,7 @@ namespace MidiBard
 				}
 				catch (Exception ex)
 				{
-					PluginLog.LogError(ex, "Failed to load file at {0}", filePath);
+					PluginLog.Warning(ex, "Failed to load file at {0}", filePath);
 				}
 			});
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static MidiBard.MidiBard;
 
 namespace MidiBard.Control.CharacterControl
 {
@@ -10,21 +11,21 @@ namespace MidiBard.Control.CharacterControl
 	{
 		private PerformanceEvents()
 		{
-			
+
 		}
 
 		public static PerformanceEvents Instance { get; } = new PerformanceEvents();
 
-		void EnteringPerformance()
+		private void EnteringPerformance()
 		{
-			if (!SwitchInstrument.SwitchingInstrument)
-				MidiBard.Ui.IsVisible = true;
+			if (config.AutoOpenPlayerWhenPerforming)
+				Ui.Open();
 		}
 
-		void ExitingPerformance()
+		private void ExitingPerformance()
 		{
-			if (!SwitchInstrument.SwitchingInstrument)
-				MidiBard.Ui.IsVisible = false;
+			if (config.AutoOpenPlayerWhenPerforming)
+				Ui.Close();
 		}
 
 		private bool inPerformanceMode;
@@ -33,14 +34,16 @@ namespace MidiBard.Control.CharacterControl
 		{
 			set
 			{
-				if (!value && inPerformanceMode)
-				{
-					ExitingPerformance();
-				}
-
 				if (value && !inPerformanceMode)
 				{
-					EnteringPerformance();
+					if (!SwitchInstrument.SwitchingInstrument)
+						EnteringPerformance();
+				}
+
+				if (!value && inPerformanceMode)
+				{
+					if (!SwitchInstrument.SwitchingInstrument)
+						ExitingPerformance();
 				}
 
 				inPerformanceMode = value;

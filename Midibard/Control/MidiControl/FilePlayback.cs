@@ -21,8 +21,8 @@ namespace MidiBard.Control.MidiControl
 
 		public static BardPlayback GetFilePlayback(MidiFile midifile, string trackName)
 		{
-			var stopwatch = Stopwatch.StartNew();
 			PluginLog.Debug($"[LoadPlayback] -> {trackName} START");
+			var stopwatch = Stopwatch.StartNew();
 			try
 			{
 				CurrentTMap = midifile.GetTempoMap();
@@ -39,8 +39,7 @@ namespace MidiBard.Control.MidiControl
 					.Where(i => i.GetNotes().Any())
 					.Select(i =>
 					{
-						var notes = i.GetNotes()
-							.ToList();
+						var notes = i.GetNotes().ToList();
 						var notesCount = notes.Count;
 						var notesHighest = notes.MaxElement(j => (int)j.NoteNumber);
 						var notesLowest = notes.MinElement(j => (int)j.NoteNumber);
@@ -63,8 +62,8 @@ namespace MidiBard.Control.MidiControl
 			}
 			catch (Exception exception1)
 			{
-				PluginLog.Warning(
-					$"[LoadPlayback] error when parsing tracks, falling back to generated MidiEvent playback. \n{exception1}");
+				PluginLog.Warning(exception1,
+					$"[LoadPlayback] error when parsing tracks, falling back to generated MidiEvent playback.");
 
 				try
 				{
@@ -106,23 +105,10 @@ namespace MidiBard.Control.MidiControl
 				}
 			}
 
-			//List<TrackChunk> SelectedTracks = new List<TrackChunk>();
-			//if (CurrentTracks.Count > 1)
-			//{
-			//	for (int i = 0; i < CurrentTracks.Count; i++)
-			//	{
-			//		if (config.EnabledTracks[i])
-			//		{
-			//			SelectedTracks.Add(CurrentTracks[i].Item1);
-			//		}
-			//	}
-			//}
-			//else
-			//{
-			//	SelectedTracks = CurrentTracks.Select(i => i.Item1).ToList();
-			//}
+			int givenIndex = 0;
+			CurrentTracks.ForEach(tuple => tuple.trackInfo.Index = givenIndex++);
 
-			var timedEvents = CurrentTracks.Select(i => i.Item1)
+			var timedEvents = CurrentTracks.Select(i => i.trackChunk)
 				.SelectMany((chunk, index) => chunk.GetTimedEvents()
 					.Select(e => new TimedEventWithTrackChunkIndex(e.Event, e.Time, index)))
 				.OrderBy(e => e.Time);
@@ -259,12 +245,12 @@ namespace MidiBard.Control.MidiControl
 			}
 			else
 			{
-				CurrentPlayback = await Task.Run(() => GetFilePlayback(midiFile, PlaylistManager.Filelist[index].trackName));
+				CurrentPlayback = await Task.Run(() => GetFilePlayback(midiFile, PlaylistManager.Filelist[index].songName));
 				PlaylistManager.CurrentPlaying = index;
 				try
 				{
-					var trackName = PlaylistManager.Filelist[index].trackName;
-					await SwitchInstrument.WaitSwitchInstrumentForSong(trackName);
+					var songName = PlaylistManager.Filelist[index].songName;
+					await SwitchInstrument.WaitSwitchInstrumentForSong(songName);
 				}
 				catch (Exception e)
 				{

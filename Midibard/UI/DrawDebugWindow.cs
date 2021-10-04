@@ -16,6 +16,7 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 using Melanchall.DryWetMidi.Devices;
+using MidiBard.DalamudApi;
 using MidiBard.Managers;
 using MidiBard.Managers.Agents;
 
@@ -25,11 +26,10 @@ namespace MidiBard
 	{
 		private static unsafe void DrawDebugWindow()
 		{
-			ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.One);
-			ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.One);
+			ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(2, 2));
 			try
 			{
-				if (ImGui.Begin("MIDIBARD DEBUG1"))
+				if (ImGui.Begin(nameof(MidiBard) + "AgentInfo"))
 				{
 
 					try
@@ -104,7 +104,7 @@ namespace MidiBard
 					ImGui.Separator();
 					try
 					{
-						var performInfos = OffsetManager.Instance.PerformInfos;
+						var performInfos = Offsets.PerformInfos;
 						ImGui.TextUnformatted($"PerformInfos: {performInfos.ToInt64() + 3:X}");
 						ImGui.SameLine();
 						if (ImGui.SmallButton("C##PerformInfos")) ImGui.SetClipboardText($"{performInfos.ToInt64() + 3:X}");
@@ -126,14 +126,14 @@ namespace MidiBard
 					ImGui.TextUnformatted($"currentPlaying: {PlaylistManager.CurrentPlaying}");
 					ImGui.TextUnformatted($"currentSelected: {PlaylistManager.CurrentSelected}");
 					ImGui.TextUnformatted($"FilelistCount: {PlaylistManager.Filelist.Count}");
-					ImGui.TextUnformatted($"currentUILanguage: {DalamudApi.DalamudApi.PluginInterface.UiLanguage}");
+					ImGui.TextUnformatted($"currentUILanguage: {api.PluginInterface.UiLanguage}");
 
 
 				}
 
 				ImGui.End();
 
-				if (ImGui.Begin("MIDIBARD DEBUG2"))
+				if (ImGui.Begin(nameof(MidiBard) + "DeviceInfo"))
 				{
 					try
 					{
@@ -412,24 +412,41 @@ namespace MidiBard
 				}
 
 				ImGui.End();
-				if (ImGui.Begin("MIDIBARD DEBUG3"))
+				if (ImGui.Begin(nameof(MidiBard) + "Offsets"))
 				{
 					try
 					{
-						var offsetManager = OffsetManager.Instance;
-						var type = offsetManager.GetType();
+						var type = typeof(Offsets);
 
-						foreach (var i in type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+						foreach (var i in type.GetProperties(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
 						{
-							var value = (long)(IntPtr)i.GetValue(offsetManager);
-							var variable =
-								$"{i.Name} +{value - (long)DalamudApi.DalamudApi.SigScanner.Module.BaseAddress:X}\n{value:X} ";
-							ImGui.TextUnformatted(variable);
-							ImGui.SameLine();
-							if (ImGui.SmallButton($"C##{i.Name}"))
+							var value = i.GetValue(null);
+							string variable;
+							if (value is IntPtr ptr)
 							{
-								ImGui.SetClipboardText(value.ToString("X"));
+								var relaive = ptr.ToInt64() - (long)api.SigScanner.Module.BaseAddress;
+								variable = $"{i.Name} +{relaive:X}";
+								ImGui.TextUnformatted(variable);
+								ImGui.SameLine();
+								if (ImGui.SmallButton($"C##{i.Name}"))
+								{
+									ImGui.SetClipboardText(ptr.ToInt64().ToString("X"));
+								}
+								ImGui.SameLine();
+								if (ImGui.SmallButton($"CR##{i.Name}"))
+								{
+									ImGui.SetClipboardText($"HEADER+{relaive:X}");
+								}
 							}
+							else
+							{
+								variable = $"{i.Name} {value}";
+								ImGui.TextUnformatted(variable);
+								ImGui.SameLine();
+								if (ImGui.SmallButton($"C##{i.Name}"))
+									ImGui.SetClipboardText(variable);
+							}
+
 						}
 					}
 					catch (Exception e)
@@ -440,7 +457,7 @@ namespace MidiBard
 
 				ImGui.End();
 
-				if (ImGui.Begin("MIDIBARD DEBUG4"))
+				if (ImGui.Begin(nameof(MidiBard) + "KeyStroke"))
 				{
 					ImGui.TextUnformatted($"useRawHook: {Testhooks.Instance?.playnoteHook?.IsEnabled}");
 					if (ImGui.Button("useRawhook"))
@@ -450,19 +467,46 @@ namespace MidiBard
 						else
 							Testhooks.Instance.playnoteHook.Enable();
 					}
-
+					ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
+					ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0);
+					ImGui.PushStyleVar(ImGuiStyleVar.FrameBorderSize, 1);
+					var wdl = ImGui.GetWindowDrawList();
+					wdl.ChannelsSplit(2);
 					for (int i = Testhooks.min; i <= Testhooks.max; i++)
 					{
-						if (ImGui.Button($"{i:00}##b{i}"))
+						var note = (i - Testhooks.min + 1) % 12;
+						var vector2 = new Vector2(40, 300);
+						var cursorPosX = ImGui.GetCursorPosX();
+						if (note is 2 or 4 or 7 or 9 or 11)
+						{
+							wdl.ChannelsSetCurrent(0);
+							ImGui.SetCursorPosX(cursorPosX-20);
+							vector2.Y = 200;
+						}
+						else
+						{
+							wdl.ChannelsSetCurrent(1);
+						}
+
+						if (ImGui.Button($"##b{i}", vector2) || ImGui.IsWindowFocused() && ImGui.IsItemHovered())
 						{
 							Testhooks.Instance.noteOn(i);
 						}
+						ImGui.SameLine();
 
-						if ((i - Testhooks.min + 1) % 12 != 0)
+						if (note is 2 or 4 or 7 or 9 or 11)
 						{
+							ImGui.SetCursorPosX(cursorPosX);
+						}
+
+						if (note == 0)
+						{
+							ImGui.Dummy(new Vector2(3,0));
 							ImGui.SameLine();
 						}
 					}
+					wdl.ChannelsMerge();
+					ImGui.PopStyleVar(3);
 
 					if (ImGui.IsMouseReleased(ImGuiMouseButton.Left))
 					{
@@ -508,7 +552,7 @@ namespace MidiBard
 				//}
 				//End();
 
-				if (ImGui.Begin("MIDIBARD DEBUG5"))
+				if (ImGui.Begin(nameof(MidiBard) + "Misc"))
 				{
 
 
@@ -582,8 +626,7 @@ namespace MidiBard
 
 				ImGui.End();
 
-				DrawFontIconView();
-
+				//DrawFontIconView();
 			}
 			finally
 			{

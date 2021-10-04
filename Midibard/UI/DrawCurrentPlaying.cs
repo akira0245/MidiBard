@@ -13,7 +13,7 @@ namespace MidiBard
 		{
 			if (PlaylistManager.CurrentPlaying >= 0 && PlaylistManager.Filelist.Count > PlaylistManager.CurrentPlaying)
 			{
-				var fmt = $"{PlaylistManager.CurrentPlaying + 1:000} {PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].trackName}";
+				var fmt = $"{PlaylistManager.CurrentPlaying + 1:000} {PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].songName}";
 				ImGui.PushStyleColor(ImGuiCol.Text, MidiBard.config.themeColor * new Vector4(1, 1, 1, 1.3f));
 				ImGui.TextUnformatted(fmt);
 				ImGui.PopStyleColor();
