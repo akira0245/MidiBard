@@ -31,17 +31,20 @@ namespace MidiBard.Control.CharacterControl
 
 		public static async Task SwitchTo(uint instrumentId, int timeOut = 3000)
 		{
-			if (MidiBard.guitarGroup.Contains(MidiBard.CurrentInstrument))
+			if (!MidiBard.config.bmpTrackNames)
 			{
-				if (MidiBard.guitarGroup.Contains((byte)instrumentId))
+				if (MidiBard.guitarGroup.Contains(MidiBard.CurrentInstrument))
 				{
-					playlib.GuitarSwitchTone((int)instrumentId - MidiBard.guitarGroup[0]);
-					return;
+					if (MidiBard.guitarGroup.Contains((byte)instrumentId))
+					{
+						playlib.GuitarSwitchTone((int)instrumentId - MidiBard.guitarGroup[0]);
+						return;
+					}
 				}
-			}
 
-			if (MidiBard.CurrentInstrument == instrumentId)
-				return;
+				if (MidiBard.CurrentInstrument == instrumentId)
+					return;
+			}
 
 			SwitchingInstrument = true;
 			var sw = Stopwatch.StartNew();
@@ -134,18 +137,33 @@ namespace MidiBard.Control.CharacterControl
 				else
 				{
 					var firstEnabledTrack = MidiBard.CurrentTracks.Select(i => i.trackInfo).FirstOrDefault(i => i.IsEnabled);
-					var transposePerTrack = firstEnabledTrack.TransposeFromTrackName;
-					config.TransposeGlobal = transposePerTrack;
+					var transpose = firstEnabledTrack != null ? firstEnabledTrack.TransposeFromTrackName : 0;
+					config.TransposeGlobal = transpose;
 				}
 			}
 
 			if (config.bmpTrackNames)
 			{
+				MidiBard.config.OverrideGuitarTones = true;
+
 				var firstEnabledTrack = MidiBard.CurrentTracks.Select(i => i.trackInfo).FirstOrDefault(i => i.IsEnabled);
 				var idFromTrackName = firstEnabledTrack?.InstrumentIDFromTrackName;
 				if (idFromTrackName != null)
 				{
 					await SwitchTo((uint)idFromTrackName);
+				}
+
+				for (int track = 0; track < MidiBard.config.EnabledTracks.Length; track++)
+				{
+					if (MidiBard.config.EnabledTracks[track])
+					{
+						var curInstrument = MidiBard.CurrentTracks[track].trackInfo?.InstrumentIDFromTrackName;
+						if (MidiBard.guitarGroup.Contains((byte)curInstrument))
+						{
+							var toneID = curInstrument - MidiBard.guitarGroup[0];
+							MidiBard.config.TonesPerTrack[track] = (int)toneID;
+						}
+					}
 				}
 
 				return;
