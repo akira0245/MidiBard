@@ -133,6 +133,8 @@ namespace MidiBard.Control.CharacterControl
 						}
 						config.TransposePerTrack[trackInfo.Index] = transposePerTrack;
 					}
+
+					config.TransposeGlobal = 0;
 				}
 				else
 				{
