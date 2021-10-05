@@ -81,7 +81,7 @@ namespace MidiBard
 						if (ImGui.IsItemClicked())
 						{
 							MidiBard.config.EnabledTracks[i] ^= true;
-							if (!MidiBard.IsPlaying)
+							if (MidiBard.config.bmpTrackNames && !MidiBard.IsPlaying)
 							{
 								var firstEnabledTrack = MidiBard.CurrentTracks.Select(i => i).FirstOrDefault(i => i.trackInfo.IsEnabled);
 								if (firstEnabledTrack.trackInfo != null && firstEnabledTrack.trackInfo.InstrumentIDFromTrackName != null)
@@ -98,7 +98,7 @@ namespace MidiBard
 						if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
 						{
 							MidiBard.config.SoloedTrack = MidiBard.config.SoloedTrack == i ? null : i;
-							if (!MidiBard.IsPlaying && MidiBard.config.SoloedTrack != null && MidiBard.config.EnabledTracks[(int)MidiBard.config.SoloedTrack])
+							if (MidiBard.config.bmpTrackNames && !MidiBard.IsPlaying && MidiBard.config.SoloedTrack != null && MidiBard.config.EnabledTracks[(int)MidiBard.config.SoloedTrack])
 							{
 								SwitchInstrument.SwitchTo((uint)MidiBard.CurrentTracks[(int)MidiBard.config.SoloedTrack].trackInfo.InstrumentIDFromTrackName);
 							}
