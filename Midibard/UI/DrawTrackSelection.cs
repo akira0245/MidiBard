@@ -84,14 +84,13 @@ namespace MidiBard
 							if (!MidiBard.IsPlaying)
 							{
 								var firstEnabledTrack = MidiBard.CurrentTracks.Select(i => i).FirstOrDefault(i => i.trackInfo.IsEnabled);
-								int idx = -1;
-								if (firstEnabledTrack.trackInfo != null)
-								{
-									idx = MidiBard.CurrentTracks.IndexOf(firstEnabledTrack);
-								}
-								if (firstEnabledTrack.trackInfo.InstrumentIDFromTrackName != null)
+								if (firstEnabledTrack.trackInfo != null && firstEnabledTrack.trackInfo.InstrumentIDFromTrackName != null)
 								{
 									SwitchInstrument.SwitchTo((uint)firstEnabledTrack.trackInfo.InstrumentIDFromTrackName);
+								}
+								else
+								{
+									SwitchInstrument.SwitchTo(0);
 								}
 							}
 						}
