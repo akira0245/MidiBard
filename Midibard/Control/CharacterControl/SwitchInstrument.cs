@@ -41,10 +41,14 @@ namespace MidiBard.Control.CharacterControl
 						return;
 					}
 				}
-
-				if (MidiBard.CurrentInstrument == instrumentId)
-					return;
 			}
+			else
+			{
+				UpdateGuitarToneByConfig();
+			}
+
+			if (MidiBard.CurrentInstrument == instrumentId)
+				return;
 
 			SwitchingInstrument = true;
 			var sw = Stopwatch.StartNew();
@@ -155,19 +159,6 @@ namespace MidiBard.Control.CharacterControl
 					await SwitchTo((uint)idFromTrackName);
 				}
 
-				for (int track = 0; track < MidiBard.config.EnabledTracks.Length; track++)
-				{
-					if (MidiBard.config.EnabledTracks[track])
-					{
-						var curInstrument = MidiBard.CurrentTracks[track].trackInfo?.InstrumentIDFromTrackName;
-						if (MidiBard.guitarGroup.Contains((byte)curInstrument))
-						{
-							var toneID = curInstrument - MidiBard.guitarGroup[0];
-							MidiBard.config.TonesPerTrack[track] = (int)toneID;
-						}
-					}
-				}
-
 				return;
 			}
 
@@ -190,6 +181,22 @@ namespace MidiBard.Control.CharacterControl
 				if (idFromSongName != null)
 				{
 					await SwitchTo((uint)idFromSongName);
+				}
+			}
+		}
+
+		internal static void UpdateGuitarToneByConfig()
+		{
+			for (int track = 0; track < MidiBard.CurrentTracks.Count; track++)
+			{
+				if (MidiBard.config.EnabledTracks[track] && MidiBard.CurrentTracks[track].trackInfo != null)
+				{
+					var curInstrument = MidiBard.CurrentTracks[track].trackInfo?.InstrumentIDFromTrackName;
+					if (MidiBard.guitarGroup.Contains((byte)curInstrument))
+					{
+						var toneID = curInstrument - MidiBard.guitarGroup[0];
+						MidiBard.config.TonesPerTrack[track] = (int)toneID;
+					}
 				}
 			}
 		}
