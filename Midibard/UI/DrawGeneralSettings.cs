@@ -28,7 +28,7 @@ namespace MidiBard
 			{
 				if (ImGui.Selectable("None##device", InputDeviceManager.CurrentInputDevice is null))
 				{
-					InputDeviceManager.DisposeCurrentDevice();
+					InputDeviceManager.SetDevice(null);
 				}
 
 				for (int i = 0; i < inputDevices.Length; i++)
@@ -45,16 +45,16 @@ namespace MidiBard
 
 			if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
 			{
-				InputDeviceManager.DisposeCurrentDevice();
+				InputDeviceManager.SetDevice(null);
 			}
 
 			ImGuiUtil.ToolTip("Choose external midi input device. right click to reset.".Localize());
 
-			ImGui.Checkbox("Restore device on start".Localize(), ref MidiBard.config.autoRestoreListening);
-			ImGuiUtil.ToolTip("Try restart listening last used midi device on plugin start.".Localize());
-			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
-			ImGui.Checkbox("Auto listening new device".Localize(), ref MidiBard.config.autoStartNewListening);
-			ImGuiUtil.ToolTip("Auto start listening new midi input device when idle.".Localize());
+			ImGui.Checkbox("Auto restart listening".Localize(), ref MidiBard.config.autoRestoreListening);
+			ImGuiUtil.ToolTip("Try restart listening last used midi device when enabled.".Localize());
+			//ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
+			//ImGui.Checkbox("Auto listening new device".Localize(), ref MidiBard.config.autoStartNewListening);
+			//ImGuiUtil.ToolTip("Auto start listening new midi input device when idle.".Localize());
 
 			if (ImGui.Combo("UI Language".Localize(), ref MidiBard.config.uiLang, uilangStrings, 2))
 			{

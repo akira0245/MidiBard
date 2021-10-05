@@ -69,7 +69,8 @@ namespace MidiBard
 		public bool lazyNoteRelease = true;
 		public string lastUsedMidiDeviceName = "";
 		public bool autoRestoreListening = false;
-		public bool autoStartNewListening = false;
+		//public bool autoStartNewListening = false;
+
 		//public int testLength = 40;
 		//public int testInterval;
 		//public int testRepeat;
