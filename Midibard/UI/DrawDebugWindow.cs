@@ -31,7 +31,6 @@ namespace MidiBard
 			{
 				if (ImGui.Begin(nameof(MidiBard) + "AgentInfo"))
 				{
-
 					try
 					{
 						//ImGui.TextUnformatted($"AgentModule: {(long)AgentManager.Instance:X}");

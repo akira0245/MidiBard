@@ -248,7 +248,7 @@ namespace MidiBard
 #if DEBUG
 			NetworkManager.Instance.Dispose();
 #endif
-			InputDeviceManager.DisposeCurrentDevice();
+			InputDeviceManager.DisposeCurrentInputDevice();
 			try
 			{
 				CurrentPlayback?.Stop();

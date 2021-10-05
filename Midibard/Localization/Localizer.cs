@@ -109,7 +109,7 @@ namespace MidiBard
 			zh.Add("Midibard auto performance only supports 37-key layout.\nPlease consider switching in performance settings.", "Midibard自动演奏仅支持37键布局。\n请考虑在操作设置中切换。");
 			zh.Add("Transpose per track", "分音轨移调");
 			zh.Add("Transpose per track, right click to reset all tracks' transpose offset back to zero.", "启用分音轨移调，右键点击将全部音轨的移调偏移重置回0。");
-			zh.Add("Restore device on start", "恢复MIDI输入");
+			zh.Add("Auto restart listening", "自动恢复监听");
 			zh.Add("Auto listening new device", "自动开始监听");
 			zh.Add("Try restart listening last used midi device on plugin start.", "在插件启动时尝试监听最后使用过的MIDI输入设备。");
 			zh.Add("Auto start listening new midi input device when idle.", "尝试自动对新连接的MIDI设备开始监听。");
