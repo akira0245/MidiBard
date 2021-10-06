@@ -187,6 +187,11 @@ namespace MidiBard.Control.CharacterControl
 
 		internal static void UpdateGuitarToneByConfig()
 		{
+			if (MidiBard.CurrentTracks == null)
+			{
+				return;
+			}
+
 			for (int track = 0; track < MidiBard.CurrentTracks.Count; track++)
 			{
 				if (MidiBard.config.EnabledTracks[track] && MidiBard.CurrentTracks[track].trackInfo != null)
