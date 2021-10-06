@@ -192,7 +192,7 @@ namespace MidiBard.Control.CharacterControl
 				if (MidiBard.config.EnabledTracks[track] && MidiBard.CurrentTracks[track].trackInfo != null)
 				{
 					var curInstrument = MidiBard.CurrentTracks[track].trackInfo?.InstrumentIDFromTrackName;
-					if (MidiBard.guitarGroup.Contains((byte)curInstrument))
+					if (curInstrument != null && MidiBard.guitarGroup.Contains((byte)curInstrument))
 					{
 						var toneID = curInstrument - MidiBard.guitarGroup[0];
 						MidiBard.config.TonesPerTrack[track] = (int)toneID;

@@ -98,7 +98,9 @@ namespace MidiBard
 						if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
 						{
 							MidiBard.config.SoloedTrack = MidiBard.config.SoloedTrack == i ? null : i;
-							if (MidiBard.config.bmpTrackNames && !MidiBard.IsPlaying && MidiBard.config.SoloedTrack != null && MidiBard.config.EnabledTracks[(int)MidiBard.config.SoloedTrack])
+							if (MidiBard.config.bmpTrackNames && !MidiBard.IsPlaying && MidiBard.config.SoloedTrack != null 
+								&& MidiBard.config.EnabledTracks[(int)MidiBard.config.SoloedTrack] 
+								&& MidiBard.CurrentTracks[(int)MidiBard.config.SoloedTrack].trackInfo.InstrumentIDFromTrackName != null)
 							{
 								SwitchInstrument.SwitchTo((uint)MidiBard.CurrentTracks[(int)MidiBard.config.SoloedTrack].trackInfo.InstrumentIDFromTrackName);
 							}
