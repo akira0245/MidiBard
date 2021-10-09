@@ -3,6 +3,8 @@ using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 using static MidiBard.ImGuiUtil;
+using MidiBard.Control.CharacterControl;
+using Dalamud.Logging;
 
 namespace MidiBard
 {
@@ -57,9 +59,7 @@ namespace MidiBard
 						ImGui.PushStyleColor(ImGuiCol.Text, color);
 						ImGui.PushStyleColor(ImGuiCol.CheckMark, colorCheckmark);
 
-
 						ImGui.Checkbox("##checkbox", ref MidiBard.config.EnabledTracks[i]);
-
 
 						if (MidiBard.config.EnableTransposePerTrack)
 						{
@@ -75,17 +75,35 @@ namespace MidiBard
 						ImGui.Dummy(Vector2.Zero);
 						ImGui.SameLine();
 						ImGui.TextUnformatted((soloingTrack == i ? "[Soloing]" : $"[{i + 1:00}]") +
-						                      $" {MidiBard.CurrentTracks[i].Item2}");
+											  $" {MidiBard.CurrentTracks[i].Item2}");
 						ImGui.PopStyleColor(2);
 
 						if (ImGui.IsItemClicked())
 						{
 							MidiBard.config.EnabledTracks[i] ^= true;
+							if (MidiBard.config.bmpTrackNames && !MidiBard.IsPlaying)
+							{
+								var firstEnabledTrack = MidiBard.CurrentTracks.Select(i => i).FirstOrDefault(i => i.trackInfo.IsEnabled);
+								if (firstEnabledTrack.trackInfo != null && firstEnabledTrack.trackInfo.InstrumentIDFromTrackName != null)
+								{
+									SwitchInstrument.SwitchTo((uint)firstEnabledTrack.trackInfo.InstrumentIDFromTrackName);
+								}
+								else
+								{
+									SwitchInstrument.SwitchTo(0);
+								}
+							}
 						}
 
 						if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
 						{
 							MidiBard.config.SoloedTrack = MidiBard.config.SoloedTrack == i ? null : i;
+							if (MidiBard.config.bmpTrackNames && !MidiBard.IsPlaying && MidiBard.config.SoloedTrack != null 
+								&& MidiBard.config.EnabledTracks[(int)MidiBard.config.SoloedTrack] 
+								&& MidiBard.CurrentTracks[(int)MidiBard.config.SoloedTrack].trackInfo.InstrumentIDFromTrackName != null)
+							{
+								SwitchInstrument.SwitchTo((uint)MidiBard.CurrentTracks[(int)MidiBard.config.SoloedTrack].trackInfo.InstrumentIDFromTrackName);
+							}
 						}
 
 						if (ImGui.IsItemHovered())
@@ -134,7 +152,6 @@ namespace MidiBard
 									ImGui.PopStyleColor(3);
 								}
 							}
-
 
 							drawToneSelectButton(0, colorRed, " I ", i);
 							ImGui.SameLine();

@@ -113,7 +113,6 @@ namespace MidiBard.Control.MidiControl
 					.Select(e => new TimedEventWithTrackChunkIndex(e.Event, e.Time, index)))
 				.OrderBy(e => e.Time);
 
-
 			var playback = new BardPlayback(timedEvents, CurrentTMap, new MidiClockSettings())
 			{
 				InterruptNotesOnStop = true,
@@ -141,8 +140,10 @@ namespace MidiBard.Control.MidiControl
 			{
 				try
 				{
-					if (MidiBard.AgentMetronome.EnsembleModeRunning) return;
-					if (!PlaylistManager.Filelist.Any()) return;
+					if (MidiBard.AgentMetronome.EnsembleModeRunning)
+						return;
+					if (!PlaylistManager.Filelist.Any())
+						return;
 
 					PerformWaiting(config.secondsBetweenTracks);
 					if (needToCancel)
@@ -166,7 +167,6 @@ namespace MidiBard.Control.MidiControl
 							{
 								if (await LoadPlayback(PlaylistManager.CurrentPlaying + 1, true))
 								{
-
 								}
 							}
 
@@ -177,14 +177,12 @@ namespace MidiBard.Control.MidiControl
 							{
 								if (await LoadPlayback(PlaylistManager.CurrentPlaying + 1, true))
 								{
-
 								}
 							}
 							else
 							{
 								if (await LoadPlayback(0, true))
 								{
-
 								}
 							}
 
@@ -209,7 +207,6 @@ namespace MidiBard.Control.MidiControl
 
 								if (await LoadPlayback(nexttrack, true))
 								{
-
 								}
 							}
 							catch (Exception exception)
@@ -230,7 +227,7 @@ namespace MidiBard.Control.MidiControl
 			});
 		}
 
-		internal static async Task<bool> LoadPlayback(int index, bool startPlaying = false)
+		internal static async Task<bool> LoadPlayback(int index, bool startPlaying = false, bool switchInstrument = true)
 		{
 			var wasPlaying = IsPlaying;
 			CurrentPlayback?.Dispose();
@@ -247,19 +244,21 @@ namespace MidiBard.Control.MidiControl
 			{
 				CurrentPlayback = await Task.Run(() => GetFilePlayback(midiFile, PlaylistManager.Filelist[index].songName));
 				PlaylistManager.CurrentPlaying = index;
-				try
+				if (switchInstrument)
 				{
-					var songName = PlaylistManager.Filelist[index].songName;
-					await SwitchInstrument.WaitSwitchInstrumentForSong(songName);
+					try
+					{
+						var songName = PlaylistManager.Filelist[index].songName;
+						await SwitchInstrument.WaitSwitchInstrumentForSong(songName);
+					}
+					catch (Exception e)
+					{
+						PluginLog.Warning(e.ToString());
+					}
+					if (wasPlaying || startPlaying)
+						CurrentPlayback?.Start();
 				}
-				catch (Exception e)
-				{
-					PluginLog.Warning(e.ToString());
-				}
-				if (wasPlaying || startPlaying) CurrentPlayback?.Start();
 				return true;
-
-
 			}
 		}
 

@@ -9,10 +9,11 @@ using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Interaction;
 using MidiBard.Control.MidiControl;
 using MidiBard.Managers.Agents;
+using static MidiBard.MidiBard;
 
 namespace MidiBard.Managers
 {
-	class EnsembleManager : IDisposable
+	internal class EnsembleManager : IDisposable
 	{
 		//public SyncHelper(out List<(byte[] notes, byte[] tones)> sendNotes, out List<(byte[] notes, byte[] tones)> recvNotes)
 		//{
@@ -20,7 +21,7 @@ namespace MidiBard.Managers
 		//	recvNotes = new List<(byte[] notes, byte[] tones)>();
 		//}
 
-		delegate IntPtr sub_140C87B40(IntPtr agentMetronome, byte beat);
+		private delegate IntPtr sub_140C87B40(IntPtr agentMetronome, byte beat);
 
 		private Hook<sub_140C87B40> UpdateMetronomeHook;
 
@@ -110,11 +111,13 @@ namespace MidiBard.Managers
 									var playing = PlaylistManager.CurrentPlaying;
 									if (playing == -1)
 									{
-										await FilePlayback.LoadPlayback(0);
+										// if using BMP track name to switch and in ensemble mode already, do nothing here since switching instrument would interrupt the ensemble mode
+										// the instrument should have been switched already when loading the song in this occasion.
+										await FilePlayback.LoadPlayback(0, false, !config.bmpTrackNames);
 									}
 									else
 									{
-										await FilePlayback.LoadPlayback(playing);
+										await FilePlayback.LoadPlayback(playing, false, !config.bmpTrackNames);
 									}
 
 									MidiBard.CurrentPlayback.Stop();
@@ -141,6 +144,7 @@ namespace MidiBard.Managers
 		}
 
 		public event Action EnsembleStart;
+
 		public event Action EnsemblePrepare;
 
 		public static EnsembleManager Instance { get; } = new EnsembleManager();
