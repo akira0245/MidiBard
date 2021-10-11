@@ -622,54 +622,29 @@ namespace MidiBard
 
 				if (MidiBard.config.DebugMisc && Begin(nameof(MidiBard) + "Misc2"))
 				{
-					var ipc = IpcCommands.Instance;
+					var ipc = RPCManager.Instance;
 
-					TextUnformatted($"Opened: \n\t" +
-									$"Name {ipc?.shaOpened?.Name}\n\t" +
-									$"IsOwnerOfSharedMemory {ipc?.shaOpened?.IsOwnerOfSharedMemory}\n\t" +
-									$"ShuttingDown {ipc?.shaOpened?.ShuttingDown}");
-					Dummy(new Vector2(10, 10));
-					TextUnformatted($"Created: \n\t" +
-									$"Name {ipc?.shaCreated?.Name}\n\t" +
-									$"IsOwnerOfSharedMemory {ipc?.shaCreated?.IsOwnerOfSharedMemory}\n\t" +
-									$"ShuttingDown {ipc?.shaCreated?.ShuttingDown}");
+				}
 
-					var name = "sha2";
-					if (Button("CreateShareArray"))
-						ipc.CreateSharedArray(name);
-					//SameLine();
-					//if (Button("DisposeCreated"))
-					//	try
-					//	{
-					//		ipc.shaCreated?.Close();
-					//	}
-					//	catch (Exception e)
-					//	{
-					//		PluginLog.Error(e.ToString());
-					//	}
-					if (Button("OpenShareArray"))
-						ipc.OpenSharedArray(name);
-					if (Button("ReadShareArray"))
-						ipc.ReadSharedArray();
-					if (Button("WriteOpened"))
-						ipc.WriteOpenedArray();
-					if (Button("WriteCreated"))
-						ipc.WriteCreatedArray();
-					//SameLine();
-					//if (Button("DisposeOpened"))
-					//	try
-					//	{
-					//		ipc.shaOpened?.Close();
-					//	}
-					//	catch (Exception e)
-					//	{
-					//		PluginLog.Error(e.ToString());
-					//	}
+				if (Button("Create RPC manger instance"))
+				{
+				}
+				if (Button("SetupBroadcastingRPCBuffers"))
+				{
+					RPCManager.Instance.SetupBroadcastingRPCBuffers();
+				}
+				if (Button("DisposeBroadcastingRPCBuffers"))
+				{
+					RPCManager.Instance.DisposeBroadcastingRPCBuffers();
+				}
 
-					if (Button("CloseSharedArray"))
-						ipc.CloseSharedArray();
-
-					TextUnformatted(api.ClientState.LocalContentId.ToString("X"));
+				if (Button("SetInstrument 1"))
+				{
+					RPCManager.Instance.RPCBroadCast(IpcOpCode.SetInstrument, new MidiBardIpcSetInstrument() { InstrumentId = 1 });
+				}
+				if (Button("SetInstrument 0"))
+				{
+					RPCManager.Instance.RPCBroadCast(IpcOpCode.SetInstrument, new MidiBardIpcSetInstrument() { InstrumentId = 0 });
 				}
 
 				if (setup)

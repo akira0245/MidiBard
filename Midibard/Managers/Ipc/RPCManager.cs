@@ -10,7 +10,10 @@ using Dalamud.Game.ClientState;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Logging;
 using Lumina.Data;
+using Melanchall.DryWetMidi.Common;
+using Melanchall.DryWetMidi.Core;
 using Microsoft.VisualBasic.Logging;
+using MidiBard.Control;
 using MidiBard.Control.CharacterControl;
 using MidiBard.DalamudApi;
 using Newtonsoft.Json;
@@ -18,10 +21,23 @@ using SharedMemory;
 
 namespace MidiBard.Managers.Ipc
 {
-	class IpcCommands : IDisposable
+	class RPCManager : IDisposable
 	{
-		private IpcCommands()
+		const string SHMArrayID = "MIDIBARD_EnsembleMemberArray";
+		const int SharedArrayLength = 8;
+
+		public SharedArray<EnsembleMember> EnsembleMemberArray { get; private set; }
+
+		private RpcBuffer SelfRPCBuffer;
+		private readonly List<(long CID, RpcBuffer rpcMaster)> BroadcastingRPCBuffers = new();
+
+		public static RPCManager Instance { get; } = new RPCManager();
+		private RPCManager()
 		{
+			//SetupSharedArray();
+			SetupSelfRPCBuffer();
+			//todo: auto setup new party menmber RPC buffer
+
 			//PartyWatcher.Instance.PartyMemberJoin += cid =>
 			//{
 			//	BroadcastingRPCBuffers.Add((cid, new RpcBuffer(cid.ToString())));
@@ -54,144 +70,49 @@ namespace MidiBard.Managers.Ipc
 		private void ClientState_Logout(object sender, EventArgs e)
 		{
 			PluginLog.Information($"LOGOUT {api.ClientState.LocalContentId:X}");
-			//DisposeSelfRPCBuffer();
-			SelfRPCBuffer?.Dispose();
+			DisposeSelfRPCBuffer();
 		}
-
-		public static IpcCommands Instance { get; } = new IpcCommands();
-
-		#region test
-
-		public void OpenSharedArray(string Name)
+		private void SetupSelfRPCBuffer()
 		{
+			if (SelfRPCBuffer is not null)
+			{
+				PluginLog.Warning($"self rpcbuffer is already exist! dispose it before create a new one.");
+				return;
+			}
+
+			var id = (long)api.ClientState.LocalContentId;
+			if (id == 0)
+			{
+				PluginLog.Warning("please set self RPCBuffer after Login!");
+				return;
+			}
+
 			try
 			{
-				shaOpened = new SharedArray<int>(Name);
-				foreach (var i in shaOpened)
-				{
-					PluginLog.Information(i.ToString());
-				}
+				SelfRPCBuffer = new RpcBuffer(id.ToString(), RemoteCallHandler);
+				PluginLog.Information("SelfRPCBuffer created successfully.");
 			}
 			catch (Exception e)
 			{
-				PluginLog.Error(e, "error when opening shared array");
+				PluginLog.Error(e, "Local ensemble may not fully functional, please try restart all running game clients.");
+				ImGuiUtil.AddNotification(NotificationType.Error, "Local ensemble may not fully functional, \nplease try restart all running game clients.", "RPCBuffer setup error");
 			}
 		}
 
-		public void WriteCreatedArray()
-		{
-			try
-			{
-				if (shaCreated != null)
-				{
-					for (int i = 0; i < shaCreated.Length; i++)
-					{
-						shaCreated[i] += 5;
-					}
-				}
-			}
-			catch (Exception e)
-			{
-				PluginLog.Error(e, "error when Write Created array");
-			}
-		}
-		public void WriteOpenedArray()
-		{
-			try
-			{
-				if (shaOpened != null)
-					for (int i = 0; i < shaOpened.Length; i++)
-					{
-						shaOpened[i] += 5;
-					}
-			}
-			catch (Exception e)
-			{
-				PluginLog.Error(e, "error when Write Opened array");
-			}
-		}
-
-		public void ReadSharedArray()
-		{
-			try
-			{
-				if (shaOpened != null)
-					foreach (var i in shaOpened)
-					{
-						PluginLog.Information("[Opened]" + i);
-					}
-			}
-			catch (Exception e)
-			{
-				PluginLog.Error(e, "error when reading Opened array");
-			}
-
-			try
-			{
-				if (shaCreated != null)
-				{
-					foreach (var i in shaCreated)
-					{
-						PluginLog.Information("[Created]" + i);
-					}
-				}
-			}
-			catch (Exception e)
-			{
-				PluginLog.Error(e, "error when reading Created array");
-			}
-		}
-
-		public SharedArray<int> shaCreated;
-		public SharedArray<int> shaOpened;
-
-		public void CloseSharedArray()
-		{
-			try
-			{
-				shaCreated?.Close();
-				shaCreated?.Dispose();
-				shaOpened?.Close();
-				shaOpened?.Dispose();
-				PluginLog.Information("disposed");
-			}
-			catch (Exception e)
-			{
-				PluginLog.Error(e, "error when closing shared array");
-			}
-		}
-		public void CreateSharedArray(string Name)
-		{
-			try
-			{
-				shaCreated = new SharedArray<int>(Name, 5);
-				for (var i = 0; i < shaCreated.Count; i++)
-				{
-					shaCreated[i] = i + 5;
-				}
-			}
-			catch (Exception e)
-			{
-				PluginLog.Error(e, "error when creating shared array");
-			}
-		}
-
-
-		const string SHMArrayID = "MIDIBARD_EnsembleMembers";
-		const int SharedArrayLength = 8;
-
-		void SetupSharedArray()
+		private void SetupSharedArray()
 		{
 			try
 			{
 				EnsembleMemberArray = new SharedArray<EnsembleMember>(SHMArrayID);
+				PluginLog.Information($"Got existing Shared EnsembleMemberArray. {EnsembleMemberArray.Count(i => PartyWatcher.Instance.PartyMemberCIDs.Contains(i.ContentID))} shard array member(s) current in party.");
 			}
 			catch (Exception e)
 			{
-				PluginLog.Information($"{e.Message} member array may not created yet. creating new member shared array.");
+				PluginLog.Warning($"{e}\nmember array may not created yet. try creating new member shared array.");
 				try
 				{
 					EnsembleMemberArray = new SharedArray<EnsembleMember>(SHMArrayID, SharedArrayLength);
+					PluginLog.Information("New EnsembleMemberArray created.");
 				}
 				catch (Exception exception)
 				{
@@ -201,29 +122,7 @@ namespace MidiBard.Managers.Ipc
 			}
 		}
 
-		#endregion
-
-		public SharedArray<EnsembleMember> EnsembleMemberArray { get; private set; }
-
-		private RpcBuffer SelfRPCBuffer;
-		private readonly List<(long CID, RpcBuffer rpcMaster)> BroadcastingRPCBuffers = new();
-
-		void SetupSelfRPCBuffer()
-		{
-			var id = (long)api.ClientState.LocalContentId;
-			if (id == 0) throw new InvalidOperationException("please set self RPCBuffer after Login!");
-			try
-			{
-				SelfRPCBuffer = new RpcBuffer(id.ToString(), RemoteCallHandler);
-			}
-			catch (Exception e)
-			{
-				PluginLog.Error(e, "Local ensemble may not fully functional, please try restart all running game clients.");
-				ImGuiUtil.AddNotification(NotificationType.Error, "Local ensemble may not fully functional, \nplease try restart all running game clients.", "RPCBuffer setup error");
-			}
-		}
-
-		void SetupBroadcastingRPCBuffers()
+		public void SetupBroadcastingRPCBuffers()
 		{
 			var partyList = api.PartyList;
 			if (partyList.IsInParty())
@@ -235,13 +134,14 @@ namespace MidiBard.Managers.Ipc
 						if (BroadcastingRPCBuffers.All(i => i.CID != memberId))
 						{
 							BroadcastingRPCBuffers.Add((memberId, new RpcBuffer(memberId.ToString())));
+							PluginLog.Information($"BroadcastingRPCBuffers Add {memberId:X}");
 						}
 					}
 				}
 			}
 		}
 
-		unsafe void RPCBroadCast(IpcOpCode opCode, object data)
+		public void RPCBroadCast(IpcOpCode opCode, object data)
 		{
 			var bytes = GetSerializedIPC(opCode, data);
 
@@ -254,7 +154,7 @@ namespace MidiBard.Managers.Ipc
 			}
 		}
 
-		unsafe void RPCSend(IpcOpCode opCode, object data, long cid)
+		public void RPCSend(IpcOpCode opCode, object data, long cid)
 		{
 			var rpcMaster = BroadcastingRPCBuffers.FirstOrDefault(i => i.CID == cid).rpcMaster;
 			if (rpcMaster is null)
@@ -266,25 +166,27 @@ namespace MidiBard.Managers.Ipc
 			rpcMaster.RemoteRequestAsync(bytes);
 		}
 
+		private static JsonSerializerSettings JsonSettings = new()
+		{
+			TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Full,
+			TypeNameHandling = TypeNameHandling.All
+		};
+
 		private static unsafe byte[] GetSerializedIPC(IpcOpCode opCode, object data)
 		{
-			var serializeObject = JsonConvert.SerializeObject(new IpcEnvelope { OpCode = opCode, Data = data }, Formatting.None);
-			fixed (void* c = &serializeObject.AsSpan()[0])
-			{
-				var bytes = new Span<byte>(c, serializeObject.Length * 2).ToArray();
-				return bytes;
-			}
+			var json = JsonConvert.SerializeObject(new IpcEnvelope { OpCode = opCode, Data = data }, JsonSettings);
+			PluginLog.Information($"[IPC] SEND: {json}");
+			return Dalamud.Utility.Util.CompressString(json);
 		}
 
 		private void RemoteCallHandler(ulong msgId, byte[] payload)
 		{
-			string json;
-			unsafe { fixed (void* p = &payload[0]) json = new string((sbyte*)p, 0, payload.Length); }
+			string json = Dalamud.Utility.Util.DecompressString(payload);
 
 			PluginLog.Information("[IPC] IPC({0}): {1}", msgId, json);
-			var msg = JsonConvert.DeserializeObject<IpcEnvelope>(json);
-
-			switch (msg.OpCode)
+			var msg = JsonConvert.DeserializeObject<IpcEnvelope>(json, JsonSettings);
+			PluginLog.Information($"{msg}\n{msg?.OpCode.GetType()}:{msg?.OpCode}\n{msg?.Data.GetType()}:{msg?.Data}");
+			switch (msg?.OpCode)
 			{
 				case IpcOpCode.ReloadPlayList:
 					Task.Run(async () => await PlaylistManager.Reload(((MidiBardIpcReloadPlaylist)msg.Data).Paths));
@@ -308,6 +210,9 @@ namespace MidiBard.Managers.Ipc
 					break;
 				case IpcOpCode.DoEmote:
 					break;
+				case IpcOpCode.PlayNote:
+					MidiBard.CurrentOutputDevice.SendEvent(new NoteOnEvent(new SevenBitNumber(48), SevenBitNumber.MaxValue));
+					break;
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
@@ -318,26 +223,42 @@ namespace MidiBard.Managers.Ipc
 			api.ClientState.Login -= ClientState_Login;
 			api.ClientState.Logout -= ClientState_Logout;
 
-			foreach (var (id, rpcMaster) in BroadcastingRPCBuffers)
-			{
-				try
-				{
-					rpcMaster?.Dispose();
-				}
-				catch (Exception e)
-				{
-					PluginLog.Error(e, "error when disposing rpc broadcaster");
-				}
-			}
+			DisposeBroadcastingRPCBuffers();
+			DisposeSelfRPCBuffer();
+		}
 
+		public void DisposeSelfRPCBuffer()
+		{
 			try
 			{
 				SelfRPCBuffer?.Dispose();
+				SelfRPCBuffer = null;
+				PluginLog.Debug("SelfRPCBuffer disposed.");
 			}
 			catch (Exception e)
 			{
 				PluginLog.Error(e, "error when disposing rpc client");
 			}
+		}
+
+		public void DisposeBroadcastingRPCBuffers()
+		{
+			List<long> toremove = new List<long>();
+			foreach (var (id, rpcMaster) in BroadcastingRPCBuffers)
+			{
+				try
+				{
+					rpcMaster?.Dispose();
+					toremove.Add(id);
+					PluginLog.Debug($"BroadcastingRPCBuffer {id:X} disposed.");
+				}
+				catch (Exception e)
+				{
+					PluginLog.Error(e, $"error when disposing rpc broadcaster {id:X}");
+				}
+			}
+
+			BroadcastingRPCBuffers.RemoveAll(i => toremove.Contains(i.CID));
 		}
 	}
 }

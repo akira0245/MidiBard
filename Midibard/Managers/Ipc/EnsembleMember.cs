@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace MidiBard.Managers.Ipc
 {
-	public struct EnsembleMember
+	public unsafe struct EnsembleMember
 	{
 		public DateTime NowTime;
 		//public bool IsValid;
@@ -18,15 +18,11 @@ namespace MidiBard.Managers.Ipc
 		public DateTime LastPacketSendTime;
 		public DateTime LastPacketRecvTime;
 
-		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 60)]
-		public byte[] EnsembleSendNotesBuffer;
+		public fixed byte EnsembleSendNotesBuffer[60];
 
 		public int TracksCount;
-		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 100)]
-		public bool[] TracksEnabled;
-		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 100)]
-		public int[] TracksTranspose;
-		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 100)]
-		public int[] TracksTone;
+		public fixed bool TracksEnabled[100];
+		public fixed int TracksTranspose[100];
+		public fixed int TracksTone[100];
 	}
 }

@@ -81,6 +81,7 @@ namespace MidiBard
 			AgentMetronome = new AgentMetronome(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.MetronomeAgent));
 			AgentPerformance = new AgentPerformance(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.PerformanceAgent));
 			_ = EnsembleManager.Instance;
+			_ = RPCManager.Instance;
 
 #if DEBUG
 			_ = NetworkManager.Instance;
@@ -241,7 +242,7 @@ namespace MidiBard
 #if DEBUG
 			Testhooks.Instance?.Dispose();
 #endif
-			IpcCommands.Instance.Dispose();
+			RPCManager.Instance.Dispose();
 			PartyWatcher.Instance.Dispose();
 			InputDeviceManager.ShouldScanMidiDeviceThread = false;
 			Framework.Update -= Tick;

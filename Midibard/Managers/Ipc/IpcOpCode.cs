@@ -4,6 +4,7 @@
 	{
 		Hello,
 		Bye,
+		PlayNote,
 		ReloadPlayList,
 		SetSong,
 		SetInstrument,
