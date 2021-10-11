@@ -16,6 +16,7 @@ using Microsoft.VisualBasic.Logging;
 using MidiBard.Control;
 using MidiBard.Control.CharacterControl;
 using MidiBard.DalamudApi;
+using MidiBard.Util;
 using Newtonsoft.Json;
 using SharedMemory;
 
@@ -23,13 +24,19 @@ namespace MidiBard.Managers.Ipc
 {
 	class RPCManager : IDisposable
 	{
-		const string SHMArrayID = "MIDIBARD_EnsembleMemberArray";
+		const string SharedMemoryID = "MIDIBARD_LocalShared";
 		const int SharedArrayLength = 8;
 
+		void setupRingBuffer()
+		{
+			var circularBuffer = new CircularBuffer(SharedMemoryID, 16, 1024);
+			EnsembleMemberArray = new SharedArray<EnsembleMember>(SharedMemoryID);
+
+		}
 		public SharedArray<EnsembleMember> EnsembleMemberArray { get; private set; }
 
-		private RpcBuffer SelfRPCBuffer;
-		private readonly List<(long CID, RpcBuffer rpcMaster)> BroadcastingRPCBuffers = new();
+		private RpcBuffer SelfRPCBuffer = null;
+		public List<(long CID, RpcBuffer rpcMaster)> BroadcastingRPCBuffers { get; init; } = new();
 
 		public static RPCManager Instance { get; } = new RPCManager();
 		private RPCManager()
@@ -63,13 +70,20 @@ namespace MidiBard.Managers.Ipc
 
 		private void ClientState_Login(object sender, EventArgs e)
 		{
-			PluginLog.Information($"LOGIN {api.ClientState.LocalContentId:X}");
-			SetupSelfRPCBuffer();
+			PluginLog.Information($"login {api.ClientState.LocalContentId:X}");
+			try
+			{
+				Coroutine.WaitUntil(() => api.ClientState.LocalContentId > 0, 10000)
+					.ContinueWith(task => SetupSelfRPCBuffer());
+			}
+			catch (Exception exception)
+			{
+				PluginLog.Error(exception, "failed to setup SelfRPCBuffer");
+			}
 		}
 
 		private void ClientState_Logout(object sender, EventArgs e)
 		{
-			PluginLog.Information($"LOGOUT {api.ClientState.LocalContentId:X}");
 			DisposeSelfRPCBuffer();
 		}
 		private void SetupSelfRPCBuffer()
@@ -103,7 +117,7 @@ namespace MidiBard.Managers.Ipc
 		{
 			try
 			{
-				EnsembleMemberArray = new SharedArray<EnsembleMember>(SHMArrayID);
+				EnsembleMemberArray = new SharedArray<EnsembleMember>(SharedMemoryID);
 				PluginLog.Information($"Got existing Shared EnsembleMemberArray. {EnsembleMemberArray.Count(i => PartyWatcher.Instance.PartyMemberCIDs.Contains(i.ContentID))} shard array member(s) current in party.");
 			}
 			catch (Exception e)
@@ -111,7 +125,7 @@ namespace MidiBard.Managers.Ipc
 				PluginLog.Warning($"{e}\nmember array may not created yet. try creating new member shared array.");
 				try
 				{
-					EnsembleMemberArray = new SharedArray<EnsembleMember>(SHMArrayID, SharedArrayLength);
+					EnsembleMemberArray = new SharedArray<EnsembleMember>(SharedMemoryID, SharedArrayLength);
 					PluginLog.Information("New EnsembleMemberArray created.");
 				}
 				catch (Exception exception)
@@ -182,7 +196,6 @@ namespace MidiBard.Managers.Ipc
 		private void RemoteCallHandler(ulong msgId, byte[] payload)
 		{
 			string json = Dalamud.Utility.Util.DecompressString(payload);
-
 			PluginLog.Information("[IPC] IPC({0}): {1}", msgId, json);
 			var msg = JsonConvert.DeserializeObject<IpcEnvelope>(json, JsonSettings);
 			PluginLog.Information($"{msg}\n{msg?.OpCode.GetType()}:{msg?.OpCode}\n{msg?.Data.GetType()}:{msg?.Data}");
@@ -231,13 +244,19 @@ namespace MidiBard.Managers.Ipc
 		{
 			try
 			{
-				SelfRPCBuffer?.Dispose();
+				if (SelfRPCBuffer is null)
+				{
+					PluginLog.Debug("SelfRPCBuffer is null.");
+					return;
+				}
+
+				SelfRPCBuffer.Dispose();
 				SelfRPCBuffer = null;
 				PluginLog.Debug("SelfRPCBuffer disposed.");
 			}
 			catch (Exception e)
 			{
-				PluginLog.Error(e, "error when disposing rpc client");
+				PluginLog.Error(e, "error when disposing SelfRPCBuffer");
 			}
 		}
 

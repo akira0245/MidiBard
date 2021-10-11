@@ -647,32 +647,44 @@ namespace MidiBard
 					RPCManager.Instance.RPCBroadCast(IpcOpCode.SetInstrument, new MidiBardIpcSetInstrument() { InstrumentId = 0 });
 				}
 
-				if (setup)
+				if (Button("Reload playlist"))
 				{
-					setup = false;
-					PartyWatcher.Instance.PartyMemberJoin += member =>
-						{
-							try
-							{
-								PluginLog.Information($"[++]{member:X}");
-							}
-							catch (Exception e)
-							{
-								PluginLog.Error(e.ToString());
-							}
-						};
-					PartyWatcher.Instance.PartyMemberLeave += member =>
-					{
-						try
-						{
-							PluginLog.Information($"[--]{member:X}");
-						}
-						catch (Exception e)
-						{
-							PluginLog.Error(e.ToString());
-						}
-					};
+					RPCManager.Instance.RPCBroadCast(IpcOpCode.ReloadPlayList,
+						new MidiBardIpcReloadPlaylist() { Paths = PlaylistManager.Filelist.Select(i => i.path).ToArray() });
 				}
+
+				TextUnformatted($"BroadcastingRPCBuffers:");
+				foreach (var (cid, rpcMaster) in RPCManager.Instance.BroadcastingRPCBuffers)
+				{
+					TextUnformatted($"{cid:X} {rpcMaster}");
+				}
+
+				//if (setup)
+				//{
+				//	setup = false;
+				//	PartyWatcher.Instance.PartyMemberJoin += member =>
+				//		{
+				//			try
+				//			{
+				//				PluginLog.Information($"[++]{member:X}");
+				//			}
+				//			catch (Exception e)
+				//			{
+				//				PluginLog.Error(e.ToString());
+				//			}
+				//		};
+				//	PartyWatcher.Instance.PartyMemberLeave += member =>
+				//	{
+				//		try
+				//		{
+				//			PluginLog.Information($"[--]{member:X}");
+				//		}
+				//		catch (Exception e)
+				//		{
+				//			PluginLog.Error(e.ToString());
+				//		}
+				//	};
+				//}
 
 				End();
 
