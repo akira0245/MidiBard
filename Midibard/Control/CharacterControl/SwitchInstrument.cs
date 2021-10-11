@@ -133,7 +133,7 @@ namespace MidiBard.Control.CharacterControl
 						var transposePerTrack = trackInfo.TransposeFromTrackName;
 						if (transposePerTrack != 0)
 						{
-							PluginLog.Information($"applying transpose {transposePerTrack:+#;-#;0} for track [{trackInfo.Index + 1}]{trackInfo.GetTrackName()}");
+							PluginLog.Information($"applying transpose {transposePerTrack:+#;-#;0} for track [{trackInfo.Index + 1}]{trackInfo.TrackName}");
 						}
 						config.TransposePerTrack[trackInfo.Index] = transposePerTrack;
 					}

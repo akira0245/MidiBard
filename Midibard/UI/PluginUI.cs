@@ -293,8 +293,12 @@ namespace MidiBard
 					"\n　“程序在游戏窗口处于非激活状态时限制帧数” 的选项并应用设置。\n");
 				ImGui.Spacing();
 				ImGui.Separator();
-				ImGui.Spacing();
+
 				ImGui.Indent();
+				//ImGuiHelpers.ScaledDummy(20,0); ImGui.SameLine();
+				ImGui.TextUnformatted("如果你喜欢MidiBard，可以在Github上为项目送上一颗"); ImGui.SameLine(); ImGui.PushFont(UiBuilder.IconFont); ImGui.TextUnformatted(FontAwesomeIcon.Star.ToIconString()); ImGui.PopFont(); ImGui.SameLine(); ImGui.TextUnformatted("表示支持！");
+				
+				ImGui.Spacing();
 				if (ImGui.Button("确定", new Vector2(ImGui.GetFrameHeight() * 5, ImGui.GetFrameHeight())))
 				{
 					showhelp = false;

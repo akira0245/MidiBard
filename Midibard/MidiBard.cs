@@ -25,6 +25,7 @@ using MidiBard.Control.MidiControl;
 using MidiBard.DalamudApi;
 using MidiBard.Managers;
 using MidiBard.Managers.Agents;
+using MidiBard.Managers.Ipc;
 using playlibnamespace;
 using static MidiBard.DalamudApi.api;
 
@@ -86,7 +87,7 @@ namespace MidiBard
 			_ = Testhooks.Instance;
 #endif
 
-			PlaylistManager.ReloadPlayListFromConfig();
+			Task.Run(() => PlaylistManager.Reload(config.Playlist.ToArray()));
 
 			CurrentOutputDevice = new BardPlayDevice();
 			InputDeviceManager.ScanMidiDeviceThread.Start();
@@ -240,6 +241,8 @@ namespace MidiBard
 #if DEBUG
 			Testhooks.Instance?.Dispose();
 #endif
+			IpcCommands.Instance.Dispose();
+			PartyWatcher.Instance.Dispose();
 			InputDeviceManager.ShouldScanMidiDeviceThread = false;
 			Framework.Update -= Tick;
 			PluginInterface.UiBuilder.Draw -= Ui.Draw;

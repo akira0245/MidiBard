@@ -12,6 +12,7 @@ using Dalamud.Plugin;
 using Melanchall.DryWetMidi.Common;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
+using MidiBard.DalamudApi;
 
 namespace MidiBard
 {
@@ -84,19 +85,20 @@ namespace MidiBard
 		};
 
 
-		internal static void ReloadPlayListFromConfig(bool alsoReloadConfig = false)
-		{
-			if (alsoReloadConfig)
-			{
-				// back up since we don't want the enabled tracks to be overwritten by the shared config between bards.
-				bool[] enabledTracks = MidiBard.config.EnabledTracks;
-				MidiBard.LoadConfig();
-				MidiBard.config.EnabledTracks = enabledTracks;
-			}
+		//internal static void ReloadPlayListFromConfig(bool alsoReloadConfig = false)
+		//{
+		//	//if (alsoReloadConfig)
+		//	//{
+		//	//	// back up since we don't want the enabled tracks to be overwritten by the shared config between bards.
+		//	//	bool[] enabledTracks = MidiBard.config.EnabledTracks;
+		//	//	MidiBard.LoadConfig();
+		//	//	MidiBard.config.EnabledTracks = enabledTracks;
+		//	//}
 
-			// update playlist in case any files is being deleted
-			Task.Run(async () => await Reload(MidiBard.config.Playlist.ToArray()));
-		}
+
+		//	// update playlist in case any files is being deleted
+		//	Task.Run(async () => await Reload(MidiBard.config.Playlist.ToArray()));
+		//}
 
 		internal static async Task Reload(string[] filePaths)
 		{

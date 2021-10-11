@@ -21,23 +21,20 @@ namespace MidiBard
 
 		public int Index;
 		public bool IsEnabled => MidiBard.config.EnabledTracks[Index];
-		public int TransposeFromTrackName => GetTransposeByName(GetTrackName());
-		public uint? InstrumentIDFromTrackName => GetInstrumentIDByName(GetTrackName());
+		public int TransposeFromTrackName => GetTransposeByName(TrackName);
+		public uint? InstrumentIDFromTrackName => GetInstrumentIDByName(TrackName);
 
 		public override string ToString()
 		{
-			return $"{TrackNameEventsText.FirstOrDefault() ?? "Untitled"} / {NoteCount} notes / {LowestNote}-{HighestNote}";
+			return $"{TrackName} / {NoteCount} notes / {LowestNote}-{HighestNote}";
 		}
 
 		public string ToLongString()
 		{
-			return $"Track name:\n　{TrackNameEventsText.FirstOrDefault() ?? "Untitled"} \nNote count: \n　{NoteCount} notes \nRange:\n　{LowestNote}-{HighestNote} \n ProgramChange events: \n　{string.Join("\n　", ProgramChangeEvent.Distinct())} \nDuration: \n　{Duration}";
+			return $"Track name:\n　{TrackName} \nNote count: \n　{NoteCount} notes \nRange:\n　{LowestNote}-{HighestNote} \n ProgramChange events: \n　{string.Join("\n　", ProgramChangeEvent.Distinct())} \nDuration: \n　{Duration}";
 		}
 
-		public string GetTrackName()
-		{
-			return TrackNameEventsText.FirstOrDefault() ?? "Untitled";
-		}
+		public string TrackName => TrackNameEventsText.FirstOrDefault() ?? "Untitled";
 
 
 		public static uint? GetInstrumentIDByName(string name)
