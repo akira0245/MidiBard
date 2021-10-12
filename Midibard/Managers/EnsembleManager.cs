@@ -78,10 +78,20 @@ namespace MidiBard.Managers
 
 								void OnMidiClockOnTicked(object o, EventArgs eventArgs)
 								{
-									MidiBard.CurrentPlayback.Start();
-									EnsembleStart?.Invoke();
-									PluginLog.Warning($"Start ensemble: compensation: {midiClock.CurrentTime.TotalMilliseconds} ms / {midiClock.CurrentTime.Ticks} ticks");
-									midiClock.Ticked -= OnMidiClockOnTicked;
+									try
+									{
+										MidiBard.CurrentPlayback.Start();
+										EnsembleStart?.Invoke();
+										PluginLog.Warning($"Start ensemble: compensation: {midiClock.CurrentTime.TotalMilliseconds} ms / {midiClock.CurrentTime.Ticks} ticks");
+									}
+									catch (Exception e)
+									{
+										PluginLog.Error(e, "error OnMidiClockOnTicked");
+									}
+									finally
+									{
+										midiClock.Ticked -= OnMidiClockOnTicked;
+									}
 								}
 
 								Task.Delay(1000).ContinueWith(_ =>
