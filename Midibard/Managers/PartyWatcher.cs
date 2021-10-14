@@ -1,35 +1,33 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Dalamud.Game.ClientState.Party;
 using Dalamud.Logging;
 using MidiBard.DalamudApi;
 
-namespace MidiBard.Managers.Ipc
+namespace MidiBard.Managers
 {
 	public class PartyWatcher : IDisposable
 	{
 		public static bool Instantiated = false;
 		private PartyWatcher()
 		{
-			PartyMemberCIDs = api.PartyList.Select(i => i.ContentId).ToArray();
+			OldMemberCIDs = GetMemberCIDs;
 			api.Framework.Update += Framework_Update;
 			Instantiated = true;
 		}
 
-		public long[] PartyMemberCIDs { get; private set; }
+		private long[] OldMemberCIDs { get; set; }
+
+		public long[] GetMemberCIDs => api.PartyList
+			.Where(i => i.World.Id > 0 && i.Territory.Id > 0)
+			.Select(i => i.ContentId)
+			.ToArray();
 
 		[SuppressMessage("ReSharper", "SimplifyLinqExpressionUseAll")]
 		private void Framework_Update(Dalamud.Game.Framework framework)
 		{
-			var newMemberCIDs = api.PartyList
-				.Where(i => i.World.Id > 0 && i.Territory.Id > 0)
-				.Select(i => i.ContentId)
-				.ToArray();
-			if (newMemberCIDs.Length != PartyMemberCIDs.Length)
+			var newMemberCIDs = GetMemberCIDs;
+			if (newMemberCIDs.Length != OldMemberCIDs.Length)
 			{
 				//PluginLog.Warning($"CHANGE {newList.Length - PartyMembers.Length}");
 				//PluginLog.Information("OLD:\n"+string.Join("\n", PartyMembers.Select(i=>$"{i.Name} {i.ContentId:X}")));
@@ -37,14 +35,14 @@ namespace MidiBard.Managers.Ipc
 
 				foreach (var partyMember in newMemberCIDs)
 				{
-					if (!PartyMemberCIDs.Any(i => i == partyMember))
+					if (!OldMemberCIDs.Any(i => i == partyMember))
 					{
 						PluginLog.Debug($"JOIN {partyMember}");
 						PartyMemberJoin?.Invoke(partyMember);
 					}
 				}
 
-				foreach (var partyMember in PartyMemberCIDs)
+				foreach (var partyMember in OldMemberCIDs)
 				{
 					if (!newMemberCIDs.Any(i => i == partyMember))
 					{
@@ -54,7 +52,7 @@ namespace MidiBard.Managers.Ipc
 				}
 			}
 
-			PartyMemberCIDs = newMemberCIDs;
+			OldMemberCIDs = newMemberCIDs;
 		}
 
 		public event Action<long> PartyMemberJoin;

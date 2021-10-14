@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using Dalamud.Interface;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Logging;
@@ -26,6 +27,7 @@ namespace MidiBard
 				ImGui.PopFont();
 			}
 		}
+
 
 		public static bool IconButton(FontAwesomeIcon icon, string id)
 		{

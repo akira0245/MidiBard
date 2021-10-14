@@ -13,12 +13,13 @@ using Melanchall.DryWetMidi.Common;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using MidiBard.DalamudApi;
+using MidiBard.Managers.Ipc;
 
 namespace MidiBard
 {
 	static class PlaylistManager
 	{
-		public static List<(string path, string songName)> Filelist { get; set; } = new List<(string, string)>();
+		public static List<(string path, string songName)> FilePathList { get; set; } = new List<(string, string)>();
 
 		public static int CurrentPlaying
 		{
@@ -26,9 +27,12 @@ namespace MidiBard
 			set
 			{
 				if (value < -1) value = -1;
+				if (currentPlaying != value) PlayingIndexChanged?.Invoke(value);
 				currentPlaying = value;
 			}
 		}
+
+		public static event Action<int> PlayingIndexChanged;
 
 		public static int CurrentSelected
 		{
@@ -43,7 +47,7 @@ namespace MidiBard
 		public static void Clear()
 		{
 			MidiBard.config.Playlist.Clear();
-			Filelist.Clear();
+			FilePathList.Clear();
 			CurrentPlaying = -1;
 			MidiBard.SaveConfig();
 		}
@@ -53,7 +57,7 @@ namespace MidiBard
 			try
 			{
 				MidiBard.config.Playlist.RemoveAt(index);
-				Filelist.RemoveAt(index);
+				FilePathList.RemoveAt(index);
 				PluginLog.Information($"removing {index}");
 				if (index < currentPlaying)
 				{
@@ -100,19 +104,23 @@ namespace MidiBard
 		//	Task.Run(async () => await Reload(MidiBard.config.Playlist.ToArray()));
 		//}
 
-		internal static async Task Reload(string[] filePaths)
+		internal static async Task Add(string[] filePaths, bool reload = false)
 		{
-			MidiBard.config.Playlist.Clear();
-			Filelist.Clear();
-			await Add(filePaths);
-		}
+			if (reload)
+			{
+				FilePathList.Clear();
+				MidiBard.config.Playlist.Clear();
+				RPCManager.Instance.RPCBroadCast(IpcOpCode.PlayListReload, new MidiBardIpcPlaylist() { Paths = filePaths });
+			}
+			else
+			{
+				RPCManager.Instance.RPCBroadCast(IpcOpCode.PlayListAdd, new MidiBardIpcPlaylist() { Paths = filePaths });
+			}
 
-		internal static async Task Add(string[] filePaths)
-		{
 			await foreach (var path in GetPathsAvailable(filePaths))
 			{
 				MidiBard.config.Playlist.Add(path);
-				Filelist.Add((path, Path.GetFileNameWithoutExtension(path)));
+				FilePathList.Add((path, Path.GetFileNameWithoutExtension(path)));
 			}
 		}
 
@@ -138,12 +146,12 @@ namespace MidiBard
 
 		internal static async Task<MidiFile> LoadMidiFile(int index)
 		{
-			if (index < 0 || index >= Filelist.Count)
+			if (index < 0 || index >= FilePathList.Count)
 			{
 				return null;
 			}
 
-			return await LoadMidiFile(Filelist[index].path);
+			return await LoadMidiFile(FilePathList[index].path);
 		}
 
 		internal static async Task<MidiFile> LoadMidiFile(string filePath)

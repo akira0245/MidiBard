@@ -11,20 +11,20 @@ namespace MidiBard
 	{
 		private static unsafe void DrawCurrentPlaying()
 		{
-			if (PlaylistManager.CurrentPlaying >= 0 && PlaylistManager.Filelist.Count > PlaylistManager.CurrentPlaying)
+			if (PlaylistManager.CurrentPlaying >= 0 && PlaylistManager.FilePathList.Count > PlaylistManager.CurrentPlaying)
 			{
-				var fmt = $"{PlaylistManager.CurrentPlaying + 1:000} {PlaylistManager.Filelist[PlaylistManager.CurrentPlaying].songName}";
+				var fmt = $"{PlaylistManager.CurrentPlaying + 1:000} {PlaylistManager.FilePathList[PlaylistManager.CurrentPlaying].songName}";
 				ImGui.PushStyleColor(ImGuiCol.Text, MidiBard.config.themeColor * new Vector4(1, 1, 1, 1.3f));
 				ImGui.TextUnformatted(fmt);
 				ImGui.PopStyleColor();
 			}
 			else
 			{
-				var c = PlaylistManager.Filelist.Count;
+				var c = PlaylistManager.FilePathList.Count;
 				ImGui.TextUnformatted(c > 1
-					? $"{PlaylistManager.Filelist.Count} " +
+					? $"{PlaylistManager.FilePathList.Count} " +
 					  "tracks in playlist.".Localize()
-					: $"{PlaylistManager.Filelist.Count} " +
+					: $"{PlaylistManager.FilePathList.Count} " +
 					  "track in playlist.".Localize());
 			}
 		}

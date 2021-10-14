@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Dalamud.Game.ClientState;
+using Dalamud.Game.ClientState.Party;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Logging;
 using Lumina.Data;
@@ -118,7 +119,7 @@ namespace MidiBard.Managers.Ipc
 			try
 			{
 				EnsembleMemberArray = new SharedArray<EnsembleMember>(SharedMemoryID);
-				PluginLog.Information($"Got existing Shared EnsembleMemberArray. {EnsembleMemberArray.Count(i => PartyWatcher.Instance.PartyMemberCIDs.Contains(i.ContentID))} shard array member(s) current in party.");
+				PluginLog.Information($"Got existing Shared EnsembleMemberArray. {EnsembleMemberArray.Count(i => PartyWatcher.Instance.GetMemberCIDs.Contains(i.ContentID))} shard array member(s) current in party.");
 			}
 			catch (Exception e)
 			{
@@ -143,7 +144,7 @@ namespace MidiBard.Managers.Ipc
 			{
 				if (partyList.IsPartyLeader())
 				{
-					foreach (var memberId in PartyWatcher.Instance.PartyMemberCIDs)
+					foreach (var memberId in PartyWatcher.Instance.GetMemberCIDs)
 					{
 						if (BroadcastingRPCBuffers.All(i => i.CID != memberId))
 						{
@@ -155,20 +156,27 @@ namespace MidiBard.Managers.Ipc
 			}
 		}
 
-		public void RPCBroadCast(IpcOpCode opCode, object data)
+		public void RPCBroadCast(IpcOpCode opCode, IIpcData data, bool broadCastToSelf = false)
 		{
 			var bytes = GetSerializedIPC(opCode, data);
 
 			foreach (var (id, rpcMaster) in BroadcastingRPCBuffers)
 			{
+				if (id == (long)api.ClientState.LocalContentId && !broadCastToSelf) continue;
 				rpcMaster.RemoteRequestAsync(bytes).ContinueWith(task =>
 				{
-					PluginLog.Information($"{id:X} {task.Result.Success}");
+					PluginLog.Information($"{id:X} {task.Result.Success} {task.Result.Data?.Length ?? -1}");
+					RPCReturn?.Invoke((id, task.Result.Data));
 				});
+
+				PluginLog.Information($"RPC BROADCAST TO {id:X}");
 			}
 		}
 
-		public void RPCSend(IpcOpCode opCode, object data, long cid)
+		public Action<(long source, byte[] data)> RPCReturn;
+
+		public void RPCSend(IpcOpCode opCode, IIpcData data, PartyMember partyMember) => RPCSend(opCode, data, partyMember.ContentId);
+		public void RPCSend(IpcOpCode opCode, IIpcData data, long cid)
 		{
 			var rpcMaster = BroadcastingRPCBuffers.FirstOrDefault(i => i.CID == cid).rpcMaster;
 			if (rpcMaster is null)
@@ -186,29 +194,41 @@ namespace MidiBard.Managers.Ipc
 			TypeNameHandling = TypeNameHandling.All
 		};
 
-		private static unsafe byte[] GetSerializedIPC(IpcOpCode opCode, object data)
+		private static unsafe byte[] GetSerializedIPC(IpcOpCode opCode, IIpcData data)
 		{
 			var json = JsonConvert.SerializeObject(new IpcEnvelope { OpCode = opCode, Data = data }, JsonSettings);
-			PluginLog.Information($"[IPC] SEND: {json}");
+			PluginLog.Information($"[IPC] GET: {json}");
 			return Dalamud.Utility.Util.CompressString(json);
 		}
 
-		private void RemoteCallHandler(ulong msgId, byte[] payload)
+		private byte[] RemoteCallHandler(ulong msgId, byte[] payload)
 		{
 			string json = Dalamud.Utility.Util.DecompressString(payload);
 			PluginLog.Information("[IPC] IPC({0}): {1}", msgId, json);
 			var msg = JsonConvert.DeserializeObject<IpcEnvelope>(json, JsonSettings);
 			PluginLog.Information($"{msg}\n{msg?.OpCode.GetType()}:{msg?.OpCode}\n{msg?.Data.GetType()}:{msg?.Data}");
-			switch (msg?.OpCode)
+			PluginLog.Warning($"{msgId} {payload.Length}");
+			switch (msg.OpCode)
 			{
-				case IpcOpCode.ReloadPlayList:
-					Task.Run(async () => await PlaylistManager.Reload(((MidiBardIpcReloadPlaylist)msg.Data).Paths));
+				case IpcOpCode.PlayListClear when MidiBard.config.SyncPlaylist:
+					PlaylistManager.Clear();
 					break;
-				case IpcOpCode.SetSong:
+				case IpcOpCode.PlayListAdd when MidiBard.config.SyncPlaylist:
+					Task.Run(async () => await PlaylistManager.Add(((MidiBardIpcPlaylist)msg.Data).Paths));
+					break;
+				case IpcOpCode.PlayListRemoveIndex when MidiBard.config.SyncPlaylist:
+					PlaylistManager.Remove(((MidiBardIpcPlaylistRemoveIndex)msg.Data).SongIndex);
+					break;
+				case IpcOpCode.PlayListReload when MidiBard.config.SyncPlaylist:
+					Task.Run(async () => await PlaylistManager.Add(((MidiBardIpcPlaylist)msg.Data).Paths, true));
+					break;
+
+
+				case IpcOpCode.SetSong when MidiBard.config.SyncSongSelection:
 					Control.MidiControl.MidiPlayerControl.SwitchSong(((MidiBardIpcSetSong)msg.Data).SongIndex);
 					break;
 				case IpcOpCode.SetInstrument:
-					Task.Run(async () => await SwitchInstrument.SwitchTo(((MidiBardIpcSetInstrument)msg.Data).InstrumentId));
+					SwitchInstrument.SwitchToContinue(((MidiBardIpcSetInstrument)msg.Data).InstrumentId);
 					break;
 				case IpcOpCode.SetTrackAndTranspose:
 					var tracksInfo = (MidiBardIpcSetTrackTranspose)msg.Data;
@@ -229,6 +249,8 @@ namespace MidiBard.Managers.Ipc
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
+			PluginLog.Information($"IPC handler end");
+			return Array.Empty<byte>();
 		}
 
 		public void Dispose()

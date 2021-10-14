@@ -28,7 +28,7 @@
   <ItemGroup>
     <Reference Include="Dalamud">
       <HintPath>$(AppData)\XIVLauncher\addon\Hooks\dev\Dalamud.dll</HintPath>
-      <Private>False</Private>
+      <Private>false</Private>
     </Reference>
     <Reference Include="FFXIVClientStructs">
       <HintPath>$(AppData)\XIVLauncher\addon\Hooks\dev\FFXIVClientStructs.dll</HintPath>
@@ -48,7 +48,7 @@
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>$(AppData)\XIVLauncher\addon\Hooks\dev\Newtonsoft.Json.dll</HintPath>
-      <Private>false</Private>
+      <!--<Private>false</Private>-->
     </Reference>
     <Reference Include="playlib">
       <HintPath>..\lib\playlib.dll</HintPath>

@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Reflection;
 using Dalamud;
 using Dalamud.Interface;
+using Dalamud.Interface.Colors;
 using Dalamud.Logging;
 using Dalamud.Memory;
 using Dalamud.Utility;
@@ -26,7 +27,7 @@ namespace MidiBard
 {
 	public partial class PluginUI
 	{
-		private static unsafe void DrawDebugWindow()
+		private unsafe void DrawDebugWindow()
 		{
 			if (Begin("MIDIBARD DEBUG"))
 			{
@@ -35,6 +36,7 @@ namespace MidiBard
 				Checkbox("Offsets", ref MidiBard.config.DebugOffsets);
 				Checkbox("KeyStroke", ref MidiBard.config.DebugKeyStroke);
 				Checkbox("Misc", ref MidiBard.config.DebugMisc);
+				Checkbox("EnsembleConductor", ref MidiBard.config.DebugEnsemble);
 			}
 			End();
 
@@ -136,7 +138,7 @@ namespace MidiBard
 					Separator();
 					TextUnformatted($"currentPlaying: {PlaylistManager.CurrentPlaying}");
 					TextUnformatted($"currentSelected: {PlaylistManager.CurrentSelected}");
-					TextUnformatted($"FilelistCount: {PlaylistManager.Filelist.Count}");
+					TextUnformatted($"FilelistCount: {PlaylistManager.FilePathList.Count}");
 					TextUnformatted($"currentUILanguage: {api.PluginInterface.UiLanguage}");
 
 
@@ -620,43 +622,42 @@ namespace MidiBard
 				ImGui.End();
 #endif
 
-				if (MidiBard.config.DebugMisc && Begin(nameof(MidiBard) + "Misc2"))
+				if (MidiBard.config.DebugMisc && Begin(nameof(MidiBard) + "Rpc"))
 				{
-					var ipc = RPCManager.Instance;
+					if (Button("SetupBroadcastingRPCBuffers"))
+					{
+						RPCManager.Instance.SetupBroadcastingRPCBuffers();
+					}
+					if (Button("DisposeBroadcastingRPCBuffers"))
+					{
+						RPCManager.Instance.DisposeBroadcastingRPCBuffers();
+					}
 
+					if (Button("SetInstrument 1"))
+					{
+						RPCManager.Instance.RPCBroadCast(IpcOpCode.SetInstrument, new MidiBardIpcSetInstrument() { InstrumentId = 1 });
+					}
+					if (Button("SetInstrument 0"))
+					{
+						RPCManager.Instance.RPCBroadCast(IpcOpCode.SetInstrument, new MidiBardIpcSetInstrument() { InstrumentId = 0 });
+					}
+
+					if (Button("Reload playlist"))
+					{
+						RPCManager.Instance.RPCBroadCast(IpcOpCode.PlayListReload,
+							new MidiBardIpcPlaylist() { Paths = PlaylistManager.FilePathList.Select(i => i.path).ToArray() });
+					}
+
+					TextUnformatted($"BroadcastingRPCBuffers:");
+					foreach (var (cid, rpcMaster) in RPCManager.Instance.BroadcastingRPCBuffers)
+					{
+						TextUnformatted($"{cid:X} {rpcMaster}");
+					}
 				}
 
-				if (Button("Create RPC manger instance"))
+				if (MidiBard.config.DebugEnsemble)
 				{
-				}
-				if (Button("SetupBroadcastingRPCBuffers"))
-				{
-					RPCManager.Instance.SetupBroadcastingRPCBuffers();
-				}
-				if (Button("DisposeBroadcastingRPCBuffers"))
-				{
-					RPCManager.Instance.DisposeBroadcastingRPCBuffers();
-				}
-
-				if (Button("SetInstrument 1"))
-				{
-					RPCManager.Instance.RPCBroadCast(IpcOpCode.SetInstrument, new MidiBardIpcSetInstrument() { InstrumentId = 1 });
-				}
-				if (Button("SetInstrument 0"))
-				{
-					RPCManager.Instance.RPCBroadCast(IpcOpCode.SetInstrument, new MidiBardIpcSetInstrument() { InstrumentId = 0 });
-				}
-
-				if (Button("Reload playlist"))
-				{
-					RPCManager.Instance.RPCBroadCast(IpcOpCode.ReloadPlayList,
-						new MidiBardIpcReloadPlaylist() { Paths = PlaylistManager.Filelist.Select(i => i.path).ToArray() });
-				}
-
-				TextUnformatted($"BroadcastingRPCBuffers:");
-				foreach (var (cid, rpcMaster) in RPCManager.Instance.BroadcastingRPCBuffers)
-				{
-					TextUnformatted($"{cid:X} {rpcMaster}");
+					EnsemblePartyList();
 				}
 
 				//if (setup)
@@ -686,12 +687,12 @@ namespace MidiBard
 				//	};
 				//}
 
-				End();
 
 				//DrawFontIconView();
 			}
 			finally
 			{
+				End();
 				PopStyleVar();
 			}
 		}

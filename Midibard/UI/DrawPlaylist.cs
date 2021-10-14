@@ -3,6 +3,7 @@ using System.Numerics;
 using Dalamud.Interface;
 using ImGuiNET;
 using MidiBard.Control.MidiControl;
+using MidiBard.Managers.Ipc;
 using static MidiBard.ImGuiUtil;
 
 namespace MidiBard
@@ -18,22 +19,22 @@ namespace MidiBard
 			if (ImGui.BeginChild("child",
 				new Vector2(x: -1,
 					y: ImGui.GetTextLineHeightWithSpacing() *
-					   Math.Min(val1: 10, val2: PlaylistManager.Filelist.Count))))
+					   Math.Min(val1: 10, val2: PlaylistManager.FilePathList.Count))))
 			{
 				if (ImGui.BeginTable(str_id: "##PlaylistTable", column: 3,
 					flags: ImGuiTableFlags.RowBg | ImGuiTableFlags.PadOuterX |
-					       ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.BordersInnerV))
+						   ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.BordersInnerV))
 				{
 					ImGui.TableSetupColumn("\ue035", ImGuiTableColumnFlags.WidthFixed);
 					ImGui.TableSetupColumn("##deleteColumn", ImGuiTableColumnFlags.WidthFixed);
 					ImGui.TableSetupColumn("filenameColumn", ImGuiTableColumnFlags.WidthStretch);
-					for (var i = 0; i < PlaylistManager.Filelist.Count; i++)
+					for (var i = 0; i < PlaylistManager.FilePathList.Count; i++)
 					{
 						if (MidiBard.config.enableSearching)
 						{
 							try
 							{
-								var item2 = PlaylistManager.Filelist[i].Item2;
+								var item2 = PlaylistManager.FilePathList[i].Item2;
 								if (!item2.ContainsIgnoreCase(searchstring))
 								{
 									continue;
@@ -74,7 +75,7 @@ namespace MidiBard
 		{
 			try
 			{
-				var item2 = PlaylistManager.Filelist[i].Item2;
+				var item2 = PlaylistManager.FilePathList[i].Item2;
 				ImGui.TextUnformatted(item2);
 
 				if (ImGui.IsItemHovered())
@@ -114,6 +115,7 @@ namespace MidiBard
 			if (ImGui.Button($"{((FontAwesomeIcon)0xF2ED).ToIconString()}##{i}",
 				new Vector2(ImGui.GetTextLineHeight(), ImGui.GetTextLineHeight())))
 			{
+				RPCManager.Instance.RPCBroadCast(IpcOpCode.PlayListRemoveIndex, new MidiBardIpcPlaylistRemoveIndex() { SongIndex = i });
 				PlaylistManager.Remove(i);
 			}
 
@@ -131,6 +133,7 @@ namespace MidiBard
 				ImGui.EndTooltip();
 				if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
 				{
+					RPCManager.Instance.RPCBroadCast(IpcOpCode.PlayListClear, new MidiBardIpcPlaylist());
 					PlaylistManager.Clear();
 				}
 			}

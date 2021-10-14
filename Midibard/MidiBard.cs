@@ -81,14 +81,14 @@ namespace MidiBard
 			AgentMetronome = new AgentMetronome(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.MetronomeAgent));
 			AgentPerformance = new AgentPerformance(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.PerformanceAgent));
 			_ = EnsembleManager.Instance;
-			_ = RPCManager.Instance;
 
 #if DEBUG
+			_ = RPCManager.Instance;
 			_ = NetworkManager.Instance;
 			_ = Testhooks.Instance;
 #endif
 
-			Task.Run(() => PlaylistManager.Reload(config.Playlist.ToArray()));
+			Task.Run(() => PlaylistManager.Add(config.Playlist.ToArray(), true));
 
 			CurrentOutputDevice = new BardPlayDevice();
 			InputDeviceManager.ScanMidiDeviceThread.Start();
@@ -98,9 +98,7 @@ namespace MidiBard
 			Framework.Update += Tick;
 			PluginInterface.UiBuilder.OpenConfigUi += () => Ui.Toggle();
 
-			if (PluginInterface.IsDev) Ui.Open();
-
-
+			//if (PluginInterface.IsDev) Ui.Open();
 		}
 
 		private void Tick(Dalamud.Game.Framework framework)
@@ -241,9 +239,9 @@ namespace MidiBard
 		{
 #if DEBUG
 			Testhooks.Instance?.Dispose();
-#endif
 			RPCManager.Instance.Dispose();
 			PartyWatcher.Instance.Dispose();
+#endif
 			InputDeviceManager.ShouldScanMidiDeviceThread = false;
 			Framework.Update -= Tick;
 			PluginInterface.UiBuilder.Draw -= Ui.Draw;

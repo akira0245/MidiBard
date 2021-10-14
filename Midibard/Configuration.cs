@@ -35,6 +35,7 @@ namespace MidiBard
 		public bool DebugOffsets;
 		public bool DebugKeyStroke;
 		public bool DebugMisc;
+		public bool DebugEnsemble;
 
 		public List<string> Playlist = new List<string>();
 
@@ -84,7 +85,11 @@ namespace MidiBard
 
 		// Add any other properties or methods here.
 
-		public void Initialize() { }
+		///////////////////////////////////////////////////////////////////////////////
+
+		public bool SyncPlaylist = false;
+		public bool SyncSongSelection = false;
+		public bool SyncMuteUnMute = false;
 
 		public void Save()
 		{

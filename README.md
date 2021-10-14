@@ -19,6 +19,7 @@ MidiBard是基于[卫月框架](https://bbs.tggfl.com/topic/32/dalamud-%E5%8D%AB
 [![2NWbuT.png](https://z3.ax1x.com/2021/06/05/2NWbuT.png)](https://imgtu.com/i/2NWbuT)
 
 [![2NhtTe.png](https://z3.ax1x.com/2021/06/05/2NhtTe.png)](https://imgtu.com/i/2NhtTe)
+
 # 安装方法
 > MidiBard需要[卫月框架](https://bbs.tggfl.com/topic/32/dalamud-%E5%8D%AB%E6%9C%88%E6%A1%86%E6%9E%B6)，如未安装请参考[原帖](https://bbs.tggfl.com/topic/32/dalamud-%E5%8D%AB%E6%9C%88%E6%A1%86%E6%9E%B6)安装后继续。
 
@@ -29,6 +30,11 @@ MidiBard是基于[卫月框架](https://bbs.tggfl.com/topic/32/dalamud-%E5%8D%AB
 
 成功添加后在`/xlplugins`中搜索MidiBard并安装即可。
 
+# How to install
+You need to add my custom plugin repository to install MidiBard.  
+`https://raw.githubusercontent.com/akira0245/DalamudPlugins/api4/pluginmaster.json`  
+Click the link below for more detailed instructions.  
+https://github.com/akira0245/DalamudPlugins
 
 # 使用FAQ
 * **如何开始使用MIDIBARD演奏？**  

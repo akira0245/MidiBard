@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Dalamud.Interface;
 using ImGuiNET;
+using MidiBard.Managers.Ipc;
 
 namespace MidiBard
 {

@@ -16,7 +16,7 @@ namespace MidiBard.Control.MidiControl
 			{
 				Task.Run(async () =>
 				{
-					if (!PlaylistManager.Filelist.Any()) PluginLog.Information("empty playlist");
+					if (!PlaylistManager.FilePathList.Any()) PluginLog.Information("empty playlist");
 					try
 					{
 						await FilePlayback.LoadPlayback(PlaylistManager.CurrentPlaying, true);
@@ -110,7 +110,7 @@ namespace MidiBard.Control.MidiControl
 								break;
 							case PlayMode.ListRepeat:
 								var next = PlaylistManager.CurrentPlaying + 1;
-								next %= PlaylistManager.Filelist.Count;
+								next %= PlaylistManager.FilePathList.Count;
 								await FilePlayback.LoadPlayback(next);
 								break;
 							case PlayMode.Random:
@@ -118,7 +118,7 @@ namespace MidiBard.Control.MidiControl
 								int nextTrack;
 								do
 								{
-									nextTrack = r.Next(0, PlaylistManager.Filelist.Count);
+									nextTrack = r.Next(0, PlaylistManager.FilePathList.Count);
 								} while (nextTrack == PlaylistManager.CurrentPlaying);
 
 								await FilePlayback.LoadPlayback(nextTrack);
@@ -171,7 +171,7 @@ namespace MidiBard.Control.MidiControl
 								case PlayMode.Random:
 								case PlayMode.ListRepeat:
 									var next = PlaylistManager.CurrentPlaying - 1;
-									if (next < 0) next = PlaylistManager.Filelist.Count - 1;
+									if (next < 0) next = PlaylistManager.FilePathList.Count - 1;
 									await FilePlayback.LoadPlayback(next);
 									break;
 							}
@@ -204,7 +204,7 @@ namespace MidiBard.Control.MidiControl
 
 		public static void SwitchSong(int number, bool startPlaying = false)
 		{
-			if (number < 0 || number >= PlaylistManager.Filelist.Count)
+			if (number < 0 || number >= PlaylistManager.FilePathList.Count)
 			{
 				return;
 			}

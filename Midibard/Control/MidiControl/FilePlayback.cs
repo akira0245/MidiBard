@@ -11,6 +11,7 @@ using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.Standards;
 using MidiBard.Control.CharacterControl;
 using MidiBard.Control.MidiControl.PlaybackInstance;
+using MidiBard.Managers.Ipc;
 using static MidiBard.MidiBard;
 
 namespace MidiBard.Control.MidiControl
@@ -47,11 +48,11 @@ namespace MidiBard.Control.MidiControl
 						return (i, new TrackInfo
 						{
 							TrackNameEventsText = i.Events.OfType<SequenceTrackNameEvent>()
-								.Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct(),
+								.Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct().ToArray(),
 							TextEventsText = i.Events.OfType<TextEvent>()
-								.Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct(),
+								.Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct().ToArray(),
 							ProgramChangeEvent = i.Events.OfType<ProgramChangeEvent>().Select(j =>
-								$"channel {j.Channel}, {(GeneralMidiProgram)(byte)j.ProgramNumber}").Distinct(),
+								$"channel {j.Channel}, {(GeneralMidiProgram)(byte)j.ProgramNumber}").Distinct().ToArray(),
 							HighestNote = notesHighest,
 							LowestNote = notesLowest,
 							NoteCount = notesCount,
@@ -87,11 +88,11 @@ namespace MidiBard.Control.MidiControl
 						return (trackChunk, new TrackInfo
 						{
 							TrackNameEventsText = i.Events.OfType<SequenceTrackNameEvent>()
-								.Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct(),
+								.Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct().ToArray(),
 							TextEventsText = i.Events.OfType<TextEvent>()
-								.Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct(),
+								.Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct().ToArray(),
 							ProgramChangeEvent = i.Events.OfType<ProgramChangeEvent>()
-								.Select(j => $"{j.Channel} {(GeneralMidiProgram)(byte)j.ProgramNumber}").Distinct(),
+								.Select(j => $"{j.Channel} {(GeneralMidiProgram)(byte)j.ProgramNumber}").Distinct().ToArray(),
 							HighestNote = notesHighest,
 							LowestNote = notesLowest,
 							NoteCount = notesCount
@@ -142,7 +143,7 @@ namespace MidiBard.Control.MidiControl
 				{
 					if (MidiBard.AgentMetronome.EnsembleModeRunning)
 						return;
-					if (!PlaylistManager.Filelist.Any())
+					if (!PlaylistManager.FilePathList.Any())
 						return;
 
 					PerformWaiting(config.secondsBetweenTracks);
@@ -163,7 +164,7 @@ namespace MidiBard.Control.MidiControl
 							break;
 
 						case PlayMode.ListOrdered:
-							if (PlaylistManager.CurrentPlaying + 1 < PlaylistManager.Filelist.Count)
+							if (PlaylistManager.CurrentPlaying + 1 < PlaylistManager.FilePathList.Count)
 							{
 								if (await LoadPlayback(PlaylistManager.CurrentPlaying + 1, true))
 								{
@@ -173,7 +174,7 @@ namespace MidiBard.Control.MidiControl
 							break;
 
 						case PlayMode.ListRepeat:
-							if (PlaylistManager.CurrentPlaying + 1 < PlaylistManager.Filelist.Count)
+							if (PlaylistManager.CurrentPlaying + 1 < PlaylistManager.FilePathList.Count)
 							{
 								if (await LoadPlayback(PlaylistManager.CurrentPlaying + 1, true))
 								{
@@ -190,7 +191,7 @@ namespace MidiBard.Control.MidiControl
 
 						case PlayMode.Random:
 
-							if (PlaylistManager.Filelist.Count == 1)
+							if (PlaylistManager.FilePathList.Count == 1)
 							{
 								CurrentPlayback.MoveToStart();
 								break;
@@ -202,7 +203,7 @@ namespace MidiBard.Control.MidiControl
 								int nexttrack;
 								do
 								{
-									nexttrack = r.Next(0, PlaylistManager.Filelist.Count);
+									nexttrack = r.Next(0, PlaylistManager.FilePathList.Count);
 								} while (nexttrack == PlaylistManager.CurrentPlaying);
 
 								if (await LoadPlayback(nexttrack, true))
@@ -229,6 +230,8 @@ namespace MidiBard.Control.MidiControl
 
 		internal static async Task<bool> LoadPlayback(int index, bool startPlaying = false, bool switchInstrument = true)
 		{
+			RPCManager.Instance.RPCBroadCast(IpcOpCode.SetSong, new MidiBardIpcSetSong() { SongIndex = index });
+
 			var wasPlaying = IsPlaying;
 			CurrentPlayback?.Dispose();
 			CurrentPlayback = null;
@@ -236,19 +239,19 @@ namespace MidiBard.Control.MidiControl
 			if (midiFile == null)
 			{
 				// delete file if can't be loaded(likely to be deleted locally)
-				PluginLog.Debug($"[LoadPlayback] removing {PlaylistManager.Filelist[index].path}");
-				PlaylistManager.Filelist.RemoveAt(index);
+				PluginLog.Debug($"[LoadPlayback] removing {PlaylistManager.FilePathList[index].path}");
+				PlaylistManager.FilePathList.RemoveAt(index);
 				return false;
 			}
 			else
 			{
-				CurrentPlayback = await Task.Run(() => GetFilePlayback(midiFile, PlaylistManager.Filelist[index].songName));
+				CurrentPlayback = await Task.Run(() => GetFilePlayback(midiFile, PlaylistManager.FilePathList[index].songName));
 				PlaylistManager.CurrentPlaying = index;
 				if (switchInstrument)
 				{
 					try
 					{
-						var songName = PlaylistManager.Filelist[index].songName;
+						var songName = PlaylistManager.FilePathList[index].songName;
 						await SwitchInstrument.WaitSwitchInstrumentForSong(songName);
 					}
 					catch (Exception e)

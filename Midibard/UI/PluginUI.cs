@@ -49,6 +49,10 @@ namespace MidiBard
 
 		public unsafe void Draw()
 		{
+#if DEBUG
+			//if (ImGui.Button("Debug info", new Vector2(-2, ImGui.GetFrameHeight()))) MidiBard.Debug ^= true;
+			if (MidiBard.Debug) DrawDebugWindow();
+#endif
 			if (!IsVisible)
 				return;
 
@@ -129,7 +133,7 @@ namespace MidiBard
 							TextBoxSearch();
 						}
 
-						if (!PlaylistManager.Filelist.Any())
+						if (!PlaylistManager.FilePathList.Any())
 						{
 							if (ImGui.Button("Import midi files to start performing!".Localize(), new Vector2(-1, ImGui.GetFrameHeight())))
 							{
@@ -178,13 +182,6 @@ namespace MidiBard
 						ImGui.Separator();
 						DrawPanelGeneralSettings();
 					}
-
-#if DEBUG
-					if (ImGui.Button("Debug info", new Vector2(-2, ImGui.GetFrameHeight()))) MidiBard.Debug ^= true;
-					if (MidiBard.Debug) DrawDebugWindow();
-#endif
-
-					//DrawKeyboardModeSwitchingGuide();
 				}
 			}
 			finally

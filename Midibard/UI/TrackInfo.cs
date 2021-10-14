@@ -10,10 +10,10 @@ namespace MidiBard
 {
 	public class TrackInfo
 	{
-		public IEnumerable<string> TrackNameEventsText;
-		public IEnumerable<string> TextEventsText;
-		public IEnumerable<string> ProgramChangeEvent;
-		public IEnumerable<ChannelInfo> ChannelInfos;
+		public string[] TrackNameEventsText;
+		public string[] TextEventsText;
+		public string[] ProgramChangeEvent;
+		public ChannelInfo[] ChannelInfos;
 		public int NoteCount;
 		public Note LowestNote;
 		public Note HighestNote;
