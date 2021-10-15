@@ -20,10 +20,11 @@
     <None Remove="lib\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="DalamudPackager" Version="2.1.2" />
+    <PackageReference Include="DalamudPackager" Version="2.1.4" />
     <PackageReference Include="ILRepack" Version="2.0.18" />
     <PackageReference Include="Melanchall.DryWetMidi" Version="5.2.1" />
     <PackageReference Include="SharedMemory" Version="2.2.3" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="5.0.0" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Dalamud">

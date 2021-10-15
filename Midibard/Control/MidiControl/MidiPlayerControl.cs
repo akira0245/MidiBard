@@ -12,42 +12,38 @@ namespace MidiBard.Control.MidiControl
 	{
 		internal static void Play()
 		{
-			if (CurrentPlayback == null)
+			if (CurrentPlayback != null)
 			{
-				Task.Run(async () =>
+				try
 				{
-					if (!PlaylistManager.FilePathList.Any()) PluginLog.Information("empty playlist");
-					try
+					if (CurrentPlayback.GetCurrentTime<MidiTimeSpan>() == CurrentPlayback.GetDuration<MidiTimeSpan>())
 					{
-						await FilePlayback.LoadPlayback(PlaylistManager.CurrentPlaying, true);
+						CurrentPlayback.MoveToStart();
 					}
-					catch (Exception e)
-					{
-						try
-						{
-							await FilePlayback.LoadPlayback(0, true);
-						}
-						catch (Exception exception)
-						{
-							PluginLog.Error(exception, "error when getting playback.");
-						}
-					}
-				});
-			}
 
-			try
-			{
-				if (CurrentPlayback?.GetCurrentTime<MidiTimeSpan>() == CurrentPlayback?.GetDuration<MidiTimeSpan>())
+					CurrentPlayback.Start();
+				}
+				catch (Exception e)
 				{
-					CurrentPlayback?.MoveToStart();
+					PluginLog.Error(e, "error when try to start playing, maybe the playback has been disposed?");
+				}
+			}
+			else
+			{
+				if (!PlaylistManager.FilePathList.Any())
+				{
+					PluginLog.Information("empty playlist");
+					return;
 				}
 
-				CurrentPlayback?.Start();
-			}
-			catch (Exception e)
-			{
-				PluginLog.Error(e,
-					"error when try to start playing, maybe the playback has been disposed?");
+				if (PlaylistManager.CurrentPlaying < 0)
+				{
+					SwitchSong(0, true);
+				}
+				else
+				{
+					SwitchSong(PlaylistManager.CurrentPlaying, true);
+				}
 			}
 		}
 
@@ -85,6 +81,7 @@ namespace MidiBard.Control.MidiControl
 			}
 			finally
 			{
+				CurrentPlayback?.Dispose();
 				CurrentPlayback = null;
 			}
 		}
@@ -95,49 +92,34 @@ namespace MidiBard.Control.MidiControl
 			{
 				try
 				{
-					Task.Run(async () =>
-					{
-						var wasplaying = IsPlaying;
-						CurrentPlayback?.Dispose();
-						CurrentPlayback = null;
+					var playing = IsPlaying;
+					CurrentPlayback?.Dispose();
+					CurrentPlayback = null;
+					int next = PlaylistManager.CurrentPlaying;
 
-						switch ((PlayMode)config.PlayMode)
-						{
-							case PlayMode.Single:
-							case PlayMode.ListOrdered:
-							case PlayMode.SingleRepeat:
-								await FilePlayback.LoadPlayback(PlaylistManager.CurrentPlaying + 1);
-								break;
-							case PlayMode.ListRepeat:
-								var next = PlaylistManager.CurrentPlaying + 1;
-								next %= PlaylistManager.FilePathList.Count;
-								await FilePlayback.LoadPlayback(next);
-								break;
-							case PlayMode.Random:
+					switch ((PlayMode)config.PlayMode)
+					{
+						case PlayMode.Single:
+						case PlayMode.SingleRepeat:
+						case PlayMode.ListOrdered:
+							next += 1;
+							break;
+						case PlayMode.ListRepeat:
+							next = (next + 1) % PlaylistManager.FilePathList.Count;
+							break;
+						case PlayMode.Random:
+							if (PlaylistManager.FilePathList.Count > 1)
+							{
 								var r = new Random();
-								int nextTrack;
 								do
 								{
-									nextTrack = r.Next(0, PlaylistManager.FilePathList.Count);
-								} while (nextTrack == PlaylistManager.CurrentPlaying);
-
-								await FilePlayback.LoadPlayback(nextTrack);
-								break;
-						}
-
-						if (wasplaying)
-						{
-							try
-							{
-								// ReSharper disable once PossibleNullReferenceException
-								CurrentPlayback?.Start();
+									next = r.Next(0, PlaylistManager.FilePathList.Count);
+								} while (next == PlaylistManager.CurrentPlaying);
 							}
-							catch (Exception e)
-							{
-								PluginLog.Error(e, "error when try playing next song.");
-							}
-						}
-					});
+							break;
+					}
+
+					SwitchSong(next, playing);
 				}
 				catch (Exception e)
 				{
@@ -155,46 +137,49 @@ namespace MidiBard.Control.MidiControl
 		{
 			if (CurrentPlayback != null)
 			{
-				Task.Run(async () =>
+				try
+				{
+					var playing = IsPlaying;
+					CurrentPlayback?.Dispose();
+					CurrentPlayback = null;
+					int prev = PlaylistManager.CurrentPlaying;
+
+					switch ((PlayMode)config.PlayMode)
 					{
-						try
-						{
-							var wasplaying = IsPlaying;
-
-							switch ((PlayMode)config.PlayMode)
+						case PlayMode.Single:
+						case PlayMode.SingleRepeat:
+						case PlayMode.ListOrdered:
+							prev -= 1;
+							break;
+						case PlayMode.ListRepeat:
+							if (PlaylistManager.CurrentPlaying == 0)
 							{
-								case PlayMode.Single:
-								case PlayMode.ListOrdered:
-								case PlayMode.SingleRepeat:
-									await FilePlayback.LoadPlayback(PlaylistManager.CurrentPlaying - 1);
-									break;
-								case PlayMode.Random:
-								case PlayMode.ListRepeat:
-									var next = PlaylistManager.CurrentPlaying - 1;
-									if (next < 0) next = PlaylistManager.FilePathList.Count - 1;
-									await FilePlayback.LoadPlayback(next);
-									break;
+								prev = PlaylistManager.FilePathList.Count - 1;
 							}
-
-							if (wasplaying)
+							else
 							{
-								try
-								{
-									CurrentPlayback.Start();
-								}
-								catch (Exception e)
-								{
-									PluginLog.Error(e, "error when try playing next song.");
-								}
+								prev -= 1;
 							}
-						}
-						catch (Exception e)
-						{
-							CurrentPlayback = null;
-							PlaylistManager.CurrentPlaying = -1;
-						}
-					});
+							break;
+						case PlayMode.Random:
+							if (PlaylistManager.FilePathList.Count > 1)
+							{
+								var r = new Random();
+								do
+								{
+									prev = r.Next(0, PlaylistManager.FilePathList.Count);
+								} while (prev == PlaylistManager.CurrentPlaying);
+							}
+							break;
+					}
 
+					SwitchSong(prev, playing);
+				}
+				catch (Exception e)
+				{
+					CurrentPlayback = null;
+					PlaylistManager.CurrentPlaying = -1;
+				}
 			}
 			else
 			{
@@ -202,25 +187,19 @@ namespace MidiBard.Control.MidiControl
 			}
 		}
 
-		public static void SwitchSong(int number, bool startPlaying = false)
+		public static void SwitchSong(int index, bool startPlaying = false)
 		{
-			if (number < 0 || number >= PlaylistManager.FilePathList.Count)
+			if (index < 0 || index >= PlaylistManager.FilePathList.Count)
 			{
+				PluginLog.Error($"SwitchSong: invalid playlist index {index}");
 				return;
 			}
 
-			PlaylistManager.CurrentPlaying = number;
-			try
+			PlaylistManager.CurrentPlaying = index;
+			Task.Run(async () =>
 			{
-				Task.Run(async () =>
-				{
-					await FilePlayback.LoadPlayback(PlaylistManager.CurrentPlaying, startPlaying);
-				});
-			}
-			catch (Exception e)
-			{
-				PluginLog.Debug(e, "error when switching song");
-			}
+				await FilePlayback.LoadPlayback(PlaylistManager.CurrentPlaying, startPlaying);
+			});
 		}
 	}
 }

@@ -60,8 +60,8 @@ namespace MidiBard.Managers
 							{
 								0 => 104,
 								1 => 85,
-								3 => 104,
 								2 or 4 => 90,
+								3 => 104,
 								>= 5 and <= 8 => 95,
 								9 or 10 => 90,
 								11 or 12 => 80,
@@ -71,8 +71,7 @@ namespace MidiBard.Managers
 
 							try
 							{
-								var midiClock = new MidiClock(true, new HighPrecisionTickGenerator(), TimeSpan.FromMilliseconds(compensation));
-								midiClock.Restart();
+								var midiClock = new MidiClock(false, new HighPrecisionTickGenerator(), TimeSpan.FromMilliseconds(compensation));
 								PluginLog.Warning($"setup midiclock compensation: {compensation}");
 								midiClock.Ticked += OnMidiClockOnTicked;
 
@@ -97,7 +96,7 @@ namespace MidiBard.Managers
 								Task.Delay(1000).ContinueWith(_ =>
 								{
 									midiClock.Dispose();
-									PluginLog.Warning($"midi clock disposed.");
+									PluginLog.Information($"midi clock disposed.");
 								});
 							}
 							catch (Exception e)

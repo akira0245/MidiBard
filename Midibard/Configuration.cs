@@ -75,6 +75,7 @@ namespace MidiBard
 		public bool lazyNoteRelease = true;
 		public string lastUsedMidiDeviceName = "";
 		public bool autoRestoreListening = false;
+
 		//public bool autoStartNewListening = false;
 
 		//public int testLength = 40;
@@ -87,6 +88,7 @@ namespace MidiBard
 
 		///////////////////////////////////////////////////////////////////////////////
 
+		public List<EnsembleTrack> EnsembleTracks = new List<EnsembleTrack>();
 		public bool SyncPlaylist = false;
 		public bool SyncSongSelection = false;
 		public bool SyncMuteUnMute = false;

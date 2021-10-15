@@ -8,17 +8,15 @@ namespace MidiBard.Managers
 {
 	public class PartyWatcher : IDisposable
 	{
-		public static bool Instantiated = false;
-		private PartyWatcher()
+		public PartyWatcher()
 		{
 			OldMemberCIDs = GetMemberCIDs;
 			api.Framework.Update += Framework_Update;
-			Instantiated = true;
 		}
 
 		private long[] OldMemberCIDs { get; set; }
 
-		public long[] GetMemberCIDs => api.PartyList
+		public static long[] GetMemberCIDs => api.PartyList
 			.Where(i => i.World.Id > 0 && i.Territory.Id > 0)
 			.Select(i => i.ContentId)
 			.ToArray();
@@ -58,14 +56,11 @@ namespace MidiBard.Managers
 		public event Action<long> PartyMemberJoin;
 		public event Action<long> PartyMemberLeave;
 
-		public static PartyWatcher Instance { get; } = new PartyWatcher();
-
 		public void Dispose()
 		{
 			PartyMemberJoin = delegate { };
 			PartyMemberLeave = delegate { };
 			api.Framework.Update -= Framework_Update;
-			Instantiated = false;
 		}
 	}
 }

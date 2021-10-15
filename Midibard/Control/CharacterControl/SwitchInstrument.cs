@@ -31,7 +31,11 @@ namespace MidiBard.Control.CharacterControl
 
 		public static async Task SwitchTo(uint instrumentId, int timeOut = 3000)
 		{
-			if (!MidiBard.config.bmpTrackNames)
+			if (MidiBard.config.bmpTrackNames)
+			{
+				UpdateGuitarToneByConfig();
+			}
+			else
 			{
 				if (MidiBard.guitarGroup.Contains(MidiBard.CurrentInstrument))
 				{
@@ -41,10 +45,6 @@ namespace MidiBard.Control.CharacterControl
 						return;
 					}
 				}
-			}
-			else
-			{
-				UpdateGuitarToneByConfig();
 			}
 
 			if (MidiBard.CurrentInstrument == instrumentId)

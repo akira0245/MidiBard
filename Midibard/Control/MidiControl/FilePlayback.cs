@@ -230,7 +230,7 @@ namespace MidiBard.Control.MidiControl
 
 		internal static async Task<bool> LoadPlayback(int index, bool startPlaying = false, bool switchInstrument = true)
 		{
-			RPCManager.Instance.RPCBroadCast(IpcOpCode.SetSong, new MidiBardIpcSetSong() { SongIndex = index });
+			RPCManager.Instance.RPCBroadcast(IpcOpCode.SetSong, new MidiBardIpcSetSong() { SongIndex = index });
 
 			var wasPlaying = IsPlaying;
 			CurrentPlayback?.Dispose();

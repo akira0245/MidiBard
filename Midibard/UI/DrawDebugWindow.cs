@@ -624,35 +624,36 @@ namespace MidiBard
 
 				if (MidiBard.config.DebugMisc && Begin(nameof(MidiBard) + "Rpc"))
 				{
-					if (Button("SetupBroadcastingRPCBuffers"))
-					{
-						RPCManager.Instance.SetupBroadcastingRPCBuffers();
-					}
-					if (Button("DisposeBroadcastingRPCBuffers"))
-					{
-						RPCManager.Instance.DisposeBroadcastingRPCBuffers();
-					}
+					//if (Button("SetupBroadcastingRPCBuffers"))
+					//{
+					//	RPCManager.Instance.SetupBroadcastingRPCBuffers();
+					//}
+					//if (Button("DisposeBroadcastingRPCBuffers"))
+					//{
+					//	RPCManager.Instance.DisposeBroadcastingRPCBuffers();
+					//}
 
 					if (Button("SetInstrument 1"))
 					{
-						RPCManager.Instance.RPCBroadCast(IpcOpCode.SetInstrument, new MidiBardIpcSetInstrument() { InstrumentId = 1 });
+						RPCManager.Instance.RPCBroadcast(IpcOpCode.SetInstrument, new MidiBardIpcSetInstrument() { InstrumentId = 1 });
 					}
 					if (Button("SetInstrument 0"))
 					{
-						RPCManager.Instance.RPCBroadCast(IpcOpCode.SetInstrument, new MidiBardIpcSetInstrument() { InstrumentId = 0 });
+						RPCManager.Instance.RPCBroadcast(IpcOpCode.SetInstrument, new MidiBardIpcSetInstrument() { InstrumentId = 0 });
 					}
 
 					if (Button("Reload playlist"))
 					{
-						RPCManager.Instance.RPCBroadCast(IpcOpCode.PlayListReload,
+						RPCManager.Instance.RPCBroadcast(IpcOpCode.PlayListReload,
 							new MidiBardIpcPlaylist() { Paths = PlaylistManager.FilePathList.Select(i => i.path).ToArray() });
 					}
 
-					TextUnformatted($"BroadcastingRPCBuffers:");
-					foreach (var (cid, rpcMaster) in RPCManager.Instance.BroadcastingRPCBuffers)
+					TextUnformatted($"RpcSource:");
+					foreach (var (cid, rpcSource) in RPCManager.Instance.RPCSources)
 					{
-						TextUnformatted($"{cid:X} {rpcMaster}");
+						TextUnformatted($"{cid:X} bytes: {rpcSource.Statistics.BytesWritten} sent: {rpcSource.Statistics.MessagesSent} recv: {rpcSource.Statistics.ResponsesReceived} error: {rpcSource.Statistics.ErrorsReceived}");
 					}
+					TextUnformatted($"RpcClient:\n\t{RPCManager.Instance.RpcClient}");
 				}
 
 				if (MidiBard.config.DebugEnsemble)

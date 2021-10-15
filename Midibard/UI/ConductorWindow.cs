@@ -1,6 +1,14 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
+using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
+using System.Text;
 using Dalamud.Game.ClientState.Party;
+using Dalamud.Logging;
 using ImGuiNET;
 using MidiBard.DalamudApi;
 using MidiBard.Managers;
@@ -14,7 +22,6 @@ namespace MidiBard
 {
 	public partial class PluginUI
 	{
-		public static PartyMember GetPartyMemberFromCID(long cid) => api.PartyList.FirstOrDefault(i => i.ContentId == cid);
 		void EnsemblePartyList()
 		{
 			void NewFunction(long[] cidArray)
@@ -22,7 +29,7 @@ namespace MidiBard
 				for (var i = 0; i < cidArray.Length; i++)
 				{
 					var cid = cidArray[i];
-					TextUnformatted($"[{i}] {cid:X} {GetPartyMemberFromCID(cid)?.ClassJob.GameData.Abbreviation} {GetPartyMemberFromCID(cid)?.Name}");
+					TextUnformatted($"[{i}] {cid:X} {cid.GetPartyMemberFromCID()?.ClassJob.GameData.Abbreviation} {cid.GetPartyMemberFromCID()?.Name}");
 				}
 				Separator();
 			}
@@ -31,19 +38,31 @@ namespace MidiBard
 			{
 				if (Begin("EnsemblePartyList"))
 				{
-					Checkbox(nameof(config.SyncPlaylist),ref config.SyncPlaylist);
-					Checkbox(nameof(config.SyncSongSelection),ref config.SyncSongSelection);
+					Checkbox(nameof(config.SyncPlaylist), ref config.SyncPlaylist);
+					Checkbox(nameof(config.SyncSongSelection), ref config.SyncSongSelection);
 					//Checkbox(nameof(config.SyncPlaylist),ref config.SyncPlaylist);
-					var party = PartyWatcher.Instance.GetMemberCIDs;
-					var connected = RPCManager.Instance.BroadcastingRPCBuffers.Select(i => i.CID).ToArray();
-					var Intersect = Enumerable.Intersect(party, connected).ToArray();
+					//var connected = RPCManager.Instance.BroadcastingRPCBuffers.Select(i => i.CID).ToArray();
+					//var Intersect = Enumerable.Intersect(party, connected).ToArray();
 
+					
 					TextUnformatted($"party:");
-					NewFunction(party);
-					TextUnformatted($"connected:");
-					NewFunction(connected);
-					TextUnformatted($"party ∩ connected:");
-					NewFunction(Intersect);
+					if (BeginTable("Team", 10))
+					{
+						for (int i = 0; i < 1; i++)
+						{
+
+						}
+						EndTable();
+
+					}
+
+
+
+					//NewFunction(party);
+					//TextUnformatted($"connected:");
+					//NewFunction(connected);
+					//TextUnformatted($"party ∩ connected:");
+					//NewFunction(Intersect);
 
 					//foreach (var CID in union)
 					//{
@@ -70,5 +89,35 @@ namespace MidiBard
 				End();
 			}
 		}
+	}
+
+	public class EnsembleTrack
+	{
+		public static EnsembleTrack CreatedFromTrackInfo(TrackInfo trackInfo)
+		{
+			var trackAssignment = new EnsembleTrack
+			{
+				enabled = true,
+				instrument = trackInfo.InstrumentIDFromTrackName,
+				transpose = trackInfo.TransposeFromTrackName,
+				tone = trackInfo.GuitarToneFromTrackName,
+			};
+			try
+			{
+				trackAssignment.playerIds = new[] { RPCManager.Instance.RPCSources[trackInfo.Index].CID };
+			}
+			catch (Exception e)
+			{
+				PluginLog.Debug(e.Message, $"no party member index of {trackInfo.Index}");
+			}
+
+			return trackAssignment;
+		}
+
+		public bool enabled;
+		public long[] playerIds = new long[] { };
+		public uint? instrument;
+		public uint? tone;
+		public int transpose;
 	}
 }

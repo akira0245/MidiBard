@@ -23,6 +23,7 @@ namespace MidiBard
 		public bool IsEnabled => MidiBard.config.EnabledTracks[Index];
 		public int TransposeFromTrackName => GetTransposeByName(TrackName);
 		public uint? InstrumentIDFromTrackName => GetInstrumentIDByName(TrackName);
+		public uint? GuitarToneFromTrackName => GetInstrumentIDByName(TrackName) - MidiBard.guitarGroup[0];
 
 		public override string ToString()
 		{

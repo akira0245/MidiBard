@@ -115,7 +115,7 @@ namespace MidiBard
 			if (ImGui.Button($"{((FontAwesomeIcon)0xF2ED).ToIconString()}##{i}",
 				new Vector2(ImGui.GetTextLineHeight(), ImGui.GetTextLineHeight())))
 			{
-				RPCManager.Instance.RPCBroadCast(IpcOpCode.PlayListRemoveIndex, new MidiBardIpcPlaylistRemoveIndex() { SongIndex = i });
+				RPCManager.Instance.RPCBroadcast(IpcOpCode.PlayListRemoveIndex, new MidiBardIpcPlaylistRemoveIndex() { SongIndex = i });
 				PlaylistManager.Remove(i);
 			}
 
@@ -133,7 +133,7 @@ namespace MidiBard
 				ImGui.EndTooltip();
 				if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
 				{
-					RPCManager.Instance.RPCBroadCast(IpcOpCode.PlayListClear, new MidiBardIpcPlaylist());
+					RPCManager.Instance.RPCBroadcast(IpcOpCode.PlayListClear, new MidiBardIpcPlaylist());
 					PlaylistManager.Clear();
 				}
 			}

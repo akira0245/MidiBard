@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -27,6 +28,7 @@ namespace MidiBard
 			set
 			{
 				if (value < -1) value = -1;
+				if (value > PlaylistManager.FilePathList.Count) value = PlaylistManager.FilePathList.Count;
 				if (currentPlaying != value) PlayingIndexChanged?.Invoke(value);
 				currentPlaying = value;
 			}
@@ -84,10 +86,9 @@ namespace MidiBard
 			ExtraTrackChunkPolicy = ExtraTrackChunkPolicy.Read,
 			UnknownChunkIdPolicy = UnknownChunkIdPolicy.ReadAsUnknownChunk,
 			SilentNoteOnPolicy = SilentNoteOnPolicy.NoteOff,
-			TextEncoding = Encoding.Default,
+			TextEncoding = MidiBard.config.uiLang == 1 ? Encoding.GetEncoding("gb18030") : Encoding.Default,
 			InvalidSystemCommonEventParameterValuePolicy = InvalidSystemCommonEventParameterValuePolicy.SnapToLimits
 		};
-
 
 		//internal static void ReloadPlayListFromConfig(bool alsoReloadConfig = false)
 		//{
@@ -110,11 +111,11 @@ namespace MidiBard
 			{
 				FilePathList.Clear();
 				MidiBard.config.Playlist.Clear();
-				RPCManager.Instance.RPCBroadCast(IpcOpCode.PlayListReload, new MidiBardIpcPlaylist() { Paths = filePaths });
+				RPCManager.Instance.RPCBroadcast(IpcOpCode.PlayListReload, new MidiBardIpcPlaylist() { Paths = filePaths });
 			}
 			else
 			{
-				RPCManager.Instance.RPCBroadCast(IpcOpCode.PlayListAdd, new MidiBardIpcPlaylist() { Paths = filePaths });
+				RPCManager.Instance.RPCBroadcast(IpcOpCode.PlayListAdd, new MidiBardIpcPlaylist() { Paths = filePaths });
 			}
 
 			await foreach (var path in GetPathsAvailable(filePaths))

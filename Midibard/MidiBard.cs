@@ -71,6 +71,7 @@ namespace MidiBard
 		public unsafe MidiBard(DalamudPluginInterface pi)
 		{
 			DalamudApi.api.Initialize(this, pi);
+			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
 			LoadConfig();
 			Localizer = new Localizer((UILang)config.uiLang);
@@ -240,7 +241,6 @@ namespace MidiBard
 #if DEBUG
 			Testhooks.Instance?.Dispose();
 			RPCManager.Instance.Dispose();
-			PartyWatcher.Instance.Dispose();
 #endif
 			InputDeviceManager.ShouldScanMidiDeviceThread = false;
 			Framework.Update -= Tick;
