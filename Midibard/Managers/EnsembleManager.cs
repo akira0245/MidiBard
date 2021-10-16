@@ -72,6 +72,7 @@ namespace MidiBard.Managers
 							try
 							{
 								var midiClock = new MidiClock(false, new HighPrecisionTickGenerator(), TimeSpan.FromMilliseconds(compensation));
+								midiClock.Restart();
 								PluginLog.Warning($"setup midiclock compensation: {compensation}");
 								midiClock.Ticked += OnMidiClockOnTicked;
 

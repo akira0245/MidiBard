@@ -182,64 +182,31 @@ namespace MidiBard
 
 						try
 						{
-							//loaded.ProcessChords(chord =>
-							//{
-							//	try
-							//	{
-							//		PluginLog.Warning($"{chord} Time:{chord.Time} Length:{chord.Length} NotesCount:{chord.Notes.Count()}");
-							//		var i = 0;
-							//		foreach (var chordNote in chord.Notes.OrderBy(j => j.NoteNumber))
-							//		{
-							//			var starttime = chordNote.GetTimedNoteOnEvent().Time;
-							//			var offtime = chordNote.GetTimedNoteOffEvent().Time;
-
-							//			chordNote.Time += i;
-							//			if (chordNote.Length - i < 0)
-							//			{
-							//				chordNote.Length = 0;
-							//			}
-							//			else
-							//			{
-							//				chordNote.Length -= i;
-							//			}
-
-
-							//			i+=51;
-
-							//			PluginLog.Verbose($"[{i}]Note:{chordNote} start/processed:[{starttime}/{chordNote.GetTimedNoteOnEvent().Time}] off/processed:[{offtime}/{chordNote.GetTimedNoteOffEvent().Time}]");
-							//		}
-							//	}
-							//	catch (Exception e)
-							//	{
-							//		try
-							//		{
-							//			PluginLog.Verbose($"{chord.Channel} {chord} {chord.Time} {e}");
-							//		}
-							//		catch (Exception exception)
-							//		{
-							//			PluginLog.Verbose($"error when processing a chord: {exception}");
-							//		}
-							//	}
-							//}, chord => chord.Notes.Count() > 1);
-
-							PluginLog.Error(" \n \n \n \n \n \n \n ");
-							PluginLog.Error(" \n \n \n \n \n \n \n ");
-							PluginLog.Error(" \n \n \n \n \n \n \n ");
-
 							loaded.ProcessChords(chord =>
 							{
 								try
 								{
-									PluginLog.Warning($"{chord} Time:{chord.Time} Length:{chord.Length} NotesCount:{chord.Notes.Count()}");
+									//PluginLog.Warning($"{chord} Time:{chord.Time} Length:{chord.Length} NotesCount:{chord.Notes.Count()}");
 									var i = 0;
 									foreach (var chordNote in chord.Notes.OrderBy(j => j.NoteNumber))
 									{
 										var starttime = chordNote.GetTimedNoteOnEvent().Time;
 										var offtime = chordNote.GetTimedNoteOffEvent().Time;
 
-										i+=1;
+										chordNote.Time += i;
+										if (chordNote.Length - i < 0)
+										{
+											chordNote.Length = 0;
+										}
+										else
+										{
+											chordNote.Length -= i;
+										}
 
-										PluginLog.Verbose($"[{i}]Note:{chordNote} start/processed:[{starttime}/{chordNote.GetTimedNoteOnEvent().Time}] off/processed:[{offtime}/{chordNote.GetTimedNoteOffEvent().Time}]");
+
+										i += 1;
+
+										//PluginLog.Verbose($"[{i}]Note:{chordNote} start/processed:[{starttime}/{chordNote.GetTimedNoteOnEvent().Time}] off/processed:[{offtime}/{chordNote.GetTimedNoteOffEvent().Time}]");
 									}
 								}
 								catch (Exception e)
@@ -254,6 +221,10 @@ namespace MidiBard
 									}
 								}
 							}, chord => chord.Notes.Count() > 1);
+
+							//PluginLog.Error(" \n \n \n \n \n \n \n ");
+							//PluginLog.Error(" \n \n \n \n \n \n \n ");
+							//PluginLog.Error(" \n \n \n \n \n \n \n ");
 						}
 						catch (Exception e)
 						{
