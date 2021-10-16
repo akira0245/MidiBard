@@ -13,6 +13,7 @@ using Dalamud.Plugin;
 using Melanchall.DryWetMidi.Common;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
+using Melanchall.DryWetMidi.Tools;
 using MidiBard.DalamudApi;
 using MidiBard.Managers.Ipc;
 
@@ -111,11 +112,14 @@ namespace MidiBard
 			{
 				FilePathList.Clear();
 				MidiBard.config.Playlist.Clear();
+#if DEBUG
 				RPCManager.Instance.RPCBroadcast(IpcOpCode.PlayListReload, new MidiBardIpcPlaylist() { Paths = filePaths });
 			}
 			else
 			{
 				RPCManager.Instance.RPCBroadcast(IpcOpCode.PlayListAdd, new MidiBardIpcPlaylist() { Paths = filePaths });
+#endif
+
 			}
 
 			await foreach (var path in GetPathsAvailable(filePaths))
@@ -178,31 +182,64 @@ namespace MidiBard
 
 						try
 						{
+							//loaded.ProcessChords(chord =>
+							//{
+							//	try
+							//	{
+							//		PluginLog.Warning($"{chord} Time:{chord.Time} Length:{chord.Length} NotesCount:{chord.Notes.Count()}");
+							//		var i = 0;
+							//		foreach (var chordNote in chord.Notes.OrderBy(j => j.NoteNumber))
+							//		{
+							//			var starttime = chordNote.GetTimedNoteOnEvent().Time;
+							//			var offtime = chordNote.GetTimedNoteOffEvent().Time;
+
+							//			chordNote.Time += i;
+							//			if (chordNote.Length - i < 0)
+							//			{
+							//				chordNote.Length = 0;
+							//			}
+							//			else
+							//			{
+							//				chordNote.Length -= i;
+							//			}
+
+
+							//			i+=51;
+
+							//			PluginLog.Verbose($"[{i}]Note:{chordNote} start/processed:[{starttime}/{chordNote.GetTimedNoteOnEvent().Time}] off/processed:[{offtime}/{chordNote.GetTimedNoteOffEvent().Time}]");
+							//		}
+							//	}
+							//	catch (Exception e)
+							//	{
+							//		try
+							//		{
+							//			PluginLog.Verbose($"{chord.Channel} {chord} {chord.Time} {e}");
+							//		}
+							//		catch (Exception exception)
+							//		{
+							//			PluginLog.Verbose($"error when processing a chord: {exception}");
+							//		}
+							//	}
+							//}, chord => chord.Notes.Count() > 1);
+
+							PluginLog.Error(" \n \n \n \n \n \n \n ");
+							PluginLog.Error(" \n \n \n \n \n \n \n ");
+							PluginLog.Error(" \n \n \n \n \n \n \n ");
+
 							loaded.ProcessChords(chord =>
 							{
 								try
 								{
-									//PluginLog.Verbose($"{chord} {chord.Time} {chord.Length} {chord.Notes.Count()}");
+									PluginLog.Warning($"{chord} Time:{chord.Time} Length:{chord.Length} NotesCount:{chord.Notes.Count()}");
 									var i = 0;
 									foreach (var chordNote in chord.Notes.OrderBy(j => j.NoteNumber))
 									{
-										//var starttime = chordNote.GetTimedNoteOnEvent().Time;
-										//var offtime = chordNote.GetTimedNoteOffEvent().Time;
+										var starttime = chordNote.GetTimedNoteOnEvent().Time;
+										var offtime = chordNote.GetTimedNoteOffEvent().Time;
 
-										chordNote.Time += i;
-										if (chordNote.Length - i < 0)
-										{
-											chordNote.Length = 0;
-										}
-										else
-										{
-											chordNote.Length -= i;
-										}
+										i+=1;
 
-
-										i++;
-
-										//PluginLog.Verbose($"[{i}]{chordNote} [{starttime}/{chordNote.GetTimedNoteOnEvent().Time} {offtime}/{chordNote.GetTimedNoteOffEvent().Time}]");
+										PluginLog.Verbose($"[{i}]Note:{chordNote} start/processed:[{starttime}/{chordNote.GetTimedNoteOnEvent().Time}] off/processed:[{offtime}/{chordNote.GetTimedNoteOffEvent().Time}]");
 									}
 								}
 								catch (Exception e)

@@ -114,11 +114,16 @@ namespace MidiBard.Control.MidiControl
 					.Select(e => new TimedEventWithTrackChunkIndex(e.Event, e.Time, index)))
 				.OrderBy(e => e.Time);
 
-			var playback = new BardPlayback(timedEvents, CurrentTMap, new MidiClockSettings())
+			var playback = new BardPlayback(timedEvents, CurrentTMap, new MidiClockSettings { CreateTickGeneratorCallback = () => new HighPrecisionTickGenerator() })
 			{
 				InterruptNotesOnStop = true,
 				Speed = config.playSpeed,
-				TrackNotes = true
+				TrackProgram = true,
+				NoteCallback = (data, time, length, playbackTime) =>
+				{
+					PluginLog.Verbose($"[NOTE] {new Note(data.NoteNumber)} time:{time} len:{length} time:{playbackTime}");
+					return data;
+				}
 			};
 
 			playback.Finished += Playback_Finished;
@@ -230,8 +235,9 @@ namespace MidiBard.Control.MidiControl
 
 		internal static async Task<bool> LoadPlayback(int index, bool startPlaying = false, bool switchInstrument = true)
 		{
+#if DEBUG
 			RPCManager.Instance.RPCBroadcast(IpcOpCode.SetSong, new MidiBardIpcSetSong() { SongIndex = index });
-
+#endif
 			var wasPlaying = IsPlaying;
 			CurrentPlayback?.Dispose();
 			CurrentPlayback = null;

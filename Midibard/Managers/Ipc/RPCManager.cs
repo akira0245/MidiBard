@@ -4,8 +4,10 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+#if DEBUG
 using System.Text;
 using System.Threading.Tasks;
+using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Party;
 using Dalamud.Interface.Internal.Notifications;
@@ -16,6 +18,7 @@ using Melanchall.DryWetMidi.Core;
 using Microsoft.VisualBasic.Logging;
 using MidiBard.Control;
 using MidiBard.Control.CharacterControl;
+using MidiBard.Control.MidiControl;
 using MidiBard.DalamudApi;
 using MidiBard.Util;
 using Newtonsoft.Json;
@@ -48,7 +51,7 @@ namespace MidiBard.Managers.Ipc
 			api.Framework.Update += RefreshRPCBufferInstance;
 		}
 
-		private void RefreshRPCBufferInstance(Dalamud.Game.Framework framework)
+		private void RefreshRPCBufferInstance(Framework framework)
 		{
 			//if (id == 0) return;
 
@@ -190,7 +193,7 @@ namespace MidiBard.Managers.Ipc
 
 
 				case IpcOpCode.SetSong when MidiBard.config.SyncSongSelection:
-					Control.MidiControl.MidiPlayerControl.SwitchSong(((MidiBardIpcSetSong)msg.Data).SongIndex);
+					MidiPlayerControl.SwitchSong(((MidiBardIpcSetSong)msg.Data).SongIndex);
 					break;
 				case IpcOpCode.SetInstrument:
 					SwitchInstrument.SwitchToContinue(((MidiBardIpcSetInstrument)msg.Data).InstrumentId);
@@ -270,3 +273,4 @@ namespace MidiBard.Managers.Ipc
 
 	}
 }
+#endif

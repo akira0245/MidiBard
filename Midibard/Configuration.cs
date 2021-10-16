@@ -88,7 +88,7 @@ namespace MidiBard
 
 		///////////////////////////////////////////////////////////////////////////////
 
-		public List<EnsembleTrack> EnsembleTracks = new List<EnsembleTrack>();
+		//public List<EnsembleTrack> EnsembleTracks = new List<EnsembleTrack>();
 		public bool SyncPlaylist = false;
 		public bool SyncSongSelection = false;
 		public bool SyncMuteUnMute = false;

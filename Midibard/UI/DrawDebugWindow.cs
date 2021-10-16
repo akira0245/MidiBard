@@ -1,9 +1,11 @@
 ﻿#if DEBUG
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Dalamud;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
@@ -15,6 +17,7 @@ using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Common.Configuration;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
+using ImPlotNET;
 using Lumina.Excel.GeneratedSheets;
 using Melanchall.DryWetMidi.Devices;
 using MidiBard.DalamudApi;
@@ -27,6 +30,7 @@ namespace MidiBard
 {
 	public partial class PluginUI
 	{
+		private bool midifileplot;
 		private unsafe void DrawDebugWindow()
 		{
 			if (Begin("MIDIBARD DEBUG"))
@@ -37,6 +41,7 @@ namespace MidiBard
 				Checkbox("KeyStroke", ref MidiBard.config.DebugKeyStroke);
 				Checkbox("Misc", ref MidiBard.config.DebugMisc);
 				Checkbox("EnsembleConductor", ref MidiBard.config.DebugEnsemble);
+				Checkbox("Midifile Plot", ref midifileplot);
 			}
 			End();
 
@@ -690,6 +695,16 @@ namespace MidiBard
 
 
 				//DrawFontIconView();
+
+				if (midifileplot)
+				{
+					if (Begin("midifilePlot", ref midifileplot))
+						midifileplotm();
+					End();
+				}
+
+
+
 			}
 			finally
 			{
@@ -697,6 +712,71 @@ namespace MidiBard
 				PopStyleVar();
 			}
 		}
+
+		private unsafe void midifileplotm()
+		{
+			//ImGui.DragScalar("height", ImGuiDataType.Double, (IntPtr)height, 0.05f);
+			//ImGui.DragScalar("shift", ImGuiDataType.Double, (IntPtr)shift, 0.05f);
+			ImGui.DragInt("offset", ref offset, 0.1f);
+			//ImGui.DragInt("stride", ref stride, 0.1f);
+			if (Button("refresh plot") || valuex == null || valuey == null)
+			{
+				Random r = new Random();
+				valuex = Enumerable.Range(0, 1000).Select(i => (float)i).ToArray();
+				valuex2 = valuex.Select(i => i - 50).ToArray();
+				valuey = Enumerable.Repeat(0, 1000).Select(i => (float)r.Next(0, 100)).ToArray();
+				valuey2 = valuey.Select(i => i - 50).ToArray();
+
+				ImPlot.SetImGuiContext(ImGui.GetCurrentContext());
+				var _context = ImPlot.CreateContext();
+				ImPlot.SetCurrentContext(_context);
+				return;
+			}
+			//const ImPlotAxisFlags axes_flags = ImPlotAxisFlags.Lock | ImPlotAxisFlags.NoGridLines | ImPlotAxisFlags.NoTickMarks;
+
+			//ImPlot.SetNextPlotTicksX(0 + 1.0 / 14.0, 1 - 1.0 / 14.0, 10, xlabels);
+			//ImPlot.SetNextPlotTicksY(1 - 1.0 / 14.0, 0 + 1.0 / 14.0, 10, ylabels);
+
+			if (ImPlot.BeginPlot("values", null, null, ImGui.GetWindowSize()- new Vector2(20,ImGui.GetCursorPos().Y+10)))
+			{
+				//ImPlot.PlotHeatmap("heatmap", ref values[0], 40, 25, 0, 10);
+
+				//ImPlot.PlotShaded("shaded", ref valuex[0],ref valuey[0], ref valuey2[0], 500);
+				//ImPlot.PlotBarsH("bars", ref valuex[0], 100, *height, *shift,offset,stride);
+				//ImPlot.PlotDigital("digital", ref valuey[0], ref valuey[0], 100);
+				//ImPlot.PlotBarsH("", ref valuex[0], ref valuex2[0] ,valuex.Length,1  );
+				ImPlot.PlotScatter("scatter", ref valuex[0], ref valuey[0], 100);
+				var drawList = ImPlot.GetPlotDrawList();
+
+
+				ImPlot.EndPlot();
+			}
+
+			//if (ImPlot.BeginPlot("plot"))
+			//{
+			//	ImPlot.PlotBars("bars",ref values[0], 100);
+
+			//	ImPlot.EndPlot();
+			//}
+
+		}
+
+		static unsafe T* Alloc<T>() where T : unmanaged
+		{
+			var allocHGlobal = (T*)Marshal.AllocHGlobal(sizeof(T));
+			*allocHGlobal = new T();
+			return allocHGlobal;
+		}
+
+		private unsafe int offset;
+		private unsafe int stride;
+		private unsafe double* height = Alloc<double>();
+		private unsafe double* shift = Alloc<double>();
+		private List<float[]> notes = null;
+		private float[] valuex = null;
+		private float[] valuex2 = null;
+		private float[] valuey = null;
+		private float[] valuey2 = null;
 
 		private static bool setup = true;
 

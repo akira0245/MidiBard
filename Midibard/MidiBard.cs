@@ -238,32 +238,37 @@ namespace MidiBard
 
 		void FreeUnmanagedResources()
 		{
+			try
+			{
 #if DEBUG
 			Testhooks.Instance?.Dispose();
 			RPCManager.Instance.Dispose();
 #endif
-			InputDeviceManager.ShouldScanMidiDeviceThread = false;
-			Framework.Update -= Tick;
-			PluginInterface.UiBuilder.Draw -= Ui.Draw;
+				InputDeviceManager.ShouldScanMidiDeviceThread = false;
+				Framework.Update -= Tick;
+				PluginInterface.UiBuilder.Draw -= Ui.Draw;
 
-			EnsembleManager.Instance.Dispose();
+				EnsembleManager.Instance.Dispose();
 #if DEBUG
 			NetworkManager.Instance.Dispose();
 #endif
-			InputDeviceManager.DisposeCurrentInputDevice();
-			try
-			{
-				CurrentPlayback?.Stop();
-				CurrentPlayback?.Dispose();
-				CurrentPlayback = null;
+				InputDeviceManager.DisposeCurrentInputDevice();
+				try
+				{
+					CurrentPlayback?.Stop();
+					CurrentPlayback?.Dispose();
+					CurrentPlayback = null;
+				}
+				catch (Exception e)
+				{
+					PluginLog.Error($"{e}");
+				}
+				DalamudApi.api.Dispose();
 			}
-			catch (Exception e)
+			catch (Exception e2)
 			{
-				PluginLog.Error($"{e}");
+				PluginLog.Error(e2, "error when disposing midibard");
 			}
-
-
-			DalamudApi.api.Dispose();
 		}
 
 		public void Dispose()

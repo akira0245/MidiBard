@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0-windows</TargetFramework>
     <LangVersion>9.0</LangVersion>
-    <AssemblyVersion>1.8.1.0</AssemblyVersion>
+    <AssemblyVersion>1.8.1.1</AssemblyVersion>
     <UseWindowsForms>true</UseWindowsForms>
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
   </PropertyGroup>
@@ -24,8 +24,8 @@
     <PackageReference Include="ILRepack" Version="2.0.18" />
     <PackageReference Include="Melanchall.DryWetMidi" Version="5.2.1" />
     <PackageReference Include="SharedMemory" Version="2.2.3" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="5.0.0" />
   </ItemGroup>
+
   <ItemGroup>
     <Reference Include="Dalamud">
       <HintPath>$(AppData)\XIVLauncher\addon\Hooks\dev\Dalamud.dll</HintPath>
@@ -54,16 +54,19 @@
     <Reference Include="playlib">
       <HintPath>..\lib\playlib.dll</HintPath>
     </Reference>
+    <Reference Include="playlib">
+      <HintPath>..\lib\System.Text.Encoding.CodePages.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
   </ItemGroup>
 
   <PropertyGroup>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <Target Name="CleanOutDir" AfterTargets="Build">
     <ItemGroup>
-      <!--<DeleteAssemblies Include="$(TargetDir)*.pdb" />-->
+      <DeleteAssemblies Include="$(TargetDir)*.pdb" />
       <DeleteAssemblies Include="$(TargetDir)$(AssemblyName).deps.json" />
     </ItemGroup>
     <Message Text="Deleting @(DeleteAssemblies)" Importance="high" />
