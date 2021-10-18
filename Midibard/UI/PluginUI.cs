@@ -63,6 +63,7 @@ namespace MidiBard
 				{
 					ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
 					ImGui.SetNextWindowBgAlpha(0);
+					ImGui.SetNextWindowSize(ImGuiHelpers.ScaledVector2(640,480), ImGuiCond.FirstUseEver);
 					if (ImGui.Begin("Midi tracks##MIDIBARD", ref MidiBard.config.PlotTracks, MidiBard.config.LockPlot?ImGuiWindowFlags.NoDecoration|ImGuiWindowFlags.NoMouseInputs|ImGuiWindowFlags.NoFocusOnAppearing:0))
 						MidiPlotWindow();
 					ImGui.End();

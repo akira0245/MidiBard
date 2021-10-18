@@ -48,7 +48,6 @@ namespace MidiBard
 				Checkbox("KeyStroke", ref MidiBard.config.DebugKeyStroke);
 				Checkbox("Misc", ref MidiBard.config.DebugMisc);
 				Checkbox("EnsembleConductor", ref MidiBard.config.DebugEnsemble);
-				Checkbox("Midifile Plot", ref PlotTracks);
 			}
 			End();
 
