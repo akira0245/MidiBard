@@ -56,8 +56,9 @@ namespace MidiBard.Control.MidiControl
 							HighestNote = notesHighest,
 							LowestNote = notesLowest,
 							NoteCount = notesCount,
-							Duration = i.GetTimedEvents().LastOrDefault(e => e.Event is NoteOffEvent)
-								?.TimeAs<MetricTimeSpan>(CurrentTMap) ?? new MetricTimeSpan()
+							DurationMetric = i.GetTimedEvents().LastOrDefault(e => e.Event is NoteOffEvent)
+								?.TimeAs<MetricTimeSpan>(CurrentTMap) ?? new MetricTimeSpan(),
+							DurationMidi = i.GetTimedEvents().LastOrDefault(e => e.Event is NoteOffEvent)?.Time ?? 0
 						});
 					}).ToList();
 			}
@@ -252,6 +253,7 @@ namespace MidiBard.Control.MidiControl
 			else
 			{
 				CurrentPlayback = await Task.Run(() => GetFilePlayback(midiFile, PlaylistManager.FilePathList[index].songName));
+				Ui.RefeshPlotData();
 				PlaylistManager.CurrentPlaying = index;
 				if (switchInstrument)
 				{

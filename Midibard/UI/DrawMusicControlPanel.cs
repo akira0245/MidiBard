@@ -10,7 +10,7 @@ namespace MidiBard
 {
 	public partial class PluginUI
 	{
-		private static void DrawPanelMusicControl()
+		private void DrawPanelMusicControl()
 		{
 			ComboBoxSwitchInstrument();
 
@@ -32,7 +32,7 @@ namespace MidiBard
 
 
 			//ImGui.SetNextItemWidth(ImGui.GetWindowWidth() * 0.5f - ImGui.CalcTextSize("Delay".Localize()).X);
-			ImGui.PushItemWidth(ImGui.GetWindowContentRegionWidth() / 3.5f);
+			ImGui.PushItemWidth(ImGui.GetWindowContentRegionWidth() / 3.36f);
 			ImGui.DragFloat("Delay".Localize(), ref MidiBard.config.secondsBetweenTracks, 0.01f, 0, 60,
 				$"{MidiBard.config.secondsBetweenTracks:f2} s",
 				ImGuiSliderFlags.AlwaysClamp | ImGuiSliderFlags.NoRoundToFormat);
@@ -58,9 +58,15 @@ namespace MidiBard
 			ToolTip("Transpose per track, right click to reset all tracks' transpose offset back to zero.".Localize());
 			//ImGui.SameLine();
 
-
 			//ImGui.SliderFloat("secbetweensongs", ref config.timeBetweenSongs, 0, 10,
 			//	$"{config.timeBetweenSongs:F2} [{500000 * config.timeBetweenSongs:F0}]", ImGuiSliderFlags.AlwaysClamp);
+
+			ImGui.Checkbox("Tracks visualization".Localize(), ref MidiBard.config.PlotTracks);
+			//ImGuiUtil.ToolTip("Draw currently playing midi tracks.".Localize());
+			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
+			
+			ImGui.Checkbox("Follow playback".Localize(), ref MidiBard.config.LockPlot);
+			ImGuiUtil.ToolTip("Lock tracks window and auto following current playback progress".Localize());
 		}
 
 		private static void SetSpeed()

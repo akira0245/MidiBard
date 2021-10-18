@@ -56,10 +56,13 @@ namespace MidiBard
 			//ImGui.Checkbox("Auto listening new device".Localize(), ref MidiBard.config.autoStartNewListening);
 			//ImGuiUtil.ToolTip("Auto start listening new midi input device when idle.".Localize());
 
+			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
+			ImGui.SetNextItemWidth(ImGui.GetWindowContentRegionWidth() / 3.36f);
 			if (ImGui.Combo("UI Language".Localize(), ref MidiBard.config.uiLang, uilangStrings, 2))
-			{
 				MidiBard.Localizer = new Localizer((UILang)MidiBard.config.uiLang);
-			}
+
+
+	
 
 
 			ImGui.Checkbox("Auto open MidiBard".Localize(), ref MidiBard.config.AutoOpenPlayerWhenPerforming);

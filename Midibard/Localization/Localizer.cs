@@ -114,7 +114,10 @@ namespace MidiBard
 			zh.Add("Try restart listening last used midi device on plugin start.", "在插件启动时尝试监听最后使用过的MIDI输入设备。");
 			zh.Add("Auto start listening new midi input device when idle.", "尝试自动对新连接的MIDI设备开始监听。");
 			zh.Add("Assign different guitar tones for each midi tracks", "为每个音轨指定不同的电吉他音色。");
-
+			zh.Add("Tracks visualization", "音轨可视化");
+			zh.Add("Follow playback", "跟随播放进度");
+			zh.Add("Lock tracks window and auto following current playback progress", "锁定音轨窗口并自动跟随当前播放进度");
+			
 		}
 	}
 }

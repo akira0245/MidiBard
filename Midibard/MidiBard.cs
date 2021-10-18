@@ -106,7 +106,7 @@ namespace MidiBard
 		{
 			PerformanceEvents.Instance.InPerformanceMode = AgentPerformance.InPerformanceMode;
 
-			if (Ui.IsOpened)
+			if (Ui.MainWindowOpened)
 			{
 				if (configSaverTick++ == 3600)
 				{

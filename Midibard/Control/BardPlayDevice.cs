@@ -41,7 +41,7 @@ namespace MidiBard.Control
 			var trackIndex = (int?)metadata;
 			if (trackIndex != null)
 			{
-				if (MidiBard.config.SoloedTrack is int soloing)
+				if (MidiBard.config.SoloedTrack is {  } soloing)
 				{
 					if (trackIndex != soloing)
 					{
@@ -78,7 +78,7 @@ namespace MidiBard.Control
 					{
 						//PluginLog.Verbose($"[NoteOnEvent] [{trackIndex}:{noteOnEvent.Channel}] {noteOnEvent.NoteNumber,-3}");
 
-						var noteNum = GetTranlatedNoteNum(noteOnEvent.NoteNumber, trackIndex, out int octave);
+						var noteNum = GetTranslatedNoteNum(noteOnEvent.NoteNumber, trackIndex, out int octave);
 						var s = $"[N][DOWN][{trackIndex}:{noteOnEvent.Channel}] {GetNoteName(noteOnEvent)} ({noteNum})";
 
 						if (noteNum is < 0 or > 36)
@@ -116,7 +116,7 @@ namespace MidiBard.Control
 					}
 				case NoteOffEvent noteOffEvent:
 					{
-						var noteNum = GetTranlatedNoteNum(noteOffEvent.NoteNumber, trackIndex, out _);
+						var noteNum = GetTranslatedNoteNum(noteOffEvent.NoteNumber, trackIndex, out _);
 						if (noteNum is < 0 or > 36) return false;
 
 						if (MidiBard.AgentPerformance.Struct->PressingNoteNumber - 39 != noteNum)
@@ -143,7 +143,7 @@ namespace MidiBard.Control
 
 		static string GetNoteName(NoteEvent note) => $"{note.GetNoteName().ToString().Replace("Sharp", "#")}{note.GetNoteOctave()}";
 
-		private static int GetTranlatedNoteNum(int noteNumber, int? trackIndex, out int octave)
+		public static int GetTranslatedNoteNum(int noteNumber, int? trackIndex, out int octave)
 		{
 			noteNumber = noteNumber - 48 +
 							MidiBard.config.TransposeGlobal +

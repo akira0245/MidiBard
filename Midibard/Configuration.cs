@@ -75,6 +75,7 @@ namespace MidiBard
 		public bool lazyNoteRelease = true;
 		public string lastUsedMidiDeviceName = "";
 		public bool autoRestoreListening = false;
+		public string lastOpenedFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic);
 
 		//public bool autoStartNewListening = false;
 
@@ -87,6 +88,12 @@ namespace MidiBard
 		// Add any other properties or methods here.
 
 		///////////////////////////////////////////////////////////////////////////////
+
+		public bool PlotTracks;
+		public bool LockPlot;
+
+		public float plotScale = 10f;
+		
 
 		//public List<EnsembleTrack> EnsembleTracks = new List<EnsembleTrack>();
 		public bool SyncPlaylist = false;

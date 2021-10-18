@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Dalamud.Interface;
+using Dalamud.Logging;
 using ImGuiNET;
 using MidiBard.Managers.Ipc;
 
@@ -61,23 +62,16 @@ namespace MidiBard
 			if (!_isImportRunning)
 			{
 				_isImportRunning = true;
-				var b = new Browse((result, filePath) =>
+				fileDialogManager.OpenFileDialog("Import midi files", ".mid", (b, strings) =>
 				{
-					if (result == DialogResult.OK)
+					PluginLog.Debug($"dialog result: {b}\n{string.Join("\n", strings)}");
+					if (b) Task.Run(async () =>
 					{
-						Task.Run(async () =>
-						{
-							await PlaylistManager.Add(filePath);
-							MidiBard.SaveConfig();
-						});
-					}
-
+						await PlaylistManager.Add(strings);
+						MidiBard.SaveConfig();
+					});
 					_isImportRunning = false;
 				});
-
-				var t = new Thread(b.BrowseDLL);
-				t.SetApartmentState(ApartmentState.STA);
-				t.Start();
 			}
 
 			//_isImportRunning = true;

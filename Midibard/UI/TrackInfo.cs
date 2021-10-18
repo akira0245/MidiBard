@@ -17,7 +17,8 @@ namespace MidiBard
 		public int NoteCount;
 		public Note LowestNote;
 		public Note HighestNote;
-		public ITimeSpan Duration;
+		public MetricTimeSpan DurationMetric;
+		public long DurationMidi;
 
 		public int Index;
 		public bool IsEnabled => MidiBard.config.EnabledTracks[Index];
@@ -32,7 +33,7 @@ namespace MidiBard
 
 		public string ToLongString()
 		{
-			return $"Track name:\n　{TrackName} \nNote count: \n　{NoteCount} notes \nRange:\n　{LowestNote}-{HighestNote} \n ProgramChange events: \n　{string.Join("\n　", ProgramChangeEvent.Distinct())} \nDuration: \n　{Duration}";
+			return $"Track name:\n　{TrackName} \nNote count: \n　{NoteCount} notes \nRange:\n　{LowestNote}-{HighestNote} \n ProgramChange events: \n　{string.Join("\n　", ProgramChangeEvent.Distinct())} \nDuration: \n　{DurationMetric}";
 		}
 
 		public string TrackName => TrackNameEventsText.FirstOrDefault() ?? "Untitled";

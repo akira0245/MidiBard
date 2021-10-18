@@ -2,13 +2,16 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Dalamud;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.ImGuiFileDialog;
 using Dalamud.Logging;
 using Dalamud.Memory;
 using Dalamud.Utility;
@@ -19,18 +22,22 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 using ImPlotNET;
 using Lumina.Excel.GeneratedSheets;
+using Melanchall.DryWetMidi.Common;
+using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Devices;
+using Melanchall.DryWetMidi.Interaction;
+using MidiBard.Control;
 using MidiBard.DalamudApi;
 using MidiBard.Managers;
 using MidiBard.Managers.Agents;
 using MidiBard.Managers.Ipc;
+using MidiBard.UI;
 using static ImGuiNET.ImGui;
 
 namespace MidiBard
 {
 	public partial class PluginUI
 	{
-		private bool midifileplot;
 		private unsafe void DrawDebugWindow()
 		{
 			if (Begin("MIDIBARD DEBUG"))
@@ -41,11 +48,11 @@ namespace MidiBard
 				Checkbox("KeyStroke", ref MidiBard.config.DebugKeyStroke);
 				Checkbox("Misc", ref MidiBard.config.DebugMisc);
 				Checkbox("EnsembleConductor", ref MidiBard.config.DebugEnsemble);
-				Checkbox("Midifile Plot", ref midifileplot);
+				Checkbox("Midifile Plot", ref PlotTracks);
 			}
 			End();
 
-			PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(2, 2));
+			//PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(2, 2));
 			try
 			{
 				if (MidiBard.config.DebugAgentInfo && Begin(nameof(MidiBard) + "AgentInfo"))
@@ -696,89 +703,32 @@ namespace MidiBard
 
 				//DrawFontIconView();
 
-				if (midifileplot)
-				{
-					if (Begin("midifilePlot", ref midifileplot))
-						midifileplotm();
-					End();
-				}
+
+				//if (Button("open"))
+				//{
+				//	fileDialogManager.OpenFileDialog("Import midi file", ".mid", (b, strings) =>
+				//	{
+				//		PluginLog.Information($"{b}\n{string.Join("\n", strings)}");
+				//		if (b) ImportMidiFiles(strings);
+				//	});
+				//}
+
+				//if (Button("close"))
+				//{
+				//	fileDialogManager.Reset();
+				//}
 
 
 
+				DrawFontIconView();
 			}
 			finally
 			{
 				End();
-				PopStyleVar();
+				//PopStyleVar();
 			}
 		}
 
-		private unsafe void midifileplotm()
-		{
-			//ImGui.DragScalar("height", ImGuiDataType.Double, (IntPtr)height, 0.05f);
-			//ImGui.DragScalar("shift", ImGuiDataType.Double, (IntPtr)shift, 0.05f);
-			ImGui.DragInt("offset", ref offset, 0.1f);
-			//ImGui.DragInt("stride", ref stride, 0.1f);
-			if (Button("refresh plot") || valuex == null || valuey == null)
-			{
-				Random r = new Random();
-				valuex = Enumerable.Range(0, 1000).Select(i => (float)i).ToArray();
-				valuex2 = valuex.Select(i => i - 50).ToArray();
-				valuey = Enumerable.Repeat(0, 1000).Select(i => (float)r.Next(0, 100)).ToArray();
-				valuey2 = valuey.Select(i => i - 50).ToArray();
-
-				ImPlot.SetImGuiContext(ImGui.GetCurrentContext());
-				var _context = ImPlot.CreateContext();
-				ImPlot.SetCurrentContext(_context);
-				return;
-			}
-			//const ImPlotAxisFlags axes_flags = ImPlotAxisFlags.Lock | ImPlotAxisFlags.NoGridLines | ImPlotAxisFlags.NoTickMarks;
-
-			//ImPlot.SetNextPlotTicksX(0 + 1.0 / 14.0, 1 - 1.0 / 14.0, 10, xlabels);
-			//ImPlot.SetNextPlotTicksY(1 - 1.0 / 14.0, 0 + 1.0 / 14.0, 10, ylabels);
-
-			if (ImPlot.BeginPlot("values", null, null, ImGui.GetWindowSize()- new Vector2(20,ImGui.GetCursorPos().Y+10)))
-			{
-				//ImPlot.PlotHeatmap("heatmap", ref values[0], 40, 25, 0, 10);
-
-				//ImPlot.PlotShaded("shaded", ref valuex[0],ref valuey[0], ref valuey2[0], 500);
-				//ImPlot.PlotBarsH("bars", ref valuex[0], 100, *height, *shift,offset,stride);
-				//ImPlot.PlotDigital("digital", ref valuey[0], ref valuey[0], 100);
-				//ImPlot.PlotBarsH("", ref valuex[0], ref valuex2[0] ,valuex.Length,1  );
-				ImPlot.PlotScatter("scatter", ref valuex[0], ref valuey[0], 100);
-				var drawList = ImPlot.GetPlotDrawList();
-
-
-				ImPlot.EndPlot();
-			}
-
-			//if (ImPlot.BeginPlot("plot"))
-			//{
-			//	ImPlot.PlotBars("bars",ref values[0], 100);
-
-			//	ImPlot.EndPlot();
-			//}
-
-		}
-
-		static unsafe T* Alloc<T>() where T : unmanaged
-		{
-			var allocHGlobal = (T*)Marshal.AllocHGlobal(sizeof(T));
-			*allocHGlobal = new T();
-			return allocHGlobal;
-		}
-
-		private unsafe int offset;
-		private unsafe int stride;
-		private unsafe double* height = Alloc<double>();
-		private unsafe double* shift = Alloc<double>();
-		private List<float[]> notes = null;
-		private float[] valuex = null;
-		private float[] valuex2 = null;
-		private float[] valuey = null;
-		private float[] valuey2 = null;
-
-		private static bool setup = true;
 
 		private static void DrawFontIconView()
 		{

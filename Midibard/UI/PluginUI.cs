@@ -14,21 +14,22 @@ using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Interaction;
 using MidiBard.DalamudApi;
 using MidiBard.Managers;
+using MidiBard.UI;
 using static MidiBard.MidiBard;
 using static MidiBard.ImGuiUtil;
 
 namespace MidiBard
 {
-
 	public partial class PluginUI
 	{
 		private readonly string[] uilangStrings = { "EN", "ZH" };
-		private bool IsVisible;
-		public bool IsOpened => IsVisible;
-
+		private bool TrackViewVisible;
+		private bool MainWindowVisible;
+		public bool MainWindowOpened => MainWindowVisible;
+		private MyFileDialogManager fileDialogManager = new MyFileDialogManager();
 		public void Toggle()
 		{
-			if (IsVisible)
+			if (MainWindowVisible)
 				Close();
 			else
 				Open();
@@ -36,12 +37,12 @@ namespace MidiBard
 
 		public void Open()
 		{
-			IsVisible = true;
+			MainWindowVisible = true;
 		}
 
 		public void Close()
 		{
-			IsVisible = false;
+			MainWindowVisible = false;
 		}
 
 
@@ -53,9 +54,27 @@ namespace MidiBard
 			//if (ImGui.Button("Debug info", new Vector2(-2, ImGui.GetFrameHeight()))) MidiBard.Debug ^= true;
 			if (MidiBard.Debug) DrawDebugWindow();
 #endif
-			if (!IsVisible)
-				return;
+			fileDialogManager.Draw();
+			if (MainWindowVisible)
+			{
+				DrawMainPluginWindow();
 
+				if (MidiBard.config.PlotTracks)
+				{
+					ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
+					ImGui.SetNextWindowBgAlpha(0);
+					if (ImGui.Begin("Midi tracks##MIDIBARD", ref MidiBard.config.PlotTracks, MidiBard.config.LockPlot?ImGuiWindowFlags.NoDecoration|ImGuiWindowFlags.NoMouseInputs|ImGuiWindowFlags.NoFocusOnAppearing:0))
+						MidiPlotWindow();
+					ImGui.End();
+					ImGui.PopStyleVar();
+				}
+			}
+			
+
+		}
+
+		private void DrawMainPluginWindow()
+		{
 			ImGui.SetNextWindowPos(new Vector2(100, 100), ImGuiCond.FirstUseEver);
 			//var scaledWidth = 357 * ImGui.GetIO().FontGlobalScale;
 			//ImGui.SetNextWindowSizeConstraints(new Vector2(scaledWidth, 0), new Vector2(scaledWidth, 10000));
@@ -74,11 +93,13 @@ namespace MidiBard
 				//	ensembleModeRunning ? " - Ensemble Running" : string.Empty,
 				//	isListeningForEvents ? " - Listening Events" : string.Empty);
 				var flag = config.miniPlayer ? ImGuiWindowFlags.NoDecoration : ImGuiWindowFlags.None;
-				ImGui.SetNextWindowSizeConstraints(new Vector2(ImGui.GetIO().FontGlobalScale * 357, 0), new Vector2(ImGui.GetIO().FontGlobalScale * 357, float.MaxValue));
+				ImGui.SetNextWindowSizeConstraints(new Vector2(ImGui.GetIO().FontGlobalScale * 357, 0),
+					new Vector2(ImGui.GetIO().FontGlobalScale * 357, float.MaxValue));
 #if DEBUG
-				if (ImGui.Begin($"MidiBard - {api.ClientState.LocalPlayer?.Name.TextValue} PID{Process.GetCurrentProcess().Id}###MIDIBARD", ref IsVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | flag))
+				if (ImGui.Begin($"MidiBard - {api.ClientState.LocalPlayer?.Name.TextValue} PID{Process.GetCurrentProcess().Id}###MIDIBARD",
+					ref MainWindowVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | flag))
 #else
-				if (ImGui.Begin("MidiBard###MIDIBARD", ref IsVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | flag))
+				if (ImGui.Begin("MidiBard###MIDIBARD", ref MainWindowVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | flag))
 #endif
 				{
 					if (ensembleModeRunning)
@@ -95,7 +116,8 @@ namespace MidiBard
 
 					if (listeningForEvents)
 					{
-						DrawColoredBanner(violet, "Listening input device: ".Localize() + InputDeviceManager.CurrentInputDevice.DeviceName());
+						DrawColoredBanner(violet,
+							"Listening input device: ".Localize() + InputDeviceManager.CurrentInputDevice.DeviceName());
 					}
 
 					if (!config.miniPlayer)
@@ -115,7 +137,9 @@ namespace MidiBard
 
 							if (MidiBard.Localizer.Language == UILang.CN)
 							{
-								ImGui.SameLine(ImGui.GetWindowContentRegionWidth() - ImGui.CalcTextSize(FontAwesomeIcon.QuestionCircle.ToIconString()).X - ImGui.GetStyle().FramePadding.X * 2 - ImGui.GetCursorPosX() - 2);
+								ImGui.SameLine(ImGui.GetWindowContentRegionWidth() -
+											   ImGui.CalcTextSize(FontAwesomeIcon.QuestionCircle.ToIconString()).X -
+											   ImGui.GetStyle().FramePadding.X * 2 - ImGui.GetCursorPosX() - 2);
 
 								if (IconButton(FontAwesomeIcon.QuestionCircle, "helpbutton"))
 								{
@@ -135,7 +159,8 @@ namespace MidiBard
 
 						if (!PlaylistManager.FilePathList.Any())
 						{
-							if (ImGui.Button("Import midi files to start performing!".Localize(), new Vector2(-1, ImGui.GetFrameHeight())))
+							if (ImGui.Button("Import midi files to start performing!".Localize(),
+								new Vector2(-1, ImGui.GetFrameHeight())))
 							{
 								RunImportTask();
 							}
@@ -157,8 +182,8 @@ namespace MidiBard
 					ImGui.Spacing();
 
 					ImGui.PushFont(UiBuilder.IconFont);
-					ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(4, 4));
-					ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(15, 4));
+					ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, ImGuiHelpers.ScaledVector2(4, 4));
+					ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, ImGuiHelpers.ScaledVector2(15, 4));
 					{
 						DrawButtonPlayPause();
 						DrawButtonStop();
@@ -177,6 +202,7 @@ namespace MidiBard
 						ImGui.Separator();
 						DrawPanelMusicControl();
 					}
+
 					if (config.showSettingsPanel)
 					{
 						ImGui.Separator();
@@ -189,6 +215,13 @@ namespace MidiBard
 				ImGui.End();
 				ImGui.PopStyleVar();
 			}
+		}
+
+		private static unsafe void ToggleButton(ref bool b)
+		{
+			ImGui.PushStyleColor(ImGuiCol.Text, b ? MidiBard.config.themeColor : *ImGui.GetStyleColorVec4(ImGuiCol.Text));
+			if (ImGui.Button(((FontAwesomeIcon)62800).ToIconString())) b ^= true;
+			ImGui.PopStyleColor();
 		}
 
 		private static unsafe void DrawKeyboardModeSwitchingGuide()
@@ -294,7 +327,7 @@ namespace MidiBard
 				ImGui.Indent();
 				//ImGuiHelpers.ScaledDummy(20,0); ImGui.SameLine();
 				ImGui.TextUnformatted("如果你喜欢MidiBard，可以在Github上为项目送上一颗"); ImGui.SameLine(); ImGui.PushFont(UiBuilder.IconFont); ImGui.TextUnformatted(FontAwesomeIcon.Star.ToIconString()); ImGui.PopFont(); ImGui.SameLine(); ImGui.TextUnformatted("表示支持！");
-				
+
 				ImGui.Spacing();
 				if (ImGui.Button("确定", new Vector2(ImGui.GetFrameHeight() * 5, ImGui.GetFrameHeight())))
 				{
