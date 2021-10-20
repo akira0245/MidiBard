@@ -32,7 +32,7 @@ namespace MidiBard.Control.MidiControl
 				midifile.ProcessChords(chord =>
 				{
 					var t = 0;
-					const int step = 1; 
+					const int step = 1;
 					foreach (var note in chord.Notes.OrderBy(i => i.NoteNumber))
 					{
 						note.Time += t += step;
@@ -144,13 +144,13 @@ namespace MidiBard.Control.MidiControl
 				InterruptNotesOnStop = true,
 				Speed = config.playSpeed,
 				TrackProgram = true,
-//#if DEBUG
-//				NoteCallback = (data, time, length, playbackTime) =>
-//				{
-//					PluginLog.Verbose($"[NOTE] {new Note(data.NoteNumber)} time:{time} len:{length} time:{playbackTime}");
-//					return data;
-//				}
-//#endif
+				//#if DEBUG
+				//				NoteCallback = (data, time, length, playbackTime) =>
+				//				{
+				//					PluginLog.Verbose($"[NOTE] {new Note(data.NoteNumber)} time:{time} len:{length} time:{playbackTime}");
+				//					return data;
+				//				}
+				//#endif
 			};
 
 			playback.Finished += Playback_Finished;
@@ -161,11 +161,29 @@ namespace MidiBard.Control.MidiControl
 
 		public static DateTime? waitUntil { get; set; } = null;
 		public static DateTime? waitStart { get; set; } = null;
-		public static bool isWaiting => DateTime.Now < waitUntil;
+		public static bool isWaiting => waitUntil != null && DateTime.Now < waitUntil;
 
-		public static float waitProgress => isWaiting
-		  ? 1 - (float)((waitUntil - DateTime.Now).Value.TotalMilliseconds / (waitUntil - waitStart).Value.TotalMilliseconds)
-		  : 1;
+		public static float waitProgress
+		{
+			get
+			{
+				float valueTotalMilliseconds = 1;
+				if (isWaiting)
+				{
+					try
+					{
+						valueTotalMilliseconds = 1 - (float)((waitUntil - DateTime.Now).Value.TotalMilliseconds /
+															 (waitUntil - waitStart).Value.TotalMilliseconds);
+					}
+					catch (Exception e)
+					{
+						PluginLog.Error(e, "error when get current wait progress");
+					}
+				}
+
+				return valueTotalMilliseconds;
+			}
+		}
 
 		private static void Playback_Finished(object sender, EventArgs e)
 		{
@@ -279,7 +297,7 @@ namespace MidiBard.Control.MidiControl
 			else
 			{
 				CurrentPlayback = await Task.Run(() => GetFilePlayback(midiFile, PlaylistManager.FilePathList[index].songName));
-				Ui.RefeshPlotData();
+				Ui.RefreshPlotData();
 				PlaylistManager.CurrentPlaying = index;
 				if (switchInstrument)
 				{

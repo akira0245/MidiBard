@@ -39,7 +39,7 @@ namespace MidiBard
 
 			if (IsWindowAppearing())
 			{
-				RefeshPlotData();
+				RefreshPlotData();
 			}
 
 			//Spacing(); ;
@@ -132,12 +132,12 @@ namespace MidiBard
 						var rgb = ColorConvertFloat4ToU32(vector4);
 						list.Add(($"[{trackInfo.Index + 1:00}] {trackInfo.TrackName}", vector4, trackInfo.Index));
 
-						foreach (var note in notes.Where(i => i.end > xMin && i.start < xMax))
+						foreach (var (start, end, noteNumber) in notes.Where(i => i.end > xMin && i.start < xMax))
 						{
-							var translatedNoteNum = BardPlayDevice.GetTranslatedNoteNum(note.NoteNumber, trackInfo.Index, out _) + 48;
+							var translatedNoteNum = BardPlayDevice.GetTranslatedNoteNum(noteNumber, trackInfo.Index, out _) + 48;
 							drawList.AddRectFilled(
-								ImPlot.PlotToPixels(note.start, translatedNoteNum + 1),
-								ImPlot.PlotToPixels(note.end, translatedNoteNum),
+								ImPlot.PlotToPixels(start, translatedNoteNum + 1),
+								ImPlot.PlotToPixels(end, translatedNoteNum),
 								rgb, 4);
 						}
 					}
@@ -159,7 +159,7 @@ namespace MidiBard
 			}
 		}
 
-		public unsafe void RefeshPlotData()
+		public unsafe void RefreshPlotData()
 		{
 			if (!MidiBard.config.PlotTracks) return;
 			Task.Run(() =>
@@ -184,7 +184,7 @@ namespace MidiBard
 				}
 				catch (Exception e)
 				{
-					PluginLog.Error(e.ToString());
+					PluginLog.Error(e,"error when refreshing plot data");
 				}
 			});
 		}
