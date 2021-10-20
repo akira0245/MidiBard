@@ -76,8 +76,15 @@ namespace MidiBard
 			ImPlot.SetNextPlotLimitsY(36, 97, ImGuiCond.Appearing);
 			if (setNextLimit)
 			{
-				ImPlot.SetNextPlotLimitsX(0, data.Select(i => i.info.DurationMetric.GetTotalSeconds()).Max(), ImGuiCond.Always);
-				setNextLimit = false;
+				try
+				{
+					ImPlot.SetNextPlotLimitsX(0, data.Select(i=>i.info.DurationMetric.GetTotalSeconds()).Max(), ImGuiCond.Always);
+					setNextLimit = false;
+				}
+				catch (Exception e)
+				{
+					PluginLog.Error(e, "error when try set next plot limit");
+				}
 			}
 
 			if (MidiBard.config.LockPlot)
