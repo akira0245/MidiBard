@@ -15,7 +15,6 @@ using Dalamud.Logging;
 using Lumina.Data;
 using Melanchall.DryWetMidi.Common;
 using Melanchall.DryWetMidi.Core;
-using Microsoft.VisualBasic.Logging;
 using MidiBard.Control;
 using MidiBard.Control.CharacterControl;
 using MidiBard.Control.MidiControl;
@@ -182,13 +181,13 @@ namespace MidiBard.Managers.Ipc
 					PlaylistManager.Clear();
 					break;
 				case IpcOpCode.PlayListAdd when MidiBard.config.SyncPlaylist:
-					Task.Run(async () => await PlaylistManager.Add(((MidiBardIpcPlaylist)msg.Data).Paths));
+					Task.Run(async () => await PlaylistManager.AddAsync(((MidiBardIpcPlaylist)msg.Data).Paths));
 					break;
 				case IpcOpCode.PlayListRemoveIndex when MidiBard.config.SyncPlaylist:
 					PlaylistManager.Remove(((MidiBardIpcPlaylistRemoveIndex)msg.Data).SongIndex);
 					break;
 				case IpcOpCode.PlayListReload when MidiBard.config.SyncPlaylist:
-					Task.Run(async () => await PlaylistManager.Add(((MidiBardIpcPlaylist)msg.Data).Paths, true));
+					Task.Run(async () => await PlaylistManager.AddAsync(((MidiBardIpcPlaylist)msg.Data).Paths, true));
 					break;
 
 

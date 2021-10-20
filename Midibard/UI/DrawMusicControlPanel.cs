@@ -64,8 +64,12 @@ namespace MidiBard
 			ImGui.Checkbox("Tracks visualization".Localize(), ref MidiBard.config.PlotTracks);
 			//ImGuiUtil.ToolTip("Draw currently playing midi tracks.".Localize());
 			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
-			
-			ImGui.Checkbox("Follow playback".Localize(), ref MidiBard.config.LockPlot);
+
+			ImGui.Checkbox("Follow playback".Localize() + $" ({timeWindow:F2}s)###followPlayBack", ref MidiBard.config.LockPlot);
+			if (ImGui.IsItemHovered())
+			{
+				timeWindow *= Math.Pow(Math.E, ImGui.GetIO().MouseWheel * -0.1);
+			}
 			ImGuiUtil.ToolTip("Lock tracks window and auto following current playback progress".Localize());
 		}
 
@@ -138,7 +142,7 @@ namespace MidiBard
 			UIcurrentInstrument = MidiBard.CurrentInstrument;
 			if (MidiBard.PlayingGuitar)
 			{
-				UIcurrentInstrument = MidiBard.AgentPerformance.CurrentGroupTone + MidiBard.guitarGroup[0];;
+				UIcurrentInstrument = MidiBard.AgentPerformance.CurrentGroupTone + MidiBard.guitarGroup[0]; ;
 			}
 			if (ImGui.Combo("Instrument".Localize(), ref UIcurrentInstrument, MidiBard.InstrumentStrings,
 				MidiBard.InstrumentStrings.Length, 20))

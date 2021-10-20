@@ -22,6 +22,7 @@ namespace MidiBard
 
 		public int Index;
 		public bool IsEnabled => MidiBard.config.EnabledTracks[Index];
+		public bool IsPlaying => MidiBard.config.SoloedTrack is int t ? t == Index : IsEnabled;
 		public int TransposeFromTrackName => GetTransposeByName(TrackName);
 		public uint? InstrumentIDFromTrackName => GetInstrumentIDByName(TrackName);
 		public uint? GuitarToneFromTrackName => GetInstrumentIDByName(TrackName) - MidiBard.guitarGroup[0];

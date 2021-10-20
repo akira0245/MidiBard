@@ -4,7 +4,6 @@ using System.Linq;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using Dalamud.Interface;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging;
@@ -63,14 +62,17 @@ namespace MidiBard
 				{
 					ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
 					ImGui.SetNextWindowBgAlpha(0);
-					ImGui.SetNextWindowSize(ImGuiHelpers.ScaledVector2(640,480), ImGuiCond.FirstUseEver);
-					if (ImGui.Begin("Midi tracks##MIDIBARD", ref MidiBard.config.PlotTracks, MidiBard.config.LockPlot?ImGuiWindowFlags.NoDecoration|ImGuiWindowFlags.NoMouseInputs|ImGuiWindowFlags.NoFocusOnAppearing:0))
+					ImGui.SetNextWindowSize(ImGuiHelpers.ScaledVector2(640, 480), ImGuiCond.FirstUseEver);
+					if (ImGui.Begin("Midi tracks##MIDIBARD", ref MidiBard.config.PlotTracks,
+						MidiBard.config.LockPlot ? ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMouseInputs | ImGuiWindowFlags.NoFocusOnAppearing : 0))
+					{
+						ImGui.PopStyleVar();
 						MidiPlotWindow();
+					}
 					ImGui.End();
-					ImGui.PopStyleVar();
 				}
 			}
-			
+
 
 		}
 

@@ -3,8 +3,9 @@
     <TargetFramework>net5.0-windows</TargetFramework>
     <LangVersion>9.0</LangVersion>
     <AssemblyVersion>1.9.0.2</AssemblyVersion>
-    <UseWindowsForms>true</UseWindowsForms>
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <UseWpf>true</UseWpf>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -59,10 +60,6 @@
       <Private>true</Private>
     </Reference>
   </ItemGroup>
-
-  <PropertyGroup>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-  </PropertyGroup>
 
   <Target Name="CopyFiles" AfterTargets="Build">
     <Copy

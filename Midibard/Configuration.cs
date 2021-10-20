@@ -89,6 +89,7 @@ namespace MidiBard
 
 		///////////////////////////////////////////////////////////////////////////////
 
+		public bool useLegacyFileDialog;
 		public bool PlotTracks;
 		public bool LockPlot;
 

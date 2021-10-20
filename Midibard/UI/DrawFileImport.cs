@@ -1,9 +1,10 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using Dalamud.Interface;
 using Dalamud.Logging;
 using ImGuiNET;
+using Microsoft.Win32;
 using MidiBard.Managers.Ipc;
 
 namespace MidiBard
@@ -16,12 +17,48 @@ namespace MidiBard
 
 		private void ButtonImport()
 		{
-			if (ImGuiUtil.IconButton((FontAwesomeIcon)FontAwesomeIcon.Plus, (string)"buttonimport"))
+			if (ImGui.BeginPopup("OpenFileDialog_selection"))
 			{
-				RunImportTask();
+				if (ImGui.MenuItem("Legacy file dialog", null, MidiBard.config.useLegacyFileDialog))
+				{
+					MidiBard.config.useLegacyFileDialog = true;
+				}
+				else if (ImGui.MenuItem("ImGui file dialog", null, !MidiBard.config.useLegacyFileDialog))
+				{
+					MidiBard.config.useLegacyFileDialog = false;
+				}
+
+				if (ImGui.MenuItem("Filename from clipboard"))
+				{
+					try
+					{
+						var trim = ImGui.GetClipboardText().Trim('"');
+						PlaylistManager.AddAsync(new[] { trim });
+					}
+					catch (Exception e)
+					{
+						PluginLog.Error(e.ToString());
+					}
+				}
+
+				ImGui.EndPopup();
 			}
 
-			ImGuiUtil.ToolTip("Import midi file.".Localize());
+			if (ImGuiUtil.IconButton((FontAwesomeIcon)FontAwesomeIcon.Plus, (string)"buttonimport"))
+			{
+				if (MidiBard.config.useLegacyFileDialog)
+				{
+					RunImportTaskLegacy();
+				}
+				else
+				{
+					RunImportTask();
+				}
+			}
+
+			ImGui.OpenPopupOnItemClick("OpenFileDialog_selection", ImGuiPopupFlags.MouseButtonRight);
+
+			ImGuiUtil.ToolTip("Import midi file.\nRight click to select file dialog type".Localize());
 		}
 
 		private void ButtonImportInProgress()
@@ -57,6 +94,32 @@ namespace MidiBard
 
 		private bool _isImportRunning;
 
+		void RunImportTaskLegacy()
+		{
+			if (!_isImportRunning)
+			{
+				_isImportRunning = true;
+
+				var b = new Browse((result, filePath) =>
+				{
+					if (result == true)
+					{
+						Task.Run(async () =>
+						{
+							await PlaylistManager.AddAsync(filePath);
+							MidiBard.SaveConfig();
+						});
+					}
+
+					_isImportRunning = false;
+				});
+
+				var t = new Thread(b.BrowseDLL);
+				t.IsBackground = true;
+				t.SetApartmentState(ApartmentState.STA);
+				t.Start();
+			}
+		}
 		private void RunImportTask()
 		{
 			if (!_isImportRunning)
@@ -67,7 +130,7 @@ namespace MidiBard
 					PluginLog.Debug($"dialog result: {b}\n{string.Join("\n", strings)}");
 					if (b) Task.Run(async () =>
 					{
-						await PlaylistManager.Add(strings);
+						await PlaylistManager.AddAsync(strings);
 						MidiBard.SaveConfig();
 					});
 					_isImportRunning = false;

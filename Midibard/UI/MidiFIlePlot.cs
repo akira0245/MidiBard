@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -19,6 +20,7 @@ namespace MidiBard
 	{
 		private bool init;
 		private bool setNextLimit;
+		private double timeWindow = 10;
 
 		private unsafe void MidiPlotWindow()
 		{
@@ -53,15 +55,6 @@ namespace MidiBard
 
 			double timelinePos = 0;
 
-
-			try
-			{
-
-			}
-			catch
-			{
-				//
-			}
 			try
 			{
 				var currentPlayback = MidiBard.CurrentPlayback;
@@ -80,16 +73,16 @@ namespace MidiBard
 			}
 
 			ImPlot.SetNextPlotTicksY(0, 127, 128, noteNames, false);
-			ImPlot.SetNextPlotLimitsY(36, 96, ImGuiCond.Appearing);
+			ImPlot.SetNextPlotLimitsY(36, 97, ImGuiCond.Appearing);
 			if (setNextLimit)
 			{
-				ImPlot.SetNextPlotLimitsX(0, data.Select(i=>i.info.DurationMetric.GetTotalSeconds()).Max(), ImGuiCond.Always);
+				ImPlot.SetNextPlotLimitsX(0, data.Select(i => i.info.DurationMetric.GetTotalSeconds()).Max(), ImGuiCond.Always);
 				setNextLimit = false;
 			}
 
 			if (MidiBard.config.LockPlot)
 			{
-				ImPlot.SetNextPlotLimitsX(timelinePos - 10, timelinePos + 10, ImGuiCond.Always);
+				ImPlot.SetNextPlotLimitsX(timelinePos - timeWindow, timelinePos + timeWindow, ImGuiCond.Always);
 			}
 
 
@@ -103,9 +96,17 @@ namespace MidiBard
 
 			//ImPlot.SetColormap(ImPlotColormap.Plasma);
 			//ImPlot.StyleColorsLight();
-			if (ImPlot.BeginPlot("values", null, null, GetWindowSize() - ImGuiHelpers.ScaledVector2(0, GetCursorPosY()), ImPlotFlags.NoChild | ImPlotFlags.NoTitle))
+			string songName = "";
+			try
 			{
-				lastlimit = ImPlot.GetPlotLimits();
+				songName = PlaylistManager.FilePathList[PlaylistManager.CurrentPlaying].songName;
+			}
+			catch (Exception e)
+			{
+				//
+			}
+			if (ImPlot.BeginPlot(songName + "###midiTrackPlot", null, null, GetWindowSize() - ImGuiHelpers.ScaledVector2(0, GetCursorPosY()), ImPlotFlags.NoChild | ImPlotFlags.NoTitle | ImPlotFlags.NoMousePos))
+			{
 				var drawList = ImPlot.GetPlotDrawList();
 				var xMin = ImPlot.GetPlotLimits().X.Min;
 				var xMax = ImPlot.GetPlotLimits().X.Max;
@@ -117,21 +118,19 @@ namespace MidiBard
 
 				if (data?.Any() == true)
 				{
-					foreach (var (trackInfo, notes) in data)
+					var list = new List<(string trackName, Vector4 color, int index)>();
+					foreach (var (trackInfo, notes) in data.OrderBy(i => i.info.IsPlaying))
 					{
-						var c = Vector4.One;
-						ColorConvertHSVtoRGB(trackInfo.Index / (float)MidiBard.CurrentTracks.Count, 0.8f, 1,
-							out c.X, out c.Y, out c.Z);
+						var vector4 = Vector4.One;
+						ColorConvertHSVtoRGB(trackInfo.Index / (float)MidiBard.CurrentTracks.Count, 0.8f, 1, out vector4.X, out vector4.Y, out vector4.Z);
 
-						if (!trackInfo.IsEnabled || MidiBard.config.SoloedTrack is { } s && trackInfo.Index != s)
+						if (!trackInfo.IsPlaying)
 						{
-							c.W = 0.2f;
+							vector4.W = 0.2f;
 						}
 
-						var rgb = ColorConvertFloat4ToU32(c);
-						ImPlot.SetNextLineStyle(c);
-						var f = double.NegativeInfinity;
-						ImPlot.PlotVLines($"{trackInfo.TrackName}##{trackInfo.Index}", ref f, 1);
+						var rgb = ColorConvertFloat4ToU32(vector4);
+						list.Add(($"[{trackInfo.Index + 1:00}] {trackInfo.TrackName}", vector4, trackInfo.Index));
 
 						foreach (var note in notes.Where(i => i.end > xMin && i.start < xMax))
 						{
@@ -141,6 +140,14 @@ namespace MidiBard
 								ImPlot.PlotToPixels(note.end, translatedNoteNum),
 								rgb, 4);
 						}
+					}
+
+
+					foreach (var (trackName, color, _) in list.OrderBy(i => i.index))
+					{
+						ImPlot.SetNextLineStyle(color);
+						var f = double.NegativeInfinity;
+						ImPlot.PlotVLines(trackName, ref f, 1);
 					}
 				}
 
@@ -152,7 +159,6 @@ namespace MidiBard
 			}
 		}
 
-		public ImPlotLimits lastlimit = new ImPlotLimits() { X = new ImPlotRange() { Min = 0, Max = 60 }, Y = new ImPlotRange() { Min = 24, Max = 108 } };
 		public unsafe void RefeshPlotData()
 		{
 			if (!MidiBard.config.PlotTracks) return;

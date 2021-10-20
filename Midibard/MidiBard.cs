@@ -89,7 +89,7 @@ namespace MidiBard
 			_ = Testhooks.Instance;
 #endif
 
-			Task.Run(() => PlaylistManager.Add(config.Playlist.ToArray(), true));
+			Task.Run(() => PlaylistManager.AddAsync(config.Playlist.ToArray(), true));
 
 			CurrentOutputDevice = new BardPlayDevice();
 			InputDeviceManager.ScanMidiDeviceThread.Start();
@@ -135,7 +135,11 @@ namespace MidiBard
 		public void Command1(string command, string args) => OnCommand(command, args);
 
 		[Command("/mbard")]
-		[HelpMessage("Toggle MidiBard window.\n/mbard perform <instrument name/instrument ID> → Switch to specified instrument.\n/mbard cancel → Quit performance mode.\n/mbard <play/pause/playpause/stop/next/prev> → Player control.")]
+		[HelpMessage("Toggle MidiBard window.\n" +
+					 "/mbard perform [instrument name|instrument ID] → Switch to specified instrument.\n" +
+					 "/mbard cancel → Quit performance mode.\n" +
+					 "/mbard visual [on|off|toggle] → Midi tracks visualization\n" +
+					 "/mbard [play|pause|playpause|stop|next|prev|rewind (seconds)|fastforward (seconds)] → Midi playback control.")]
 		public void Command2(string command, string args) => OnCommand(command, args);
 
 		async Task OnCommand(string command, string args)
@@ -145,63 +149,106 @@ namespace MidiBard
 			var argStrings = args.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
 			if (argStrings.Any())
 			{
-				if (argStrings[0] == "cancel")
+				switch (argStrings[0])
 				{
-					PerformActions.DoPerformAction(0);
-				}
-				if (argStrings[0] == "perform")
-				{
-					try
-					{
-						var instrumentInput = argStrings[1];
-						if (instrumentInput == "cancel")
+					case "cancel":
+						PerformActions.DoPerformAction(0);
+						break;
+					case "perform":
+						try
 						{
-							PerformActions.DoPerformAction(0);
+							var instrumentInput = argStrings[1];
+							if (instrumentInput == "cancel")
+							{
+								PerformActions.DoPerformAction(0);
+							}
+							else if (uint.TryParse(instrumentInput, out var id1) && id1 < InstrumentStrings.Length)
+							{
+								SwitchInstrument.SwitchToContinue(id1);
+							}
+							else if (SwitchInstrument.TryParseInstrumentName(instrumentInput, out var id2))
+							{
+								SwitchInstrument.SwitchToContinue(id2);
+							}
 						}
-						else if (uint.TryParse(instrumentInput, out var id1) && id1 < InstrumentStrings.Length)
+						catch (Exception e)
 						{
-							SwitchInstrument.SwitchToContinue(id1);
+							PluginLog.Warning(e, "error when parsing or finding instrument strings");
+							ChatGui.PrintError($"failed parsing command argument \"{args}\"");
 						}
-						else if (SwitchInstrument.TryParseInstrumentName(instrumentInput, out var id2))
+
+						break;
+					case "playpause":
+						MidiPlayerControl.PlayPause();
+						break;
+					case "play":
+						MidiPlayerControl.Play();
+						break;
+					case "pause":
+						MidiPlayerControl.Pause();
+						break;
+					case "stop":
+						MidiPlayerControl.Stop();
+						break;
+					case "next":
+						MidiPlayerControl.Next();
+						break;
+					case "prev":
+						MidiPlayerControl.Prev();
+						break;
+					case "visual":
+						try
 						{
-							SwitchInstrument.SwitchToContinue(id2);
+							config.PlotTracks = argStrings[1] switch
+							{
+								"on" => true,
+								"off" => false,
+								_ => !config.PlotTracks
+							};
 						}
-					}
-					catch (Exception e)
-					{
-						PluginLog.Warning(e, "error when parsing or finding instrument strings");
-						ChatGui.PrintError($"failed parsing command argument \"{args}\"");
-					}
-				}
+						catch (Exception e)
+						{
+							config.PlotTracks ^= true;
+						}
+						break;
+					case "rewind":
+						try
+						{
+							double timeInSeconds = -5;
+							try
+							{
+								timeInSeconds = -double.Parse(argStrings[1]);
+							}
+							catch (Exception e)
+							{
+							}
 
-				else if (argStrings[0] == "playpause")
-				{
-					MidiPlayerControl.PlayPause();
-				}
+							MidiPlayerControl.MoveTime(timeInSeconds);
+						}
+						catch (Exception e)
+						{
+							PluginLog.Warning(e.ToString(), "error in rewind command");
+						}
+						break;
+					case "fastforward":
+						try
+						{
+							double timeInSeconds = 5;
+							try
+							{
+								timeInSeconds = double.Parse(argStrings[1]);
+							}
+							catch (Exception e)
+							{
+							}
 
-				else if (argStrings[0] == "play")
-				{
-					MidiPlayerControl.Play();
-				}
-
-				else if (argStrings[0] == "pause")
-				{
-					MidiPlayerControl.Pause();
-				}
-
-				else if (argStrings[0] == "stop")
-				{
-					MidiPlayerControl.Stop();
-				}
-
-				else if (argStrings[0] == "next")
-				{
-					MidiPlayerControl.Next();
-				}
-
-				else if (argStrings[0] == "prev")
-				{
-					MidiPlayerControl.Prev();
+							MidiPlayerControl.MoveTime(timeInSeconds);
+						}
+						catch (Exception e)
+						{
+							PluginLog.Warning(e.ToString(), "error in fast forward command");
+						}
+						break;
 				}
 			}
 			else
@@ -241,8 +288,8 @@ namespace MidiBard
 			try
 			{
 #if DEBUG
-			Testhooks.Instance?.Dispose();
-			RPCManager.Instance.Dispose();
+				Testhooks.Instance?.Dispose();
+				RPCManager.Instance.Dispose();
 #endif
 				InputDeviceManager.ShouldScanMidiDeviceThread = false;
 				Framework.Update -= Tick;
@@ -250,7 +297,7 @@ namespace MidiBard
 
 				EnsembleManager.Instance.Dispose();
 #if DEBUG
-			NetworkManager.Instance.Dispose();
+				NetworkManager.Instance.Dispose();
 #endif
 				InputDeviceManager.DisposeCurrentInputDevice();
 				try

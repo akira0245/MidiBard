@@ -55,10 +55,21 @@ namespace MidiBard.Control.MidiControl
 
 		internal static void PlayPause()
 		{
-			if (CurrentPlayback?.IsRunning != true)
-				Play();
+			if (FilePlayback.isWaiting)
+			{
+				FilePlayback.StopWaiting();
+			}
 			else
-				Pause();
+			{
+				if (MidiBard.IsPlaying)
+				{
+					MidiPlayerControl.Pause();
+				}
+				else
+				{
+					MidiPlayerControl.Play();
+				}
+			}
 		}
 
 		internal static void Stop()
@@ -184,6 +195,23 @@ namespace MidiBard.Control.MidiControl
 			else
 			{
 				PlaylistManager.CurrentPlaying -= 1;
+			}
+		}
+
+		internal static void MoveTime(double timeInSeconds)
+		{
+			try
+			{
+				var metricTimeSpan = CurrentPlayback.GetCurrentTime<MetricTimeSpan>();
+				var dura = CurrentPlayback.GetDuration<MetricTimeSpan>();
+				var add = new MetricTimeSpan(metricTimeSpan.TotalMicroseconds);
+				if (add > dura) add = dura;
+				if (add < new MetricTimeSpan()) add = new MetricTimeSpan();
+				CurrentPlayback.MoveToTime(add);
+			}
+			catch (Exception e)
+			{
+				PluginLog.Warning(e.ToString(), "error when try setting current playback time");
 			}
 		}
 

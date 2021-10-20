@@ -9,6 +9,7 @@ using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.Standards;
+using Melanchall.DryWetMidi.Tools;
 using MidiBard.Control.CharacterControl;
 using MidiBard.Control.MidiControl.PlaybackInstance;
 using MidiBard.Managers.Ipc;
@@ -24,6 +25,29 @@ namespace MidiBard.Control.MidiControl
 		{
 			PluginLog.Debug($"[LoadPlayback] -> {trackName} START");
 			var stopwatch = Stopwatch.StartNew();
+
+			try
+			{
+				//midifile.SplitChordsByStep(new MetricTimeSpan(0,0,0,500), new ChordDetectionSettings(){NotesMinCount = 2, NotesTolerance = 100});
+				midifile.ProcessChords(chord =>
+				{
+					var t = 0;
+					const int step = 1; 
+					foreach (var note in chord.Notes.OrderBy(i => i.NoteNumber))
+					{
+						note.Time += t += step;
+						var length = note.Length - t;
+						if (length < 1) length = 1;
+						note.Length = length;
+					}
+
+				});
+			}
+			catch (Exception e)
+			{
+				PluginLog.Error(e.ToString());
+			}
+
 			try
 			{
 				CurrentTMap = midifile.GetTempoMap();
@@ -120,11 +144,13 @@ namespace MidiBard.Control.MidiControl
 				InterruptNotesOnStop = true,
 				Speed = config.playSpeed,
 				TrackProgram = true,
-				NoteCallback = (data, time, length, playbackTime) =>
-				{
-					PluginLog.Verbose($"[NOTE] {new Note(data.NoteNumber)} time:{time} len:{length} time:{playbackTime}");
-					return data;
-				}
+//#if DEBUG
+//				NoteCallback = (data, time, length, playbackTime) =>
+//				{
+//					PluginLog.Verbose($"[NOTE] {new Note(data.NoteNumber)} time:{time} len:{length} time:{playbackTime}");
+//					return data;
+//				}
+//#endif
 			};
 
 			playback.Finished += Playback_Finished;

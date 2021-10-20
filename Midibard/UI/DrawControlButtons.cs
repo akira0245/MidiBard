@@ -52,21 +52,7 @@ namespace MidiBard
 			if (ImGui.Button(PlayPauseIcon))
 			{
 				PluginLog.Debug($"PlayPause pressed. wasplaying: {MidiBard.IsPlaying}");
-				if (FilePlayback.isWaiting)
-				{
-					FilePlayback.StopWaiting();
-				}
-				else
-				{
-					if (MidiBard.IsPlaying)
-					{
-						MidiPlayerControl.Pause();
-					}
-					else
-					{
-						MidiPlayerControl.Play();
-					}
-				}
+				MidiPlayerControl.PlayPause();
 			}
 		}
 

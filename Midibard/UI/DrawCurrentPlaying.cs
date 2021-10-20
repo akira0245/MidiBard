@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Numerics;
+using Dalamud.Logging;
 using ImGuiNET;
 using Melanchall.DryWetMidi.Interaction;
 using MidiBard.Control.MidiControl;
@@ -40,7 +41,14 @@ namespace MidiBard
 			ImGui.PushStyleColor(ImGuiCol.FrameBg, MidiBard.config.themeColorDark);
 			if (FilePlayback.isWaiting)
 			{
-				ImGui.ProgressBar(FilePlayback.waitProgress, new Vector2(-1, 3));
+				try
+				{
+					ImGui.ProgressBar(FilePlayback.waitProgress, new Vector2(-1, 3));
+				}
+				catch (Exception e)
+				{
+					PluginLog.Error(e.ToString());
+				}
 			}
 			else
 			{

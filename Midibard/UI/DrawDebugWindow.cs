@@ -38,6 +38,7 @@ namespace MidiBard
 {
 	public partial class PluginUI
 	{
+		private bool fontwindow;
 		private unsafe void DrawDebugWindow()
 		{
 			if (Begin("MIDIBARD DEBUG"))
@@ -48,6 +49,7 @@ namespace MidiBard
 				Checkbox("KeyStroke", ref MidiBard.config.DebugKeyStroke);
 				Checkbox("Misc", ref MidiBard.config.DebugMisc);
 				Checkbox("EnsembleConductor", ref MidiBard.config.DebugEnsemble);
+				Checkbox("fontwindow", ref fontwindow);
 			}
 			End();
 
@@ -718,8 +720,10 @@ namespace MidiBard
 				//}
 
 
-
-				DrawFontIconView();
+				if (fontwindow)
+				{
+					DrawFontIconView();
+				}
 			}
 			finally
 			{

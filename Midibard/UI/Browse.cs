@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
+using Microsoft.Win32;
 
 namespace MidiBard
 {
 	class Browse
 	{
-		public delegate void FileSelectedCallback(DialogResult result, string[] filePaths);
+		public delegate void FileSelectedCallback(bool? fileDialogResult, string[] filePaths);
 
 		private FileSelectedCallback callback;
 
@@ -20,7 +20,7 @@ namespace MidiBard
 
 		public void BrowseDLL()
 		{
-			using var ofd = new OpenFileDialog
+			var ofd = new OpenFileDialog
 			{
 				Filter = "midi file (*.mid)|*.mid",
 				Title = "Select a midi file",
