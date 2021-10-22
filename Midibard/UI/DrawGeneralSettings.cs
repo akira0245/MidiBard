@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
 using ImGuiNET;
 
 namespace MidiBard
@@ -61,10 +62,20 @@ namespace MidiBard
 			if (ImGui.Combo("UI Language".Localize(), ref MidiBard.config.uiLang, uilangStrings, 2))
 				MidiBard.Localizer = new Localizer((UILang)MidiBard.config.uiLang);
 
+			ImGui.Checkbox("Tracks visualization".Localize(), ref MidiBard.config.PlotTracks);
+			ImGuiUtil.ToolTip("Draw midi tracks in a new window\nshowing the on/off and actual transposition of each track.".Localize());
+			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
 
-	
-
-
+			ImGui.Checkbox("Follow playback".Localize() + $" ({timeWindow:F2}s)###followPlayBack", ref MidiBard.config.LockPlot);
+			if (ImGui.IsItemHovered())
+			{
+				timeWindow *= Math.Pow(Math.E, ImGui.GetIO().MouseWheel * 0.1);
+			}
+			ImGuiUtil.ToolTip(
+				MidiBard.config.LockPlot
+					? "Lock tracks window and auto following current playback progress\nScroll mouse here to adjust view timeline scale".Localize()
+					:"Lock tracks window and auto following current playback progress".Localize());
+			
 			ImGui.Checkbox("Auto open MidiBard".Localize(), ref MidiBard.config.AutoOpenPlayerWhenPerforming);
 			ImGuiUtil.ToolTip("Open MidiBard window automatically when entering performance mode".Localize());
 			//ImGui.Checkbox("Auto Confirm Ensemble Ready Check".Localize(), ref config.AutoConfirmEnsembleReadyCheck);

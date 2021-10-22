@@ -12,46 +12,40 @@ using ImPlotNET;
 using Melanchall.DryWetMidi.Common;
 using Melanchall.DryWetMidi.Interaction;
 using MidiBard.Control;
-using static ImGuiNET.ImGui;
 
 namespace MidiBard
 {
 	public partial class PluginUI
 	{
-		private bool init;
 		private bool setNextLimit;
 		private double timeWindow = 10;
+		private void DrawPlotWindow()
+		{
+			ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
+			ImGui.SetNextWindowBgAlpha(0);
+			ImGui.SetNextWindowSize(ImGuiHelpers.ScaledVector2(640, 480), ImGuiCond.FirstUseEver);
+			if (ImGui.Begin("Midi tracks##MIDIBARD", ref MidiBard.config.PlotTracks,
+				MidiBard.config.LockPlot
+					? ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoFocusOnAppearing
+					: 0))
+			{
+				ImGui.PopStyleVar();
+				MidiPlotWindow();
+			}
+			else
+			{
+				ImGui.PopStyleVar();
+			}
+
+			ImGui.End();
+		}
 
 		private unsafe void MidiPlotWindow()
 		{
-			#region initImplot
-
-			if (!init)
-			{
-				ImPlot.SetImGuiContext(GetCurrentContext());
-				var _context = ImPlot.CreateContext();
-				ImPlot.SetCurrentContext(_context);
-
-				init = true;
-			}
-
-			#endregion
-
-			if (IsWindowAppearing())
+			if (ImGui.IsWindowAppearing())
 			{
 				RefreshPlotData();
 			}
-
-			//Spacing(); ;
-			//SetCursorPosX(GetStyle().ItemSpacing.X / 2);
-			//if (Button($"refresh data")) RefeshPlotData();
-			//SameLine();
-			//SetNextItemWidth(GetWindowContentRegionWidth() / 3);
-			//SliderFloat("scale", ref MidiBard.config.plotScale, 1000 * 1000, 1000 * 1000 * 60,
-			//	MidiBard.config.plotScale.ToString("##.##"), ImGuiSliderFlags.AlwaysClamp);
-			//SameLine(GetWindowWidth()-ImGuiHelpers.GlobalScale*25);
-			//if (ImGuiUtil.IconButton((FontAwesomeIcon)61453, "close")) PlotTracks = false;
-
 
 			double timelinePos = 0;
 
@@ -59,13 +53,6 @@ namespace MidiBard
 			{
 				var currentPlayback = MidiBard.CurrentPlayback;
 				timelinePos = currentPlayback.GetCurrentTime<MetricTimeSpan>().GetTotalSeconds();
-				//duration = currentPlayback.GetDuration<MetricTimeSpan>().GetTotalSeconds();
-				//var duram = currentPlayback.GetDuration<MetricTimeSpan>().TotalMicroseconds / 1000d / 1000d;
-				//TextUnformatted(duration.ToString());
-				//TextUnformatted(duram.ToString());
-				//duration /= duram;
-				//duration *= MidiBard.config.plotScale;
-
 			}
 			catch (Exception e)
 			{
@@ -78,7 +65,7 @@ namespace MidiBard
 			{
 				try
 				{
-					ImPlot.SetNextPlotLimitsX(0, data.Select(i=>i.info.DurationMetric.GetTotalSeconds()).Max(), ImGuiCond.Always);
+					ImPlot.SetNextPlotLimitsX(0, data.Select(i => i.info.DurationMetric.GetTotalSeconds()).Max(), ImGuiCond.Always);
 					setNextLimit = false;
 				}
 				catch (Exception e)
@@ -92,17 +79,6 @@ namespace MidiBard
 				ImPlot.SetNextPlotLimitsX(timelinePos - timeWindow, timelinePos + timeWindow, ImGuiCond.Always);
 			}
 
-
-			//ImPlot.SetNextPlotLimitsY(36, 96, ImGuiCond.Appearing);
-			//var imPlotRange = ImPlot.GetPlotLimits().X;
-			//if (timelinePos > imPlotRange.Max)
-
-			//ImPlot.ShowStyleSelector("style");
-			//ImPlot.ShowColormapSelector("colormap");
-
-
-			//ImPlot.SetColormap(ImPlotColormap.Plasma);
-			//ImPlot.StyleColorsLight();
 			string songName = "";
 			try
 			{
@@ -112,16 +88,20 @@ namespace MidiBard
 			{
 				//
 			}
-			if (ImPlot.BeginPlot(songName + "###midiTrackPlot", null, null, GetWindowSize() - ImGuiHelpers.ScaledVector2(0, GetCursorPosY()), ImPlotFlags.NoChild | ImPlotFlags.NoTitle | ImPlotFlags.NoMousePos))
+			if (ImPlot.BeginPlot(songName + "###midiTrackPlot",
+				null, null,
+				ImGui.GetWindowSize() - ImGuiHelpers.ScaledVector2(0, ImGui.GetCursorPosY()), ImPlotFlags.NoMousePos | ImPlotFlags.NoChild))
 			{
 				var drawList = ImPlot.GetPlotDrawList();
 				var xMin = ImPlot.GetPlotLimits().X.Min;
 				var xMax = ImPlot.GetPlotLimits().X.Max;
+
+				if (!MidiBard.config.LockPlot) timeWindow = (xMax - xMin) / 2;
+
 				ImPlot.PushPlotClipRect();
 				var cp = ImGuiColors.ParsedBlue;
 				cp.W = 0.05f;
-				drawList.AddRectFilled(ImPlot.PlotToPixels(xMin, 48 + 37), ImPlot.PlotToPixels(xMax, 48), ColorConvertFloat4ToU32(cp));
-
+				drawList.AddRectFilled(ImPlot.PlotToPixels(xMin, 48 + 37), ImPlot.PlotToPixels(xMax, 48), ImGui.ColorConvertFloat4ToU32(cp));
 
 				if (data?.Any() == true)
 				{
@@ -129,14 +109,14 @@ namespace MidiBard
 					foreach (var (trackInfo, notes) in data.OrderBy(i => i.info.IsPlaying))
 					{
 						var vector4 = Vector4.One;
-						ColorConvertHSVtoRGB(trackInfo.Index / (float)MidiBard.CurrentTracks.Count, 0.8f, 1, out vector4.X, out vector4.Y, out vector4.Z);
+						ImGui.ColorConvertHSVtoRGB(trackInfo.Index / (float)MidiBard.CurrentTracks.Count, 0.8f, 1, out vector4.X, out vector4.Y, out vector4.Z);
 
 						if (!trackInfo.IsPlaying)
 						{
 							vector4.W = 0.2f;
 						}
 
-						var rgb = ColorConvertFloat4ToU32(vector4);
+						var rgb = ImGui.ColorConvertFloat4ToU32(vector4);
 						list.Add(($"[{trackInfo.Index + 1:00}] {trackInfo.TrackName}", vector4, trackInfo.Index));
 
 						foreach (var (start, end, noteNumber) in notes.Where(i => i.end > xMin && i.start < xMax))
@@ -159,7 +139,7 @@ namespace MidiBard
 				}
 
 				drawList.AddLine(ImPlot.PlotToPixels(timelinePos, ImPlot.GetPlotLimits().Y.Min),
-					ImPlot.PlotToPixels(timelinePos, ImPlot.GetPlotLimits().Y.Max), ColorConvertFloat4ToU32(ImGuiColors.DalamudRed));
+					ImPlot.PlotToPixels(timelinePos, ImPlot.GetPlotLimits().Y.Max), ImGui.ColorConvertFloat4ToU32(ImGuiColors.DalamudRed));
 				ImPlot.PopPlotClipRect();
 
 				ImPlot.EndPlot();
@@ -173,6 +153,11 @@ namespace MidiBard
 			{
 				try
 				{
+					if (MidiBard.CurrentTracks == null)
+					{
+						PluginLog.Debug("try RefreshPlotData but CurrentTracks is null");
+						return;
+					}
 					var tmap = MidiBard.CurrentTMap;
 					data = MidiBard.CurrentTracks.Select(i =>
 						{
@@ -191,7 +176,7 @@ namespace MidiBard
 				}
 				catch (Exception e)
 				{
-					PluginLog.Error(e,"error when refreshing plot data");
+					PluginLog.Error(e, "error when refreshing plot data");
 				}
 			});
 		}
@@ -209,14 +194,14 @@ namespace MidiBard
 			return allocHGlobal;
 		}
 
-		private unsafe float rounding;
-		private unsafe int stride;
-		private unsafe double* height = Alloc<double>();
-		private unsafe double* shift = Alloc<double>();
-		private float[] valuex = null;
-		private float[] valuex2 = null;
-		private float[] valuey = null;
-		private float[] valuey2 = null;
-		private static bool setup = true;
+		//private unsafe float rounding;
+		//private unsafe int stride;
+		//private unsafe double* height = Alloc<double>();
+		//private unsafe double* shift = Alloc<double>();
+		//private float[] valuex = null;
+		//private float[] valuex2 = null;
+		//private float[] valuey = null;
+		//private float[] valuey2 = null;
+		//private static bool setup = true;
 	}
 }

@@ -9,6 +9,7 @@ using Dalamud.Interface.Windowing;
 using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
+using ImPlotNET;
 using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Interaction;
 using MidiBard.DalamudApi;
@@ -21,6 +22,13 @@ namespace MidiBard
 {
 	public partial class PluginUI
 	{
+		public PluginUI()
+		{
+			ImPlot.SetImGuiContext(ImGui.GetCurrentContext());
+			var _context = ImPlot.CreateContext();
+			ImPlot.SetCurrentContext(_context);
+		}
+
 		private readonly string[] uilangStrings = { "EN", "ZH" };
 		private bool TrackViewVisible;
 		private bool MainWindowVisible;
@@ -60,21 +68,12 @@ namespace MidiBard
 
 				if (MidiBard.config.PlotTracks)
 				{
-					ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
-					ImGui.SetNextWindowBgAlpha(0);
-					ImGui.SetNextWindowSize(ImGuiHelpers.ScaledVector2(640, 480), ImGuiCond.FirstUseEver);
-					if (ImGui.Begin("Midi tracks##MIDIBARD", ref MidiBard.config.PlotTracks,
-						MidiBard.config.LockPlot ? ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMouseInputs | ImGuiWindowFlags.NoFocusOnAppearing : 0))
-					{
-						ImGui.PopStyleVar();
-						MidiPlotWindow();
-					}
-					ImGui.End();
+					DrawPlotWindow();
 				}
 			}
-
-
 		}
+
+		
 
 		private void DrawMainPluginWindow()
 		{

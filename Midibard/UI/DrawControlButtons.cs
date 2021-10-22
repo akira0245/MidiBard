@@ -18,7 +18,7 @@ namespace MidiBard
 			if (ImGui.Button(((FontAwesomeIcon)(MidiBard.config.miniPlayer ? 0xF424 : 0xF422)).ToIconString()))
 				MidiBard.config.miniPlayer ^= true;
 
-			ToolTip("Toggle mini player".Localize());
+			ToolTip("Mini player".Localize());
 		}
 
 		private static unsafe void DrawButtonShowPlayerControl()
@@ -32,7 +32,7 @@ namespace MidiBard
 			if (ImGui.Button((FontAwesomeIcon.Music).ToIconString())) MidiBard.config.showMusicControlPanel ^= true;
 
 			ImGui.PopStyleColor();
-			ToolTip("Toggle player control panel".Localize());
+			ToolTip("Music control panel".Localize());
 		}
 
 		private static unsafe void DrawButtonShowSettingsPanel()
@@ -43,7 +43,7 @@ namespace MidiBard
 			if (ImGui.Button(FontAwesomeIcon.Cog.ToIconString())) MidiBard.config.showSettingsPanel ^= true;
 
 			ImGui.PopStyleColor();
-			ToolTip("Toggle settings panel".Localize());
+			ToolTip("Settings panel".Localize());
 		}
 
 		private static unsafe void DrawButtonPlayPause()

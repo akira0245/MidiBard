@@ -121,11 +121,17 @@ namespace MidiBard
 #endif
 			}
 
+			var count = filePaths.Length;
+			var success = 0;
+
 			await foreach (var path in GetPathsAvailable(filePaths))
 			{
 				MidiBard.config.Playlist.Add(path);
 				FilePathList.Add((path, Path.GetFileNameWithoutExtension(path)));
+				success++;
 			}
+
+			PluginLog.Information($"File import all complete! success: {success} total: {count}");
 		}
 
 		internal static async IAsyncEnumerable<string> GetPathsAvailable(string[] filePaths)

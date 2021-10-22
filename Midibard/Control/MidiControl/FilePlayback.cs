@@ -23,7 +23,7 @@ namespace MidiBard.Control.MidiControl
 
 		public static BardPlayback GetFilePlayback(MidiFile midifile, string trackName)
 		{
-			PluginLog.Debug($"[LoadPlayback] -> {trackName} START");
+			PluginLog.Information($"[LoadPlayback] -> {trackName} START");
 			var stopwatch = Stopwatch.StartNew();
 
 			try
@@ -154,7 +154,7 @@ namespace MidiBard.Control.MidiControl
 			};
 
 			playback.Finished += Playback_Finished;
-			PluginLog.Debug($"[LoadPlayback] -> {trackName} OK! in {stopwatch.Elapsed.TotalMilliseconds} ms");
+			PluginLog.Information($"[LoadPlayback] -> {trackName} OK! in {stopwatch.Elapsed.TotalMilliseconds} ms");
 
 			return playback;
 		}

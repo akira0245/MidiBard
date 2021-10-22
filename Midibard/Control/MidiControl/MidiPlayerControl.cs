@@ -204,10 +204,10 @@ namespace MidiBard.Control.MidiControl
 			{
 				var metricTimeSpan = CurrentPlayback.GetCurrentTime<MetricTimeSpan>();
 				var dura = CurrentPlayback.GetDuration<MetricTimeSpan>();
-				var add = new MetricTimeSpan(metricTimeSpan.TotalMicroseconds);
-				if (add > dura) add = dura;
-				if (add < new MetricTimeSpan()) add = new MetricTimeSpan();
-				CurrentPlayback.MoveToTime(add);
+				var totalMicroseconds = metricTimeSpan.TotalMicroseconds + (long)(timeInSeconds * 1_000_000);
+				if (totalMicroseconds < 0) totalMicroseconds = 0;
+				if (totalMicroseconds > dura.TotalMicroseconds) totalMicroseconds = dura.TotalMicroseconds;
+				CurrentPlayback.MoveToTime(new MetricTimeSpan(totalMicroseconds));
 			}
 			catch (Exception e)
 			{

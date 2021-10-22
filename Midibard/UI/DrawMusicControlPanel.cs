@@ -61,16 +61,7 @@ namespace MidiBard
 			//ImGui.SliderFloat("secbetweensongs", ref config.timeBetweenSongs, 0, 10,
 			//	$"{config.timeBetweenSongs:F2} [{500000 * config.timeBetweenSongs:F0}]", ImGuiSliderFlags.AlwaysClamp);
 
-			ImGui.Checkbox("Tracks visualization".Localize(), ref MidiBard.config.PlotTracks);
-			//ImGuiUtil.ToolTip("Draw currently playing midi tracks.".Localize());
-			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
 
-			ImGui.Checkbox("Follow playback".Localize() + $" ({timeWindow:F2}s)###followPlayBack", ref MidiBard.config.LockPlot);
-			if (ImGui.IsItemHovered())
-			{
-				timeWindow *= Math.Pow(Math.E, ImGui.GetIO().MouseWheel * -0.1);
-			}
-			ImGuiUtil.ToolTip("Lock tracks window and auto following current playback progress".Localize());
 		}
 
 		private static void SetSpeed()

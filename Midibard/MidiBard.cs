@@ -131,22 +131,21 @@ namespace MidiBard
 		}
 
 		[Command("/midibard")]
-		[HelpMessage("Toggle MidiBard window.")]
+		[HelpMessage("Toggle MidiBard window")]
 		public void Command1(string command, string args) => OnCommand(command, args);
 
 		[Command("/mbard")]
-		[HelpMessage("Toggle MidiBard window.\n" +
-					 "/mbard perform [instrument name|instrument ID] → Switch to specified instrument.\n" +
-					 "/mbard cancel → Quit performance mode.\n" +
-					 "/mbard visual [on|off|toggle] → Midi tracks visualization\n" +
-					 "/mbard [play|pause|playpause|stop|next|prev|rewind (seconds)|fastforward (seconds)] → Midi playback control.")]
+		[HelpMessage("toggle MidiBard window\n" +
+					 "/mbard perform [instrument name|instrument ID] → switch to specified instrument\n" +
+					 "/mbard cancel → quit performance mode\n" +
+					 "/mbard visual [on|off|toggle] → midi tracks visualization\n" +
+					 "/mbard [play|pause|playpause|stop|next|prev|rewind (seconds)|fastforward (seconds)] → playback control")]
 		public void Command2(string command, string args) => OnCommand(command, args);
 
 		async Task OnCommand(string command, string args)
 		{
-			PluginLog.Debug($"command: {command}, {args}");
-
 			var argStrings = args.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+			PluginLog.Debug($"command: {command}, {string.Join('|', argStrings)}");
 			if (argStrings.Any())
 			{
 				switch (argStrings[0])
@@ -212,7 +211,6 @@ namespace MidiBard
 						}
 						break;
 					case "rewind":
-						try
 						{
 							double timeInSeconds = -5;
 							try
@@ -225,13 +223,8 @@ namespace MidiBard
 
 							MidiPlayerControl.MoveTime(timeInSeconds);
 						}
-						catch (Exception e)
-						{
-							PluginLog.Warning(e.ToString(), "error in rewind command");
-						}
 						break;
 					case "fastforward":
-						try
 						{
 							double timeInSeconds = 5;
 							try
@@ -243,10 +236,6 @@ namespace MidiBard
 							}
 
 							MidiPlayerControl.MoveTime(timeInSeconds);
-						}
-						catch (Exception e)
-						{
-							PluginLog.Warning(e.ToString(), "error in fast forward command");
 						}
 						break;
 				}

@@ -32,7 +32,7 @@ namespace MidiBard
 		}
 		private void LoadZh()
 		{
-			zh.Add("Import midi file.\nRight click to select file dialog type", "导入MIDI文件\n右键点击选择文件对话框类型");
+			zh.Add("Import midi file.\nRight click to select file dialog type\nPress ctrl+V to import files from clipboard", "导入MIDI文件\n右键点击选择导入文件对话框类型\n按Ctrl+V导入剪贴板中复制的文件");
 			zh.Add("Clear Playlist", "清空播放列表");
 			zh.Add("UI Language", "界面语言");
 			zh.Add("Help", "常见问题");
@@ -53,9 +53,9 @@ namespace MidiBard
 			zh.Add("SingleRepeat", "单曲循环");
 			zh.Add("Random", "随机播放");
 
-			zh.Add("Toggle player control panel", "演奏控制面板");
-			zh.Add("Toggle settings panel", "播放器设置面板");
-			zh.Add("Toggle mini player", "切换迷你播放器");
+			zh.Add("Music control panel", "演奏控制面板");
+			zh.Add("Settings panel", "播放器设置面板");
+			zh.Add("Mini player", "切换迷你播放器");
 			zh.Add("Track Selection. \nMidiBard will only perform enabled tracks.\nLeft click to enable/disable a track, Right click to solo it.",
 				"音轨选择。\r\nMIDIBARD只会演奏被选中的音轨。\n左键单击选择/取消选择音轨，右键单击Solo该音轨。");
 			zh.Add("Track", "音轨");
@@ -116,7 +116,11 @@ namespace MidiBard
 			zh.Add("Assign different guitar tones for each midi tracks", "为每个音轨指定不同的电吉他音色。");
 			zh.Add("Tracks visualization", "音轨可视化");
 			zh.Add("Follow playback", "跟随播放进度");
+			zh.Add("Lock tracks window and auto following current playback progress\nScroll mouse here to adjust view timeline scale", "锁定音轨窗口并自动跟随当前播放进度\n在此滚动鼠标滚轮以调整视图时间轴比例");
 			zh.Add("Lock tracks window and auto following current playback progress", "锁定音轨窗口并自动跟随当前播放进度");
+			zh.Add("Win32 file dialog", "Win32 文件对话框");
+			zh.Add("ImGui file dialog", "ImGui 文件对话框");
+			zh.Add("Import files from clipboard", "导入剪贴板中的文件");
 			
 		}
 	}
