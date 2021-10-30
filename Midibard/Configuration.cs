@@ -94,7 +94,7 @@ namespace MidiBard
 		public bool LockPlot;
 
 		public float plotScale = 10f;
-		
+
 
 		//public List<EnsembleTrack> EnsembleTracks = new List<EnsembleTrack>();
 		public bool SyncPlaylist = false;

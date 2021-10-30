@@ -52,9 +52,6 @@ namespace MidiBard
 			MainWindowVisible = false;
 		}
 
-
-		private static string searchstring = "";
-
 		public unsafe void Draw()
 		{
 #if DEBUG

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 using Dalamud.Interface;
 using ImGuiNET;
@@ -10,7 +11,9 @@ namespace MidiBard
 {
 	public partial class PluginUI
 	{
-		private static void DrawPlayList()
+		private string PlaylistSearchString = "";
+		private List<int> searchedPlaylistIndexs = new();
+		private void DrawPlayList()
 		{
 			ImGui.PushStyleColor(ImGuiCol.Button, 0);
 			ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0);
@@ -34,43 +37,32 @@ namespace MidiBard
 					{
 						clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
 					}
-					clipper.Begin(PlaylistManager.FilePathList.Count);
-					while (clipper.Step())
+
+					if (MidiBard.config.enableSearching && !string.IsNullOrEmpty(PlaylistSearchString))
 					{
-						for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+						clipper.Begin(searchedPlaylistIndexs.Count);
+						while (clipper.Step())
 						{
-							if (MidiBard.config.enableSearching)
+							for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
 							{
-								try
-								{
-									var item2 = PlaylistManager.FilePathList[i].Item2;
-									if (!item2.ContainsIgnoreCase(searchstring))
-									{
-										continue;
-									}
-								}
-								catch (Exception e)
-								{
-									continue;
-								}
+								DrawPlayListEntry(searchedPlaylistIndexs[i]);
 							}
-
-
-							ImGui.TableNextRow();
-							ImGui.TableSetColumnIndex(0);
-
-							DrawPlaylistItemSelectable(i);
-
-							ImGui.TableNextColumn();
-
-							DrawPlaylistDeleteButton(i);
-
-							ImGui.TableNextColumn();
-
-							DrawPlaylistTrackName(i);
 						}
+						clipper.End();
 					}
-					clipper.End();
+					else
+					{
+						clipper.Begin(PlaylistManager.FilePathList.Count);
+						while (clipper.Step())
+						{
+							for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+							{
+								DrawPlayListEntry(i);
+							}
+						}
+						clipper.End();
+					}
+
 
 					ImGui.EndTable();
 				}
@@ -80,6 +72,22 @@ namespace MidiBard
 
 
 			ImGui.PopStyleColor(4);
+		}
+
+		private static void DrawPlayListEntry(int i)
+		{
+			ImGui.TableNextRow();
+			ImGui.TableSetColumnIndex(0);
+
+			DrawPlaylistItemSelectable(i);
+
+			ImGui.TableNextColumn();
+
+			DrawPlaylistDeleteButton(i);
+
+			ImGui.TableNextColumn();
+
+			DrawPlaylistTrackName(i);
 		}
 
 		private static void DrawPlaylistTrackName(int i)
@@ -126,9 +134,6 @@ namespace MidiBard
 			if (ImGui.Button($"{((FontAwesomeIcon)0xF2ED).ToIconString()}##{i}",
 				new Vector2(ImGui.GetTextLineHeight(), ImGui.GetTextLineHeight())))
 			{
-#if DebugIpc
-				RPCManager.Instance.RPCBroadcast(IpcOpCode.PlayListRemoveIndex, new MidiBardIpcPlaylistRemoveIndex() { SongIndex = i });
-#endif
 				PlaylistManager.Remove(i);
 			}
 
@@ -146,25 +151,30 @@ namespace MidiBard
 				ImGui.EndTooltip();
 				if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
 				{
-#if DebugIpc
-					RPCManager.Instance.RPCBroadcast(IpcOpCode.PlayListClear, new MidiBardIpcPlaylist());
-#endif
 					PlaylistManager.Clear();
 				}
 			}
 		}
 
-		private static void TextBoxSearch()
+		private void TextBoxSearch()
 		{
 			ImGui.SetNextItemWidth(-1);
-			if (ImGui.InputTextWithHint("##searchplaylist", "Enter to search".Localize(), ref searchstring, 255,
-				ImGuiInputTextFlags.AutoSelectAll | ImGuiInputTextFlags.EnterReturnsTrue))
+			if (ImGui.InputTextWithHint("##searchplaylist", "Enter to search".Localize(), ref PlaylistSearchString, 255,
+				ImGuiInputTextFlags.AutoSelectAll))
 			{
+				searchedPlaylistIndexs.Clear();
+				for (var i = 0; i < PlaylistManager.FilePathList.Count; i++)
+				{
+					if (PlaylistManager.FilePathList[i].songName.ContainsIgnoreCase(PlaylistSearchString))
+					{
+						searchedPlaylistIndexs.Add(i);
+					}
+				}
 				//MidiBard.config.enableSearching = false;
 			}
 		}
 
-		private static unsafe void ButtonSearch()
+		private unsafe void ButtonSearch()
 		{
 			ImGui.PushStyleColor(ImGuiCol.Text,
 				MidiBard.config.enableSearching ? MidiBard.config.themeColor : *ImGui.GetStyleColorVec4(ImGuiCol.Text));
