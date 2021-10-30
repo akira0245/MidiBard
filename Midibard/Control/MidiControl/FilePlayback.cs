@@ -280,9 +280,6 @@ namespace MidiBard.Control.MidiControl
 
 		internal static async Task<bool> LoadPlayback(int index, bool startPlaying = false, bool switchInstrument = true)
 		{
-#if DEBUG
-			RPCManager.Instance.RPCBroadcast(IpcOpCode.SetSong, new MidiBardIpcSetSong() { SongIndex = index });
-#endif
 			var wasPlaying = IsPlaying;
 			CurrentPlayback?.Dispose();
 			CurrentPlayback = null;
@@ -290,7 +287,8 @@ namespace MidiBard.Control.MidiControl
 			if (midiFile == null)
 			{
 				// delete file if can't be loaded(likely to be deleted locally)
-				PluginLog.Debug($"[LoadPlayback] removing {PlaylistManager.FilePathList[index].path}");
+				PluginLog.Debug($"[LoadPlayback] removing {index}");
+				//PluginLog.Debug($"[LoadPlayback] removing {PlaylistManager.FilePathList[index].path}");
 				PlaylistManager.FilePathList.RemoveAt(index);
 				return false;
 			}

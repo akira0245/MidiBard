@@ -1,4 +1,4 @@
-﻿#if DEBUG
+﻿#if DebugIpc
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;

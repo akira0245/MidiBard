@@ -60,7 +60,8 @@ namespace MidiBard
 			.Where(i => !string.IsNullOrWhiteSpace(i.Instrument) || i.RowId == 0).Select(i =>
 				$"{(i.RowId == 0 ? "None" : $"{i.RowId:00} {i.Instrument.RawString} ({i.Name})")}").ToArray();
 
-		internal static byte CurrentInstrument => Marshal.ReadByte(Offsets.PerformInfos + 3 + Offsets.InstrumentOffset);
+		internal static byte CurrentInstrument => Marshal.ReadByte(Offsets.PerformanceStructPtr + 3 + Offsets.InstrumentOffset);
+		internal static byte CurrentTone => Marshal.ReadByte(Offsets.PerformanceStructPtr + 3 + Offsets.InstrumentOffset + 1);
 		internal static readonly byte[] guitarGroup = { 24, 25, 26, 27, 28 };
 		internal static bool PlayingGuitar => guitarGroup.Contains(CurrentInstrument);
 
@@ -78,13 +79,13 @@ namespace MidiBard
 
 			playlib.init(this);
 			OffsetManager.Setup(api.SigScanner);
+			GuitarTonePatch.InitAndApply();
 
 			AgentMetronome = new AgentMetronome(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.MetronomeAgent));
 			AgentPerformance = new AgentPerformance(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.PerformanceAgent));
 			_ = EnsembleManager.Instance;
 
 #if DEBUG
-			_ = RPCManager.Instance;
 			_ = NetworkManager.Instance;
 			_ = Testhooks.Instance;
 #endif
@@ -278,8 +279,8 @@ namespace MidiBard
 			{
 #if DEBUG
 				Testhooks.Instance?.Dispose();
-				RPCManager.Instance.Dispose();
 #endif
+				GuitarTonePatch.Dispose();
 				InputDeviceManager.ShouldScanMidiDeviceThread = false;
 				Framework.Update -= Tick;
 				PluginInterface.UiBuilder.Draw -= Ui.Draw;

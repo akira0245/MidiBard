@@ -13,7 +13,7 @@ namespace MidiBard.Managers
 		public static IntPtr PerformanceAgent { get; private set; }
 
 		[StaticAddress("48 8B 15 ?? ?? ?? ?? F6 C2 ??")]
-		public static IntPtr PerformInfos { get; private set; }
+		public static IntPtr PerformanceStructPtr { get; private set; }
 
 		[Function("48 89 6C 24 10 48 89 74 24 18 57 48 83 EC ?? 48 83 3D ?? ?? ?? ?? ?? 41 8B E8")]
 		public static IntPtr DoPerformAction { get; private set; }

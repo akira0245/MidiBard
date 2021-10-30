@@ -52,7 +52,10 @@ namespace MidiBard
 			try
 			{
 				var currentPlayback = MidiBard.CurrentPlayback;
-				timelinePos = currentPlayback.GetCurrentTime<MetricTimeSpan>().GetTotalSeconds();
+				if (currentPlayback != null)
+				{
+					timelinePos = currentPlayback.GetCurrentTime<MetricTimeSpan>().GetTotalSeconds();
+				}
 			}
 			catch (Exception e)
 			{
@@ -90,7 +93,7 @@ namespace MidiBard
 			}
 			if (ImPlot.BeginPlot(songName + "###midiTrackPlot",
 				null, null,
-				ImGui.GetWindowSize() - ImGuiHelpers.ScaledVector2(0, ImGui.GetCursorPosY()), ImPlotFlags.NoMousePos | ImPlotFlags.NoChild))
+				ImGui.GetWindowSize() - ImGuiHelpers.ScaledVector2(0, ImGui.GetCursorPosY()), ImPlotFlags.NoMousePos|ImPlotFlags.NoTitle | ImPlotFlags.NoChild))
 			{
 				var drawList = ImPlot.GetPlotDrawList();
 				var xMin = ImPlot.GetPlotLimits().X.Min;

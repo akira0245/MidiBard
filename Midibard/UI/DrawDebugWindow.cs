@@ -130,7 +130,7 @@ namespace MidiBard
 					Separator();
 					try
 					{
-						var performInfos = Offsets.PerformInfos;
+						var performInfos = Offsets.PerformanceStructPtr;
 						TextUnformatted($"PerformInfos: {performInfos.ToInt64() + 3:X}");
 						SameLine();
 						if (SmallButton("C##PerformInfos")) SetClipboardText($"{performInfos.ToInt64() + 3:X}");
@@ -635,44 +635,44 @@ namespace MidiBard
 				ImGui.End();
 #endif
 
-				if (MidiBard.config.DebugMisc && Begin(nameof(MidiBard) + "Rpc"))
-				{
-					//if (Button("SetupBroadcastingRPCBuffers"))
-					//{
-					//	RPCManager.Instance.SetupBroadcastingRPCBuffers();
-					//}
-					//if (Button("DisposeBroadcastingRPCBuffers"))
-					//{
-					//	RPCManager.Instance.DisposeBroadcastingRPCBuffers();
-					//}
+				//if (MidiBard.config.DebugMisc && Begin(nameof(MidiBard) + "Rpc"))
+				//{
+				//	//if (Button("SetupBroadcastingRPCBuffers"))
+				//	//{
+				//	//	RPCManager.Instance.SetupBroadcastingRPCBuffers();
+				//	//}
+				//	//if (Button("DisposeBroadcastingRPCBuffers"))
+				//	//{
+				//	//	RPCManager.Instance.DisposeBroadcastingRPCBuffers();
+				//	//}
 
-					if (Button("SetInstrument 1"))
-					{
-						RPCManager.Instance.RPCBroadcast(IpcOpCode.SetInstrument, new MidiBardIpcSetInstrument() { InstrumentId = 1 });
-					}
-					if (Button("SetInstrument 0"))
-					{
-						RPCManager.Instance.RPCBroadcast(IpcOpCode.SetInstrument, new MidiBardIpcSetInstrument() { InstrumentId = 0 });
-					}
+				//	if (Button("SetInstrument 1"))
+				//	{
+				//		RPCManager.Instance.RPCBroadcast(IpcOpCode.SetInstrument, new MidiBardIpcSetInstrument() { InstrumentId = 1 });
+				//	}
+				//	if (Button("SetInstrument 0"))
+				//	{
+				//		RPCManager.Instance.RPCBroadcast(IpcOpCode.SetInstrument, new MidiBardIpcSetInstrument() { InstrumentId = 0 });
+				//	}
 
-					if (Button("Reload playlist"))
-					{
-						RPCManager.Instance.RPCBroadcast(IpcOpCode.PlayListReload,
-							new MidiBardIpcPlaylist() { Paths = PlaylistManager.FilePathList.Select(i => i.path).ToArray() });
-					}
+				//	if (Button("Reload playlist"))
+				//	{
+				//		RPCManager.Instance.RPCBroadcast(IpcOpCode.PlayListReload,
+				//			new MidiBardIpcPlaylist() { Paths = PlaylistManager.FilePathList.Select(i => i.path).ToArray() });
+				//	}
 
-					TextUnformatted($"RpcSource:");
-					foreach (var (cid, rpcSource) in RPCManager.Instance.RPCSources)
-					{
-						TextUnformatted($"{cid:X} bytes: {rpcSource.Statistics.BytesWritten} sent: {rpcSource.Statistics.MessagesSent} recv: {rpcSource.Statistics.ResponsesReceived} error: {rpcSource.Statistics.ErrorsReceived}");
-					}
-					TextUnformatted($"RpcClient:\n\t{RPCManager.Instance.RpcClient}");
-				}
+				//	TextUnformatted($"RpcSource:");
+				//	foreach (var (cid, rpcSource) in RPCManager.Instance.RPCSources)
+				//	{
+				//		TextUnformatted($"{cid:X} bytes: {rpcSource.Statistics.BytesWritten} sent: {rpcSource.Statistics.MessagesSent} recv: {rpcSource.Statistics.ResponsesReceived} error: {rpcSource.Statistics.ErrorsReceived}");
+				//	}
+				//	TextUnformatted($"RpcClient:\n\t{RPCManager.Instance.RpcClient}");
+				//}
 
-				if (MidiBard.config.DebugEnsemble)
-				{
-					EnsemblePartyList();
-				}
+				//if (MidiBard.config.DebugEnsemble)
+				//{
+				//	EnsemblePartyList();
+				//}
 
 				//if (setup)
 				//{

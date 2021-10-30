@@ -110,11 +110,12 @@ namespace MidiBard
 			zh.Add("Transpose per track", "分音轨移调");
 			zh.Add("Transpose per track, right click to reset all tracks' transpose offset back to zero.", "启用分音轨移调，右键点击将全部音轨的移调偏移重置回0。");
 			zh.Add("Auto restart listening", "自动恢复监听");
-			zh.Add("Auto listening new device", "自动开始监听");
-			zh.Add("Try restart listening last used midi device on plugin start.", "在插件启动时尝试监听最后使用过的MIDI输入设备。");
-			zh.Add("Auto start listening new midi input device when idle.", "尝试自动对新连接的MIDI设备开始监听。");
+			//zh.Add("Auto listening new device", "自动开始监听");
+			zh.Add("Try auto restart listening last used midi device", "尝试监听最后使用过的MIDI输入设备。");
+			//zh.Add("Auto start listening new midi input device when idle.", "尝试自动对新连接的MIDI设备开始监听。");
 			zh.Add("Assign different guitar tones for each midi tracks", "为每个音轨指定不同的电吉他音色。");
 			zh.Add("Tracks visualization", "音轨可视化");
+			zh.Add("Draw midi tracks in a new window\nshowing the on/off and actual transposition of each track", "在新窗口中绘制MIDI音轨图像\n该图像将会反映MIDI音轨实际的开关情况和移调");
 			zh.Add("Follow playback", "跟随播放进度");
 			zh.Add("Lock tracks window and auto following current playback progress\nScroll mouse here to adjust view timeline scale", "锁定音轨窗口并自动跟随当前播放进度\n在此滚动鼠标滚轮以调整视图时间轴比例");
 			zh.Add("Lock tracks window and auto following current playback progress", "锁定音轨窗口并自动跟随当前播放进度");

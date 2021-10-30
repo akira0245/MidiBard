@@ -16,7 +16,7 @@ namespace MidiBard.Control.CharacterControl
 		public static void DoPerformAction(uint instrumentId)
 		{
 			PluginLog.Information($"[DoPerformAction] instrumentId: {instrumentId}");
-			doPerformAction(Offsets.PerformInfos, instrumentId);
+			doPerformAction(Offsets.PerformanceStructPtr, instrumentId);
 		}
 	}
 }

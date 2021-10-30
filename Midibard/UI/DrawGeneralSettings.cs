@@ -52,7 +52,7 @@ namespace MidiBard
 			ImGuiUtil.ToolTip("Choose external midi input device. right click to reset.".Localize());
 
 			ImGui.Checkbox("Auto restart listening".Localize(), ref MidiBard.config.autoRestoreListening);
-			ImGuiUtil.ToolTip("Try restart listening last used midi device when enabled.".Localize());
+			ImGuiUtil.ToolTip("Try auto restart listening last used midi device".Localize());
 			//ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
 			//ImGui.Checkbox("Auto listening new device".Localize(), ref MidiBard.config.autoStartNewListening);
 			//ImGuiUtil.ToolTip("Auto start listening new midi input device when idle.".Localize());
@@ -63,7 +63,7 @@ namespace MidiBard
 				MidiBard.Localizer = new Localizer((UILang)MidiBard.config.uiLang);
 
 			ImGui.Checkbox("Tracks visualization".Localize(), ref MidiBard.config.PlotTracks);
-			ImGuiUtil.ToolTip("Draw midi tracks in a new window\nshowing the on/off and actual transposition of each track.".Localize());
+			ImGuiUtil.ToolTip("Draw midi tracks in a new window\nshowing the on/off and actual transposition of each track".Localize());
 			ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
 
 			ImGui.Checkbox("Follow playback".Localize() + $" ({timeWindow:F2}s)###followPlayBack", ref MidiBard.config.LockPlot);

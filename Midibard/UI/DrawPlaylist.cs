@@ -28,38 +28,49 @@ namespace MidiBard
 					ImGui.TableSetupColumn("\ue035", ImGuiTableColumnFlags.WidthFixed);
 					ImGui.TableSetupColumn("##deleteColumn", ImGuiTableColumnFlags.WidthFixed);
 					ImGui.TableSetupColumn("filenameColumn", ImGuiTableColumnFlags.WidthStretch);
-					for (var i = 0; i < PlaylistManager.FilePathList.Count; i++)
+
+					ImGuiListClipperPtr clipper;
+					unsafe
 					{
-						if (MidiBard.config.enableSearching)
+						clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+					}
+					clipper.Begin(PlaylistManager.FilePathList.Count);
+					while (clipper.Step())
+					{
+						for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
 						{
-							try
+							if (MidiBard.config.enableSearching)
 							{
-								var item2 = PlaylistManager.FilePathList[i].Item2;
-								if (!item2.ContainsIgnoreCase(searchstring))
+								try
+								{
+									var item2 = PlaylistManager.FilePathList[i].Item2;
+									if (!item2.ContainsIgnoreCase(searchstring))
+									{
+										continue;
+									}
+								}
+								catch (Exception e)
 								{
 									continue;
 								}
 							}
-							catch (Exception e)
-							{
-								continue;
-							}
+
+
+							ImGui.TableNextRow();
+							ImGui.TableSetColumnIndex(0);
+
+							DrawPlaylistItemSelectable(i);
+
+							ImGui.TableNextColumn();
+
+							DrawPlaylistDeleteButton(i);
+
+							ImGui.TableNextColumn();
+
+							DrawPlaylistTrackName(i);
 						}
-
-
-						ImGui.TableNextRow();
-						ImGui.TableSetColumnIndex(0);
-
-						DrawPlaylistItemSelectable(i);
-
-						ImGui.TableNextColumn();
-
-						DrawPlaylistDeleteButton(i);
-
-						ImGui.TableNextColumn();
-
-						DrawPlaylistTrackName(i);
 					}
+					clipper.End();
 
 					ImGui.EndTable();
 				}
@@ -115,7 +126,7 @@ namespace MidiBard
 			if (ImGui.Button($"{((FontAwesomeIcon)0xF2ED).ToIconString()}##{i}",
 				new Vector2(ImGui.GetTextLineHeight(), ImGui.GetTextLineHeight())))
 			{
-#if DEBUG
+#if DebugIpc
 				RPCManager.Instance.RPCBroadcast(IpcOpCode.PlayListRemoveIndex, new MidiBardIpcPlaylistRemoveIndex() { SongIndex = i });
 #endif
 				PlaylistManager.Remove(i);
@@ -135,7 +146,7 @@ namespace MidiBard
 				ImGui.EndTooltip();
 				if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
 				{
-#if DEBUG
+#if DebugIpc
 					RPCManager.Instance.RPCBroadcast(IpcOpCode.PlayListClear, new MidiBardIpcPlaylist());
 #endif
 					PlaylistManager.Clear();

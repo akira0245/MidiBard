@@ -112,13 +112,6 @@ namespace MidiBard
 			{
 				FilePathList.Clear();
 				MidiBard.config.Playlist.Clear();
-#if DEBUG
-				RPCManager.Instance.RPCBroadcast(IpcOpCode.PlayListReload, new MidiBardIpcPlaylist() { Paths = filePaths });
-			}
-			else
-			{
-				RPCManager.Instance.RPCBroadcast(IpcOpCode.PlayListAdd, new MidiBardIpcPlaylist() { Paths = filePaths });
-#endif
 			}
 
 			var count = filePaths.Length;
