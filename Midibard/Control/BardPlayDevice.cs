@@ -101,7 +101,7 @@ namespace MidiBard.Control
                                 playlib.GuitarSwitchTone(tone);
 
                                 // var (id, name) = MidiBard.InstrumentPrograms[MidiBard.ProgramInstruments[prog]];
-                                // PluginLog.Verbose($"[N][NoteOn][{trackIndex}:{noteOnEvent.Channel}] Changing guitar instrument to [{id} t:({tone})] {name} ({(GeneralMidiProgram)(byte)prog})");
+                                // PluginLog.Verbose($"[N][NoteOn][{trackIndex}:{noteOnEvent.Channel}] Changing guitar program to [{id} t:({tone})] {name} ({(GeneralMidiProgram)(byte)prog})");
                             }
                         }
                     }
@@ -119,26 +119,20 @@ namespace MidiBard.Control
                 {
                     int channel = programChange.Channel;
                     SevenBitNumber currentProgram = Channels[channel].Program;
-                    SevenBitNumber newProgram = programChange.ProgramNumber;
+                    SevenBitNumber newProgram = (SevenBitNumber)(programChange.ProgramNumber + 1);
 
                     if (currentProgram == newProgram)
                         break;
 
-                    PluginLog.Verbose($"[N][ProgramChange][{trackIndex}:{programChange.Channel}] {programChange.ProgramNumber,-3} {(GeneralMidiProgram)(byte)programChange.ProgramNumber}");
+                    PluginLog.Verbose($"[N][ProgramChange][{trackIndex}:{programChange.Channel}] {programChange.ProgramNumber + 1,-3} {(GeneralMidiProgram)(byte)programChange.ProgramNumber}");
 
                     if (MidiBard.PlayingGuitar && !MidiBard.config.OverrideGuitarTones)
                     {
-                        newProgram = (SevenBitNumber)(newProgram + 1);
                         uint instrument = MidiBard.ProgramInstruments[newProgram];
                         if (!MidiBard.guitarGroup.Contains((byte)instrument))
                         {
-                            newProgram = (SevenBitNumber)(MidiBard.guitarGroup[0] + newProgram);
+                            newProgram = MidiBard.InstrumentPrograms[MidiBard.CurrentInstrument].id;
                             instrument = MidiBard.ProgramInstruments[newProgram];
-
-                            if (!MidiBard.guitarGroup.Contains((byte)instrument))
-                            {
-                                newProgram = MidiBard.InstrumentPrograms[MidiBard.CurrentInstrument].id;
-                            }
                         }
 
                         if (Channels[channel].Program != newProgram)

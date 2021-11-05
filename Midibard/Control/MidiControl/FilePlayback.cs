@@ -77,7 +77,7 @@ namespace MidiBard.Control.MidiControl
 							TextEventsText = i.Events.OfType<TextEvent>()
 								.Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct().ToArray(),
 							ProgramChangeEvent = i.Events.OfType<ProgramChangeEvent>().Select(j =>
-								$"channel {j.Channel}, {(GeneralMidiProgram)(byte)j.ProgramNumber}").Distinct().ToArray(),
+								$"channel {j.Channel}, {(GeneralMidiProgram)(byte)j.ProgramNumber + 1}").Distinct().ToArray(),
 							HighestNote = notesHighest,
 							LowestNote = notesLowest,
 							NoteCount = notesCount,
@@ -118,7 +118,7 @@ namespace MidiBard.Control.MidiControl
 							TextEventsText = i.Events.OfType<TextEvent>()
 								.Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct().ToArray(),
 							ProgramChangeEvent = i.Events.OfType<ProgramChangeEvent>()
-								.Select(j => $"{j.Channel} {(GeneralMidiProgram)(byte)j.ProgramNumber}").Distinct().ToArray(),
+								.Select(j => $"{j.Channel} {(GeneralMidiProgram)(byte)j.ProgramNumber + 1}").Distinct().ToArray(),
 							HighestNote = notesHighest,
 							LowestNote = notesLowest,
 							NoteCount = notesCount
@@ -153,7 +153,7 @@ namespace MidiBard.Control.MidiControl
                     .OfType<ProgramChangeEvent>())
                 {
                     FourBitNumber channel = programChangeEvent.Channel;
-                    SevenBitNumber prog = (SevenBitNumber)Math.Max(0, programChangeEvent.ProgramNumber - 1);
+                    SevenBitNumber prog = (SevenBitNumber)Math.Max(0, programChangeEvent.ProgramNumber + 1);
                     // PluginLog.Verbose($"FOUND INIT PROGRAMCHANGE c:{channel} p:{prog}");
 
                     for (int i = 0; i < CurrentOutputDevice.Channels.Length; i++)
