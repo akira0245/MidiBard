@@ -76,25 +76,27 @@ namespace MidiBard.Control.CharacterControl
 			}
 		}
 
-		private static Regex regex = new Regex(@"^#(.*?)([-|+][0-9]+)?#", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private static Regex regex = new Regex(@"^#(?<ins>.*?)(?<trans>[-|+][0-9]+)?#(?<name>.*)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-		private static void ParseSongName(string inputString, out uint? instrumentId, out int? transpose)
+		public static string ParseSongName(string inputString, out uint? instrumentId, out int? transpose)
 		{
 			var match = regex.Match(inputString);
 			if (match.Success)
 			{
-				var capturedInstrumentString = match.Groups[1].Value;
-				var capturedTransposeString = match.Groups[2].Value;
+				var capturedInstrumentString = match.Groups["ins"].Value;
+				var capturedTransposeString = match.Groups["trans"].Value;
+				var capturedSongName = match.Groups["name"].Value;
 
 				PluginLog.Debug($"input: \"{inputString}\", instrumentString: {capturedInstrumentString}, transposeString: {capturedTransposeString}");
 				transpose = int.TryParse(capturedTransposeString, out var t) ? t : null;
 				instrumentId = TryParseInstrumentName(capturedInstrumentString, out var id) ? id : null;
-				return;
+				return !string.IsNullOrEmpty(capturedSongName) ? capturedSongName : inputString;
 			}
 
 			instrumentId = null;
 			transpose = null;
-		}
+            return inputString;
+        }
 
 		public static bool TryParseInstrumentName(string capturedInstrumentString, out uint instrumentId)
 		{
@@ -162,7 +164,7 @@ namespace MidiBard.Control.CharacterControl
 				return;
 			}
 
-			ParseSongName(songName, out var idFromSongName, out var transposeGlobal);
+            ParseSongName(songName, out var idFromSongName, out var transposeGlobal);
 
 			if (config.autoTransposeBySongName)
 			{

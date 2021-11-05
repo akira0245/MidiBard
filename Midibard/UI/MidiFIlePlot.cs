@@ -85,7 +85,7 @@ namespace MidiBard
 			string songName = "";
 			try
 			{
-				songName = PlaylistManager.FilePathList[PlaylistManager.CurrentPlaying].songName;
+				songName = PlaylistManager.FilePathList[PlaylistManager.CurrentPlaying].displayName;
 			}
 			catch (Exception e)
 			{

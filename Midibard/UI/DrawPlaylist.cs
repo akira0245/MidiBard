@@ -94,13 +94,13 @@ namespace MidiBard
 		{
 			try
 			{
-				var item2 = PlaylistManager.FilePathList[i].Item2;
-				ImGui.TextUnformatted(item2);
+				var (_, fileName, displayName) = PlaylistManager.FilePathList[i];
+				ImGui.TextUnformatted(displayName);
 
 				if (ImGui.IsItemHovered())
 				{
 					ImGui.BeginTooltip();
-					ImGui.TextUnformatted(item2);
+					ImGui.TextUnformatted(fileName);
 					ImGui.EndTooltip();
 				}
 			}
@@ -165,7 +165,7 @@ namespace MidiBard
 				searchedPlaylistIndexs.Clear();
 				for (var i = 0; i < PlaylistManager.FilePathList.Count; i++)
 				{
-					if (PlaylistManager.FilePathList[i].songName.ContainsIgnoreCase(PlaylistSearchString))
+					if (PlaylistManager.FilePathList[i].fileName.ContainsIgnoreCase(PlaylistSearchString))
 					{
 						searchedPlaylistIndexs.Add(i);
 					}

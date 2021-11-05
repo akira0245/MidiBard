@@ -30,6 +30,7 @@ namespace MidiBard
 	public class Configuration : IPluginConfiguration
 	{
 		public int Version { get; set; }
+		public bool Debug;
 		public bool DebugAgentInfo;
 		public bool DebugDeviceInfo;
 		public bool DebugOffsets;

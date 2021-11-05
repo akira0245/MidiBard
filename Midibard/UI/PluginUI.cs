@@ -56,7 +56,7 @@ namespace MidiBard
 		{
 #if DEBUG
 			//if (ImGui.Button("Debug info", new Vector2(-2, ImGui.GetFrameHeight()))) MidiBard.Debug ^= true;
-			if (MidiBard.Debug) DrawDebugWindow();
+			if (MidiBard.Debug && config.Debug) DrawDebugWindow();
 #endif
 			fileDialogManager.Draw();
 			if (MainWindowVisible)
@@ -70,7 +70,7 @@ namespace MidiBard
 			}
 		}
 
-		
+
 
 		private void DrawMainPluginWindow()
 		{
