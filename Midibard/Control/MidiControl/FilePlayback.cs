@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Dalamud.Logging;
+using Melanchall.DryWetMidi.Common;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Interaction;
@@ -137,7 +138,38 @@ namespace MidiBard.Control.MidiControl
 			var timedEvents = CurrentTracks.Select(i => i.trackChunk)
 				.SelectMany((chunk, index) => chunk.GetTimedEvents()
 					.Select(e => new TimedEventWithTrackChunkIndex(e.Event, e.Time, index)))
-				.OrderBy(e => e.Time);
+				.OrderBy(e => e.Time)
+                .ToList();
+
+            var (programTrackChunk, programTrackInfo) =
+                CurrentTracks.FirstOrDefault(i => Regex.IsMatch(i.trackInfo.TrackName, @"^Program:.+$", RegexOptions.Compiled | RegexOptions.IgnoreCase));
+            if (programTrackChunk is not null && programTrackInfo is not null)
+            {
+                // PluginLog.Verbose($"FOUND PROGRAM TRACK i:{programTrackInfo.Index}");
+
+                foreach (ProgramChangeEvent programChangeEvent in timedEvents
+                    .Where(e => (int)e.Metadata == programTrackInfo.Index && e.Time == 0)
+                    .Select(e => e.Event)
+                    .OfType<ProgramChangeEvent>())
+                {
+                    FourBitNumber channel = programChangeEvent.Channel;
+                    SevenBitNumber prog = (SevenBitNumber)Math.Max(0, programChangeEvent.ProgramNumber - 1);
+                    // PluginLog.Verbose($"FOUND INIT PROGRAMCHANGE c:{channel} p:{prog}");
+
+                    for (int i = 0; i < CurrentOutputDevice.Channels.Length; i++)
+                    {
+                        CurrentOutputDevice.Channels[i].Program = prog;
+                    }
+                }
+            }
+            else
+            {
+                SevenBitNumber prog = InstrumentPrograms[CurrentInstrument].id;
+                for (int i = 0; i < CurrentOutputDevice.Channels.Length; i++)
+                {
+                    CurrentOutputDevice.Channels[i].Program = prog;
+                }
+            }
 
 			var playback = new BardPlayback(timedEvents, CurrentTMap, new MidiClockSettings { CreateTickGeneratorCallback = () => new HighPrecisionTickGenerator() })
 			{
@@ -152,6 +184,13 @@ namespace MidiBard.Control.MidiControl
 				//				}
 				//#endif
 			};
+
+            PluginLog.Information($"[LoadPlayback] Channels for {trackName}:");
+            for (int i = 0; i < CurrentOutputDevice.Channels.Length; i++)
+            {
+                uint prog = CurrentOutputDevice.Channels[i].Program;
+                PluginLog.Information($"  - [{i}]: {(GeneralMidiProgram)prog} ({prog})");
+            }
 
 			playback.Finished += Playback_Finished;
 			PluginLog.Information($"[LoadPlayback] -> {trackName} OK! in {stopwatch.Elapsed.TotalMilliseconds} ms");
@@ -294,23 +333,25 @@ namespace MidiBard.Control.MidiControl
 			}
 			else
 			{
-				CurrentPlayback = await Task.Run(() => GetFilePlayback(midiFile, PlaylistManager.FilePathList[index].songName));
-				Ui.RefreshPlotData();
+				CurrentPlayback = await Task.Run(() => GetFilePlayback(midiFile, PlaylistManager.FilePathList[index].displayName));
+                Ui.RefreshPlotData();
 				PlaylistManager.CurrentPlaying = index;
 				if (switchInstrument)
 				{
 					try
 					{
-						var songName = PlaylistManager.FilePathList[index].songName;
+						var songName = PlaylistManager.FilePathList[index].fileName;
 						await SwitchInstrument.WaitSwitchInstrumentForSong(songName);
 					}
 					catch (Exception e)
 					{
 						PluginLog.Warning(e.ToString());
 					}
-					if (wasPlaying || startPlaying)
-						CurrentPlayback?.Start();
-				}
+                }
+
+                if (switchInstrument && (wasPlaying || startPlaying))
+                    CurrentPlayback?.Start();
+
 				return true;
 			}
 		}

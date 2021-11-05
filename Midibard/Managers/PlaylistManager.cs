@@ -14,6 +14,7 @@ using Melanchall.DryWetMidi.Common;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.Tools;
+using MidiBard.Control.CharacterControl;
 using MidiBard.DalamudApi;
 using MidiBard.Managers.Ipc;
 
@@ -21,7 +22,7 @@ namespace MidiBard
 {
 	static class PlaylistManager
 	{
-		public static List<(string path, string songName)> FilePathList { get; set; } = new List<(string, string)>();
+		public static List<(string path, string fileName, string displayName)> FilePathList { get; set; } = new List<(string, string, string)>();
 
 		public static int CurrentPlaying
 		{
@@ -120,7 +121,8 @@ namespace MidiBard
 			await foreach (var path in GetPathsAvailable(filePaths))
 			{
 				MidiBard.config.Playlist.Add(path);
-				FilePathList.Add((path, Path.GetFileNameWithoutExtension(path)));
+                string fileName = Path.GetFileNameWithoutExtension(path);
+                FilePathList.Add((path, fileName, SwitchInstrument.ParseSongName(fileName, out _, out _)));
 				success++;
 			}
 
