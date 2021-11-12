@@ -161,7 +161,14 @@ namespace MidiBard
 							if (ImGui.Button("Import midi files to start performing!".Localize(),
 								new Vector2(-1, ImGui.GetFrameHeight())))
 							{
-								RunImportTask();
+								if (MidiBard.config.useLegacyFileDialog)
+								{
+									RunImportTaskLegacy();
+								}
+								else
+								{
+									RunImportTask();
+								}
 							}
 						}
 						else
