@@ -41,7 +41,12 @@ namespace MidiBard.Control.CharacterControl
 				{
 					if (MidiBard.guitarGroup.Contains((byte)instrumentId))
 					{
-						playlib.GuitarSwitchTone((int)instrumentId - MidiBard.guitarGroup[0]);
+						var tone = (int)instrumentId - MidiBard.guitarGroup[0];
+						if (playlib.GuitarSwitchTone(tone))
+						{
+							UITone.Set((uint)tone);
+						}
+
 						return;
 					}
 				}

@@ -1,10 +1,12 @@
-﻿using System;
+using System;
 using System.Linq;
 using Dalamud.Logging;
 using Melanchall.DryWetMidi.Common;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Standards;
+using MidiBard.Control.CharacterControl;
+using MidiBard.Util;
 using playlibnamespace;
 
 namespace MidiBard.Control
@@ -82,7 +84,10 @@ namespace MidiBard.Control
                         if (MidiBard.config.OverrideGuitarTones)
                         {
                             int tone = MidiBard.config.TonesPerTrack[trackIndex.Value];
-                            playlib.GuitarSwitchTone(tone);
+                            if (playlib.GuitarSwitchTone(tone))
+                            {
+	                            UITone.Set((uint)tone);
+                            }
                             // PluginLog.Verbose($"[N][NoteOn][{trackIndex}:{noteOnEvent.Channel}] Overriding guitar tone {tone}");
                         }
                         else
@@ -98,8 +103,10 @@ namespace MidiBard.Control
                             if (MidiBard.guitarGroup.Contains((byte)instrument))
                             {
                                 int tone = (int)(instrument - MidiBard.guitarGroup[0]);
-                                playlib.GuitarSwitchTone(tone);
-
+                                if (playlib.GuitarSwitchTone(tone))
+                                {
+	                                UITone.Set((uint)tone);
+                                }
                                 // var (id, name) = MidiBard.InstrumentPrograms[MidiBard.ProgramInstruments[prog]];
                                 // PluginLog.Verbose($"[N][NoteOn][{trackIndex}:{noteOnEvent.Channel}] Changing guitar program to [{id} t:({tone})] {name} ({(GeneralMidiProgram)(byte)prog})");
                             }

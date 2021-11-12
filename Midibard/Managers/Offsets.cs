@@ -24,6 +24,9 @@ namespace MidiBard.Managers
 		[Function("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 0F B6 FA 48 8B D9 84 D2 ")]
 		public static IntPtr UpdateMetronome { get; private set; }
 
+		[Function("83 FA 04 77 4E")]
+		public static IntPtr UISetTone { get; private set; }
+
 #if DEBUG
 
 		[Function("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 48 8B DA 8B F9 ")]
