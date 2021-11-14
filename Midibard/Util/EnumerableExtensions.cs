@@ -4,54 +4,53 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MidiBard
+namespace MidiBard;
+
+static class EnumerableExtensions
 {
-	static class EnumerableExtensions
-	{
-		public static TSource MaxElement<TSource, R>(this IEnumerable<TSource> container, Func<TSource, R> valuingFoo) where R : IComparable
-		{
-			var enumerator = container.GetEnumerator();
-			if (!enumerator.MoveNext())
-				throw new ArgumentException("Container is empty!");
+    public static TSource MaxElement<TSource, R>(this IEnumerable<TSource> container, Func<TSource, R> valuingFoo) where R : IComparable
+    {
+        var enumerator = container.GetEnumerator();
+        if (!enumerator.MoveNext())
+            throw new ArgumentException("Container is empty!");
 
-			var maxElem = enumerator.Current;
-			var maxVal = valuingFoo(maxElem);
+        var maxElem = enumerator.Current;
+        var maxVal = valuingFoo(maxElem);
 
-			while (enumerator.MoveNext())
-			{
-				var currVal = valuingFoo(enumerator.Current);
+        while (enumerator.MoveNext())
+        {
+            var currVal = valuingFoo(enumerator.Current);
 
-				if (currVal.CompareTo(maxVal) > 0)
-				{
-					maxVal = currVal;
-					maxElem = enumerator.Current;
-				}
-			}
+            if (currVal.CompareTo(maxVal) > 0)
+            {
+                maxVal = currVal;
+                maxElem = enumerator.Current;
+            }
+        }
 
-			return maxElem;
-		}
+        return maxElem;
+    }
 
-		public static TSource MinElement<TSource, R>(this IEnumerable<TSource> container, Func<TSource, R> valuingFoo) where R : IComparable
-		{
-			var enumerator = container.GetEnumerator();
-			if (!enumerator.MoveNext())
-				throw new ArgumentException("Container is empty!");
+    public static TSource MinElement<TSource, R>(this IEnumerable<TSource> container, Func<TSource, R> valuingFoo) where R : IComparable
+    {
+        var enumerator = container.GetEnumerator();
+        if (!enumerator.MoveNext())
+            throw new ArgumentException("Container is empty!");
 
-			var maxElem = enumerator.Current;
-			var maxVal = valuingFoo(maxElem);
+        var maxElem = enumerator.Current;
+        var maxVal = valuingFoo(maxElem);
 
-			while (enumerator.MoveNext())
-			{
-				var currVal = valuingFoo(enumerator.Current);
+        while (enumerator.MoveNext())
+        {
+            var currVal = valuingFoo(enumerator.Current);
 
-				if (currVal.CompareTo(maxVal) < 0)
-				{
-					maxVal = currVal;
-					maxElem = enumerator.Current;
-				}
-			}
+            if (currVal.CompareTo(maxVal) < 0)
+            {
+                maxVal = currVal;
+                maxElem = enumerator.Current;
+            }
+        }
 
-			return maxElem;
-		}
-	}
+        return maxElem;
+    }
 }

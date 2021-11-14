@@ -18,123 +18,123 @@ using MidiBard.Managers.Ipc;
 using MidiBard.Util;
 using static MidiBard.MidiBard;
 
-namespace MidiBard.Control.MidiControl
+namespace MidiBard.Control.MidiControl;
+
+public static class FilePlayback
 {
-    public static class FilePlayback
+    private static readonly Regex regex = new Regex(@"^#.*?([-|+][0-9]+).*?#", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+    public static BardPlayback GetFilePlayback(MidiFile midifile, string trackName)
     {
-        private static readonly Regex regex = new Regex(@"^#.*?([-|+][0-9]+).*?#", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        PluginLog.Information($"[LoadPlayback] -> {trackName} START");
+        var stopwatch = Stopwatch.StartNew();
 
-        public static BardPlayback GetFilePlayback(MidiFile midifile, string trackName)
+        try
         {
-            PluginLog.Information($"[LoadPlayback] -> {trackName} START");
-            var stopwatch = Stopwatch.StartNew();
+            CurrentTMap = midifile.GetTempoMap();
+        }
+        catch (Exception e)
+        {
+            PluginLog.Warning("[LoadPlayback] error when getting file TempoMap, using default TempoMap instead.");
+            CurrentTMap = TempoMap.Default;
+        }
+
+        try
+        {
+            CurrentTracks = midifile.GetTrackChunks()
+                .Where(i => i.Events.Any(j => j is NoteOnEvent))
+                .Select(i =>
+                {
+                    var notes = i.GetNotes().ToArray();
+                    return GetTrackInfos(notes, i);
+                }).ToList();
+        }
+        catch (Exception exception1)
+        {
+            PluginLog.Warning(exception1, $"[LoadPlayback] error when parsing tracks, falling back to generated NoteEvent playback.");
 
             try
             {
-                CurrentTMap = midifile.GetTempoMap();
-            }
-            catch (Exception e)
-            {
-                PluginLog.Warning("[LoadPlayback] error when getting file TempoMap, using default TempoMap instead.");
-                CurrentTMap = TempoMap.Default;
-            }
+                PluginLog.Debug($"[LoadPlayback] file.Chunks.Count {midifile.Chunks.Count}");
+                var trackChunks = midifile.GetTrackChunks().ToList();
+                PluginLog.Debug($"[LoadPlayback] file.GetTrackChunks.Count {trackChunks.Count}");
+                PluginLog.Debug($"[LoadPlayback] file.GetTrackChunks.First {trackChunks.First()}");
+                PluginLog.Debug($"[LoadPlayback] file.GetTrackChunks.Events.Count {trackChunks.First().Events.Count}");
+                PluginLog.Debug($"[LoadPlayback] file.GetTrackChunks.Events.OfType<NoteEvent>.Count {trackChunks.First().Events.OfType<NoteEvent>().Count()}");
 
-            try
-            {
-                CurrentTracks = midifile.GetTrackChunks()
+                CurrentTracks = trackChunks
                     .Where(i => i.Events.Any(j => j is NoteOnEvent))
                     .Select(i =>
                     {
-                        var notes = i.GetNotes().ToArray();
+                        var notes = i.Events.OfType<NoteEvent>().GetNotes().ToArray();
                         return GetTrackInfos(notes, i);
                     }).ToList();
             }
-            catch (Exception exception1)
+            catch (Exception exception2)
             {
-                PluginLog.Warning(exception1, $"[LoadPlayback] error when parsing tracks, falling back to generated NoteEvent playback.");
-
-                try
-                {
-                    PluginLog.Debug($"[LoadPlayback] file.Chunks.Count {midifile.Chunks.Count}");
-                    var trackChunks = midifile.GetTrackChunks().ToList();
-                    PluginLog.Debug($"[LoadPlayback] file.GetTrackChunks.Count {trackChunks.Count}");
-                    PluginLog.Debug($"[LoadPlayback] file.GetTrackChunks.First {trackChunks.First()}");
-                    PluginLog.Debug($"[LoadPlayback] file.GetTrackChunks.Events.Count {trackChunks.First().Events.Count}");
-                    PluginLog.Debug($"[LoadPlayback] file.GetTrackChunks.Events.OfType<NoteEvent>.Count {trackChunks.First().Events.OfType<NoteEvent>().Count()}");
-
-                    CurrentTracks = trackChunks
-                    .Where(i => i.Events.Any(j => j is NoteOnEvent))
-                    .Select(i =>
-                        {
-                            var notes = i.Events.OfType<NoteEvent>().GetNotes().ToArray();
-                            return GetTrackInfos(notes, i);
-                        }).ToList();
-                }
-                catch (Exception exception2)
-                {
-                    PluginLog.Error(exception2, "[LoadPlayback] still errors? check your file");
-                    throw;
-                }
+                PluginLog.Error(exception2, "[LoadPlayback] still errors? check your file");
+                throw;
             }
+        }
 
-            int givenIndex = 0;
-            CurrentTracks.ForEach(tuple => tuple.trackInfo.Index = givenIndex++);
+        int givenIndex = 0;
+        CurrentTracks.ForEach(tuple => tuple.trackInfo.Index = givenIndex++);
 
-            var timedEvents = CurrentTracks.Select(i => i.trackChunk).AsParallel()
-                .SelectMany((chunk, index) => chunk.GetTimedEvents().Select(e =>
-                {
-                    var compareValue = e.Event switch
-                    {
-                        //order chords so they always play from low to high
-                        NoteOnEvent noteOn => noteOn.NoteNumber,
-                        //order program change events so they always get processed before notes 
-                        ProgramChangeEvent => -2,
-                        //keep other unimportant events order
-                        _ => -1
-                    };
-                    return (compareValue, timedEvent: new TimedEventWithTrackChunkIndex(e.Event, e.Time, index));
-                }))
-                .OrderBy(e => e.timedEvent.Time)
-                .ThenBy(i => i.compareValue)
-                .Select(i => i.timedEvent);
-
-            //var (programTrackChunk, programTrackInfo) =
-            //    CurrentTracks.FirstOrDefault(i => Regex.IsMatch(i.trackInfo.TrackName, @"^Program:.+$", RegexOptions.Compiled | RegexOptions.IgnoreCase));
-
-            Array.Fill(CurrentOutputDevice.Channels, new BardPlayDevice.ChannelState());
-            //if (programTrackChunk is not null && programTrackInfo is not null)
-            //{
-            //	PluginLog.Verbose($"FOUND PROGRAM TRACK i:{programTrackInfo.Index}");
-
-            //	foreach (ProgramChangeEvent programChangeEvent in timedEvents
-            //		.Where(e => (int)e.Metadata == programTrackInfo.Index && e.Time == 0)
-            //		.Select(e => e.Event)
-            //		.OfType<ProgramChangeEvent>())
-            //	{
-            //		FourBitNumber channel = programChangeEvent.Channel;
-            //		SevenBitNumber prog = (SevenBitNumber)Math.Max(0, programChangeEvent.ProgramNumber + 1);
-            //		//PluginLog.Verbose($"FOUND INIT PROGRAMCHANGE c:{channel} p:{prog}");
-
-            //		for (int i = 0; i < CurrentOutputDevice.Channels.Length; i++)
-            //		{
-            //			CurrentOutputDevice.Channels[i].Program = prog;
-            //		}
-            //	}
-            //}
-            //else
-            //{
-            //	SevenBitNumber prog = InstrumentPrograms[CurrentInstrument].id;
-            //	for (int i = 0; i < CurrentOutputDevice.Channels.Length; i++)
-            //	{
-            //		CurrentOutputDevice.Channels[i].Program = prog;
-            //	}
-            //}
-
-            var playback = new BardPlayback(timedEvents, CurrentTMap, new MidiClockSettings { CreateTickGeneratorCallback = () => new HighPrecisionTickGenerator() })
+        var timedEvents = CurrentTracks.Select(i => i.trackChunk).AsParallel()
+            .SelectMany((chunk, index) => chunk.GetTimedEvents().Select(e =>
             {
-                InterruptNotesOnStop = true,
-                Speed = config.playSpeed,
-                TrackProgram = true,
+                var compareValue = e.Event switch
+                {
+                    //order chords so they always play from low to high
+                    NoteOnEvent noteOn => noteOn.NoteNumber,
+                    //order program change events so they always get processed before notes 
+                    ProgramChangeEvent => -2,
+                    //keep other unimportant events order
+                    _ => -1
+                };
+                return (compareValue, timedEvent: new TimedEventWithTrackChunkIndex(e.Event, e.Time, index));
+            }))
+            .OrderBy(e => e.timedEvent.Time)
+            .ThenBy(i => i.compareValue)
+            .Select(i => i.timedEvent);
+
+        //var (programTrackChunk, programTrackInfo) =
+        //    CurrentTracks.FirstOrDefault(i => Regex.IsMatch(i.trackInfo.TrackName, @"^Program:.+$", RegexOptions.Compiled | RegexOptions.IgnoreCase));
+
+        Array.Fill(CurrentOutputDevice.Channels, new BardPlayDevice.ChannelState());
+        //if (programTrackChunk is not null && programTrackInfo is not null)
+        //{
+        //	PluginLog.Verbose($"FOUND PROGRAM TRACK i:{programTrackInfo.Index}");
+
+        //	foreach (ProgramChangeEvent programChangeEvent in timedEvents
+        //		.Where(e => (int)e.Metadata == programTrackInfo.Index && e.Time == 0)
+        //		.Select(e => e.Event)
+        //		.OfType<ProgramChangeEvent>())
+        //	{
+        //		FourBitNumber channel = programChangeEvent.Channel;
+        //		SevenBitNumber prog = (SevenBitNumber)Math.Max(0, programChangeEvent.ProgramNumber + 1);
+        //		//PluginLog.Verbose($"FOUND INIT PROGRAMCHANGE c:{channel} p:{prog}");
+
+        //		for (int i = 0; i < CurrentOutputDevice.Channels.Length; i++)
+        //		{
+        //			CurrentOutputDevice.Channels[i].Program = prog;
+        //		}
+        //	}
+        //}
+        //else
+        //{
+        //	SevenBitNumber prog = InstrumentPrograms[CurrentInstrument].id;
+        //	for (int i = 0; i < CurrentOutputDevice.Channels.Length; i++)
+        //	{
+        //		CurrentOutputDevice.Channels[i].Program = prog;
+        //	}
+        //}
+
+        var playback = new BardPlayback(timedEvents, CurrentTMap, new MidiClockSettings { CreateTickGeneratorCallback = () => new HighPrecisionTickGenerator() })
+        {
+            InterruptNotesOnStop = true,
+            Speed = config.playSpeed,
+            TrackProgram = true,
 #if DEBUG
                 NoteCallback = (data, time, length, playbackTime) =>
                 {
@@ -142,220 +142,219 @@ namespace MidiBard.Control.MidiControl
                     return data;
                 }
 #endif
-            };
+        };
 
-            PluginLog.Information($"[LoadPlayback] Channels for {trackName}:");
-            for (int i = 0; i < CurrentOutputDevice.Channels.Length; i++)
-            {
-                uint prog = CurrentOutputDevice.Channels[i].Program;
-                PluginLog.Information($"  - [{i}]: {ProgramNames.GetGMProgramName((byte)prog)} ({prog})");
-            }
-
-            playback.Finished += Playback_Finished;
-            PluginLog.Information($"[LoadPlayback] -> {trackName} OK! in {stopwatch.Elapsed.TotalMilliseconds} ms");
-
-            return playback;
+        PluginLog.Information($"[LoadPlayback] Channels for {trackName}:");
+        for (int i = 0; i < CurrentOutputDevice.Channels.Length; i++)
+        {
+            uint prog = CurrentOutputDevice.Channels[i].Program;
+            PluginLog.Information($"  - [{i}]: {ProgramNames.GetGMProgramName((byte)prog)} ({prog})");
         }
 
-        private static (TrackChunk i, TrackInfo) GetTrackInfos(Note[] notes, TrackChunk i)
+        playback.Finished += Playback_Finished;
+        PluginLog.Information($"[LoadPlayback] -> {trackName} OK! in {stopwatch.Elapsed.TotalMilliseconds} ms");
+
+        return playback;
+    }
+
+    private static (TrackChunk i, TrackInfo) GetTrackInfos(Note[] notes, TrackChunk i)
+    {
+        return (i, new TrackInfo
         {
-            return (i, new TrackInfo
-            {
-                TrackNameEventsText = i.Events.OfType<SequenceTrackNameEvent>().Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct().ToArray(),
-                TextEventsText = i.Events.OfType<TextEvent>().Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct().ToArray(),
-                ProgramChangeEventsText = i.Events.OfType<ProgramChangeEvent>().Select(j => $"channel {j.Channel}, {j.GetGMProgramName()}").Distinct().ToArray(),
-                HighestNote = notes.MaxElement(j => (int)j.NoteNumber),
-                LowestNote = notes.MinElement(j => (int)j.NoteNumber),
-                NoteCount = notes.Length,
-                DurationMetric = notes.LastOrDefault()?.GetTimedNoteOffEvent()?.TimeAs<MetricTimeSpan>(CurrentTMap) ?? new MetricTimeSpan(),
-                DurationMidi = notes.LastOrDefault()?.GetTimedNoteOffEvent()?.Time ?? 0
-            });
-        }
+            TrackNameEventsText = i.Events.OfType<SequenceTrackNameEvent>().Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct().ToArray(),
+            TextEventsText = i.Events.OfType<TextEvent>().Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct().ToArray(),
+            ProgramChangeEventsText = i.Events.OfType<ProgramChangeEvent>().Select(j => $"channel {j.Channel}, {j.GetGMProgramName()}").Distinct().ToArray(),
+            HighestNote = notes.MaxElement(j => (int)j.NoteNumber),
+            LowestNote = notes.MinElement(j => (int)j.NoteNumber),
+            NoteCount = notes.Length,
+            DurationMetric = notes.LastOrDefault()?.GetTimedNoteOffEvent()?.TimeAs<MetricTimeSpan>(CurrentTMap) ?? new MetricTimeSpan(),
+            DurationMidi = notes.LastOrDefault()?.GetTimedNoteOffEvent()?.Time ?? 0
+        });
+    }
 
-        public static DateTime? waitUntil { get; set; } = null;
-        public static DateTime? waitStart { get; set; } = null;
-        public static bool isWaiting => waitUntil != null && DateTime.Now < waitUntil;
+    public static DateTime? waitUntil { get; set; } = null;
+    public static DateTime? waitStart { get; set; } = null;
+    public static bool isWaiting => waitUntil != null && DateTime.Now < waitUntil;
 
-        public static float waitProgress
+    public static float waitProgress
+    {
+        get
         {
-            get
-            {
-                float valueTotalMilliseconds = 1;
-                if (isWaiting)
-                {
-                    try
-                    {
-                        valueTotalMilliseconds = 1 - (float)((waitUntil - DateTime.Now).Value.TotalMilliseconds /
-                                                             (waitUntil - waitStart).Value.TotalMilliseconds);
-                    }
-                    catch (Exception e)
-                    {
-                        PluginLog.Error(e, "error when get current wait progress");
-                    }
-                }
-
-                return valueTotalMilliseconds;
-            }
-        }
-
-        private static void Playback_Finished(object sender, EventArgs e)
-        {
-            Task.Run(async () =>
+            float valueTotalMilliseconds = 1;
+            if (isWaiting)
             {
                 try
                 {
-                    if (MidiBard.AgentMetronome.EnsembleModeRunning)
-                        return;
-                    if (!PlaylistManager.FilePathList.Any())
-                        return;
+                    valueTotalMilliseconds = 1 - (float)((waitUntil - DateTime.Now).Value.TotalMilliseconds /
+                                                         (waitUntil - waitStart).Value.TotalMilliseconds);
+                }
+                catch (Exception e)
+                {
+                    PluginLog.Error(e, "error when get current wait progress");
+                }
+            }
 
-                    PerformWaiting(config.secondsBetweenTracks);
-                    if (needToCancel)
-                    {
-                        needToCancel = false;
-                        return;
-                    }
+            return valueTotalMilliseconds;
+        }
+    }
 
-                    switch ((PlayMode)config.PlayMode)
-                    {
-                        case PlayMode.Single:
-                            break;
+    private static void Playback_Finished(object sender, EventArgs e)
+    {
+        Task.Run(async () =>
+        {
+            try
+            {
+                if (MidiBard.AgentMetronome.EnsembleModeRunning)
+                    return;
+                if (!PlaylistManager.FilePathList.Any())
+                    return;
 
-                        case PlayMode.SingleRepeat:
+                PerformWaiting(config.secondsBetweenTracks);
+                if (needToCancel)
+                {
+                    needToCancel = false;
+                    return;
+                }
+
+                switch ((PlayMode)config.PlayMode)
+                {
+                    case PlayMode.Single:
+                        break;
+
+                    case PlayMode.SingleRepeat:
+                        CurrentPlayback.MoveToStart();
+                        CurrentPlayback.Start();
+                        break;
+
+                    case PlayMode.ListOrdered:
+                        if (PlaylistManager.CurrentPlaying + 1 < PlaylistManager.FilePathList.Count)
+                        {
+                            if (await LoadPlayback(PlaylistManager.CurrentPlaying + 1, true))
+                            {
+                            }
+                        }
+
+                        break;
+
+                    case PlayMode.ListRepeat:
+                        if (PlaylistManager.CurrentPlaying + 1 < PlaylistManager.FilePathList.Count)
+                        {
+                            if (await LoadPlayback(PlaylistManager.CurrentPlaying + 1, true))
+                            {
+                            }
+                        }
+                        else
+                        {
+                            if (await LoadPlayback(0, true))
+                            {
+                            }
+                        }
+
+                        break;
+
+                    case PlayMode.Random:
+
+                        if (PlaylistManager.FilePathList.Count == 1)
+                        {
                             CurrentPlayback.MoveToStart();
-                            CurrentPlayback.Start();
                             break;
+                        }
 
-                        case PlayMode.ListOrdered:
-                            if (PlaylistManager.CurrentPlaying + 1 < PlaylistManager.FilePathList.Count)
+                        try
+                        {
+                            var r = new Random();
+                            int nexttrack;
+                            do
                             {
-                                if (await LoadPlayback(PlaylistManager.CurrentPlaying + 1, true))
-                                {
-                                }
-                            }
+                                nexttrack = r.Next(0, PlaylistManager.FilePathList.Count);
+                            } while (nexttrack == PlaylistManager.CurrentPlaying);
 
-                            break;
-
-                        case PlayMode.ListRepeat:
-                            if (PlaylistManager.CurrentPlaying + 1 < PlaylistManager.FilePathList.Count)
+                            if (await LoadPlayback(nexttrack, true))
                             {
-                                if (await LoadPlayback(PlaylistManager.CurrentPlaying + 1, true))
-                                {
-                                }
                             }
-                            else
-                            {
-                                if (await LoadPlayback(0, true))
-                                {
-                                }
-                            }
+                        }
+                        catch (Exception exception)
+                        {
+                            PluginLog.Error(exception, "error when random next");
+                        }
 
-                            break;
+                        break;
 
-                        case PlayMode.Random:
-
-                            if (PlaylistManager.FilePathList.Count == 1)
-                            {
-                                CurrentPlayback.MoveToStart();
-                                break;
-                            }
-
-                            try
-                            {
-                                var r = new Random();
-                                int nexttrack;
-                                do
-                                {
-                                    nexttrack = r.Next(0, PlaylistManager.FilePathList.Count);
-                                } while (nexttrack == PlaylistManager.CurrentPlaying);
-
-                                if (await LoadPlayback(nexttrack, true))
-                                {
-                                }
-                            }
-                            catch (Exception exception)
-                            {
-                                PluginLog.Error(exception, "error when random next");
-                            }
-
-                            break;
-
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
-                catch (Exception exception)
+            }
+            catch (Exception exception)
+            {
+                PluginLog.Error(exception, "Unexpected exception when Playback finished.");
+            }
+        });
+    }
+
+    internal static async Task<bool> LoadPlayback(int index, bool startPlaying = false, bool switchInstrument = true)
+    {
+        var wasPlaying = IsPlaying;
+        CurrentPlayback?.Dispose();
+        CurrentPlayback = null;
+        MidiFile midiFile = await PlaylistManager.LoadMidiFile(index);
+        if (midiFile == null)
+        {
+            // delete file if can't be loaded(likely to be deleted locally)
+            PluginLog.Debug($"[LoadPlayback] removing {index}");
+            //PluginLog.Debug($"[LoadPlayback] removing {PlaylistManager.FilePathList[index].path}");
+            PlaylistManager.FilePathList.RemoveAt(index);
+            return false;
+        }
+        else
+        {
+            CurrentPlayback = await Task.Run(() => GetFilePlayback(midiFile, PlaylistManager.FilePathList[index].displayName));
+            Ui.RefreshPlotData();
+            PlaylistManager.CurrentPlaying = index;
+            if (switchInstrument)
+            {
+                try
                 {
-                    PluginLog.Error(exception, "Unexpected exception when Playback finished.");
+                    var songName = PlaylistManager.FilePathList[index].fileName;
+                    await SwitchInstrument.WaitSwitchInstrumentForSong(songName);
                 }
-            });
-        }
-
-        internal static async Task<bool> LoadPlayback(int index, bool startPlaying = false, bool switchInstrument = true)
-        {
-            var wasPlaying = IsPlaying;
-            CurrentPlayback?.Dispose();
-            CurrentPlayback = null;
-            MidiFile midiFile = await PlaylistManager.LoadMidiFile(index);
-            if (midiFile == null)
-            {
-                // delete file if can't be loaded(likely to be deleted locally)
-                PluginLog.Debug($"[LoadPlayback] removing {index}");
-                //PluginLog.Debug($"[LoadPlayback] removing {PlaylistManager.FilePathList[index].path}");
-                PlaylistManager.FilePathList.RemoveAt(index);
-                return false;
-            }
-            else
-            {
-                CurrentPlayback = await Task.Run(() => GetFilePlayback(midiFile, PlaylistManager.FilePathList[index].displayName));
-                Ui.RefreshPlotData();
-                PlaylistManager.CurrentPlaying = index;
-                if (switchInstrument)
+                catch (Exception e)
                 {
-                    try
-                    {
-                        var songName = PlaylistManager.FilePathList[index].fileName;
-                        await SwitchInstrument.WaitSwitchInstrumentForSong(songName);
-                    }
-                    catch (Exception e)
-                    {
-                        PluginLog.Warning(e.ToString());
-                    }
+                    PluginLog.Warning(e.ToString());
                 }
-
-                if (switchInstrument && (wasPlaying || startPlaying))
-                    CurrentPlayback?.Start();
-
-                return true;
-            }
-        }
-
-        private static bool needToCancel { get; set; } = false;
-
-        internal static void PerformWaiting(float seconds)
-        {
-            waitStart = DateTime.Now;
-            waitUntil = DateTime.Now.AddSeconds(seconds);
-            while (DateTime.Now < waitUntil)
-            {
-                Thread.Sleep(10);
             }
 
-            waitStart = null;
-            waitUntil = null;
+            if (switchInstrument && (wasPlaying || startPlaying))
+                CurrentPlayback?.Start();
+
+            return true;
+        }
+    }
+
+    private static bool needToCancel { get; set; } = false;
+
+    internal static void PerformWaiting(float seconds)
+    {
+        waitStart = DateTime.Now;
+        waitUntil = DateTime.Now.AddSeconds(seconds);
+        while (DateTime.Now < waitUntil)
+        {
+            Thread.Sleep(10);
         }
 
-        internal static void CancelWaiting()
-        {
-            waitStart = null;
-            waitUntil = null;
-            needToCancel = true;
-        }
+        waitStart = null;
+        waitUntil = null;
+    }
 
-        internal static void StopWaiting()
-        {
-            waitStart = null;
-            waitUntil = null;
-        }
+    internal static void CancelWaiting()
+    {
+        waitStart = null;
+        waitUntil = null;
+        needToCancel = true;
+    }
+
+    internal static void StopWaiting()
+    {
+        waitStart = null;
+        waitUntil = null;
     }
 }

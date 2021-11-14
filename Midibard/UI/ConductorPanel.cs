@@ -1,15 +1,14 @@
 ﻿using static ImGuiNET.ImGui;
 
-namespace MidiBard
+namespace MidiBard;
+
+public partial class PluginUI
 {
-	public partial class PluginUI
-	{
-		void DrawConductorPanel()
-		{
-			if (Begin("Midibard conductor"))
-			{
+    void DrawConductorPanel()
+    {
+        if (Begin("Midibard conductor"))
+        {
 				
-			}
-		}
-	}
+        }
+    }
 }
