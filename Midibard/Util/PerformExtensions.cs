@@ -8,6 +8,15 @@ namespace MidiBard.Util
     {
         private static readonly Regex MidiProgramRegex = new(@"^([0-9]{3})(.+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
+        /// <summary>
+        /// Parses perform exd row's backing program number and names
+        /// </summary>
+        /// <param name="perform">perform sheet row</param>
+        /// <param name="id">
+        /// The SevenBitNumber range is 0-127 (0 as Acoustic Grand Piano), but the game is using 1-128 range, so we subtract the parsed ids by 1
+        /// and use 0-127 representations internally to avoid confusion. </param>
+        /// <param name="name">game's instrument program name</param>
+        /// <returns>returns true if the parsing succeeded</returns>
         public static bool GetMidiProgram(this Perform perform, out SevenBitNumber id, out string name)
         {
             id = SevenBitNumber.MinValue;
@@ -20,8 +29,9 @@ namespace MidiBard.Util
             Match match = MidiProgramRegex.Match(perform.Name);
             if (match.Success)
             {
-                if (SevenBitNumber.TryParse(match.Groups[1].Value, out id))
+                if (SevenBitNumber.TryParse(match.Groups[1].Value, out var GameId))
                 {
+	                id = new SevenBitNumber((byte)(GameId - 1));
                     name = match.Groups[2].Value;
                     if (!string.IsNullOrWhiteSpace(name))
                         return true;
@@ -38,7 +48,7 @@ namespace MidiBard.Util
             return id;
         }
 
-        public static string GetMidiProgramName(this Perform perform)
+        public static string GetGameProgramName(this Perform perform)
         {
             perform.GetMidiProgram(out _, out string name);
             return name;

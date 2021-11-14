@@ -32,31 +32,35 @@ using MidiBard.Managers;
 using MidiBard.Managers.Agents;
 using MidiBard.Managers.Ipc;
 using MidiBard.UI;
+using MidiBard.Util;
 using static ImGuiNET.ImGui;
+using static MidiBard.MidiBard;
 
 namespace MidiBard
 {
 	public partial class PluginUI
 	{
 		private bool fontwindow;
+		private bool midiChannels;
 		private unsafe void DrawDebugWindow()
 		{
 			if (Begin("MIDIBARD DEBUG"))
 			{
-				Checkbox("AgentInfo", ref MidiBard.config.DebugAgentInfo);
-				Checkbox("DeviceInfo", ref MidiBard.config.DebugDeviceInfo);
-				Checkbox("Offsets", ref MidiBard.config.DebugOffsets);
-				Checkbox("KeyStroke", ref MidiBard.config.DebugKeyStroke);
-				Checkbox("Misc", ref MidiBard.config.DebugMisc);
-				Checkbox("EnsembleConductor", ref MidiBard.config.DebugEnsemble);
+				Checkbox("AgentInfo", ref config.DebugAgentInfo);
+				Checkbox("DeviceInfo", ref config.DebugDeviceInfo);
+				Checkbox("Offsets", ref config.DebugOffsets);
+				Checkbox("KeyStroke", ref config.DebugKeyStroke);
+				Checkbox("Misc", ref config.DebugMisc);
+				Checkbox("EnsembleConductor", ref config.DebugEnsemble);
 				Checkbox("fontwindow", ref fontwindow);
+				Checkbox("midiChannels", ref midiChannels);
 			}
 			End();
 
 			//PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(2, 2));
 			try
 			{
-				if (MidiBard.config.DebugAgentInfo && Begin(nameof(MidiBard) + "AgentInfo"))
+				if (config.DebugAgentInfo && Begin(nameof(MidiBard) + "AgentInfo"))
 				{
 					try
 					{
@@ -134,11 +138,11 @@ namespace MidiBard
 						TextUnformatted($"PerformInfos: {performInfos.ToInt64() + 3:X}");
 						SameLine();
 						if (SmallButton("C##PerformInfos")) SetClipboardText($"{performInfos.ToInt64() + 3:X}");
-						TextUnformatted($"CurrentInstrumentKey: {MidiBard.CurrentInstrument}");
+						TextUnformatted($"CurrentInstrumentKey: {CurrentInstrument}");
 						TextUnformatted(
-							$"Instrument: {MidiBard.InstrumentSheet.GetRow(MidiBard.CurrentInstrument).Instrument}");
+							$"Instrument: {InstrumentSheet.GetRow(CurrentInstrument).Instrument}");
 						TextUnformatted(
-							$"Name: {MidiBard.InstrumentSheet.GetRow(MidiBard.CurrentInstrument).Name.RawString}");
+							$"Name: {InstrumentSheet.GetRow(CurrentInstrument).Name.RawString}");
 						TextUnformatted($"Tone: {MidiBard.AgentPerformance.CurrentGroupTone}");
 						//ImGui.Text($"unkFloat: {UnkFloat}");
 						////ImGui.Text($"unkByte: {UnkByte1}");
@@ -158,7 +162,7 @@ namespace MidiBard
 				}
 				End();
 
-				if (MidiBard.config.DebugDeviceInfo && Begin(nameof(MidiBard) + "DeviceInfo"))
+				if (config.DebugDeviceInfo && Begin(nameof(MidiBard) + "DeviceInfo"))
 				{
 					try
 					{
@@ -217,7 +221,7 @@ namespace MidiBard
 
 						TextUnformatted(
 							$"CurrentInputDevice: \n{InputDeviceManager.CurrentInputDevice} Listening: {InputDeviceManager.CurrentInputDevice?.IsListeningForEvents}");
-						TextUnformatted($"CurrentOutputDevice: \n{MidiBard.CurrentOutputDevice}");
+						TextUnformatted($"CurrentOutputDevice: \n{CurrentOutputDevice}");
 					}
 					catch (Exception e)
 					{
@@ -437,7 +441,7 @@ namespace MidiBard
 				}
 				End();
 
-				if (MidiBard.config.DebugOffsets && Begin(nameof(MidiBard) + "Offsets"))
+				if (config.DebugOffsets && Begin(nameof(MidiBard) + "Offsets"))
 				{
 					try
 					{
@@ -481,7 +485,7 @@ namespace MidiBard
 				}
 				End();
 
-				if (MidiBard.config.DebugKeyStroke && Begin(nameof(MidiBard) + "KeyStroke"))
+				if (config.DebugKeyStroke && Begin(nameof(MidiBard) + "KeyStroke"))
 				{
 					TextUnformatted($"useRawHook: {Testhooks.Instance?.playnoteHook?.IsEnabled}");
 					if (Button("useRawhook"))
@@ -565,6 +569,24 @@ namespace MidiBard
 						}
 
 						PluginLog.Information(configBaseConfigCount.ToString());
+					}
+				}
+				End();
+
+				if (midiChannels && Begin(nameof(MidiBard) + "midiChannels"))
+				{
+					TextUnformatted($"current channel: {CurrentOutputDevice.CurrentChannel}");
+
+
+					Spacing();
+					for (var i = 0; i < CurrentOutputDevice.Channels.Length; i++)
+					{
+						var b = CurrentOutputDevice.CurrentChannel == i;
+						if (b) PushStyleColor(ImGuiCol.Text, ImGuiColors.ParsedGreen);
+						TextUnformatted($"{CurrentOutputDevice.Channels[i].Program}");
+						SameLine(40);
+						TextUnformatted($"{ProgramNames.GetGMProgramName(CurrentOutputDevice.Channels[i].Program)}");
+						if (b) PopStyleColor();
 					}
 				}
 				End();

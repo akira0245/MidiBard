@@ -48,24 +48,23 @@ namespace MidiBard
 		internal static Playback CurrentPlayback { get; set; }
 		internal static TempoMap CurrentTMap { get; set; }
 		internal static List<(TrackChunk trackChunk, TrackInfo trackInfo)> CurrentTracks { get; set; }
-
         internal static Localizer Localizer { get; set; }
-
-		internal static AgentMetronome AgentMetronome { get; set; }
+        internal static AgentMetronome AgentMetronome { get; set; }
 		internal static AgentPerformance AgentPerformance { get; set; }
 
 		private static int configSaverTick;
+
 		private static bool wasEnsembleModeRunning = false;
 
 		internal static ExcelSheet<Perform> InstrumentSheet;
 
-        internal static string[] InstrumentStrings;
+		public static Instrument[] Instruments;
 
-        internal static (SevenBitNumber id, string name)[] InstrumentPrograms;
+		internal static string[] InstrumentStrings;
 
-        internal static IDictionary<byte, uint> ProgramInstruments;
-
-        internal static byte CurrentInstrument => Marshal.ReadByte(Offsets.PerformanceStructPtr + 3 + Offsets.InstrumentOffset);
+		internal static IDictionary<SevenBitNumber, uint> ProgramInstruments;
+		
+		internal static byte CurrentInstrument => Marshal.ReadByte(Offsets.PerformanceStructPtr + 3 + Offsets.InstrumentOffset);
 		internal static byte CurrentTone => Marshal.ReadByte(Offsets.PerformanceStructPtr + 3 + Offsets.InstrumentOffset + 1);
 		internal static readonly byte[] guitarGroup = { 24, 25, 26, 27, 28 };
 		internal static bool PlayingGuitar => guitarGroup.Contains(CurrentInstrument);
@@ -74,53 +73,38 @@ namespace MidiBard
 
 		public string Name => nameof(MidiBard);
 
-        public unsafe MidiBard(DalamudPluginInterface pi)
+		public unsafe MidiBard(DalamudPluginInterface pi)
 		{
 			DalamudApi.api.Initialize(this, pi);
 
-            InstrumentSheet = DataManager.Excel.GetSheet<Perform>();
+			InstrumentSheet = DataManager.Excel.GetSheet<Perform>();
 
-            InstrumentStrings = InstrumentSheet!
-                .Where(i => !string.IsNullOrWhiteSpace(i.Instrument) || i.RowId == 0)
-                .Select(i => $"{(i.RowId == 0 ? "None" : $"{i.RowId:00} {i.Instrument.RawString} ({i.Name})")}")
-                .ToArray();
+			Instruments = InstrumentSheet!
+				.Where(i => !string.IsNullOrWhiteSpace(i.Instrument) || i.RowId == 0)
+				.Select(i => new Instrument(i))
+				.ToArray();
 
-            PluginLog.Information("<InstrumentStrings>");
-            foreach (string s in InstrumentStrings)
-            {
-                PluginLog.Information(s);
-            }
-            PluginLog.Information("<InstrumentStrings \\>");
+			InstrumentStrings = Instruments.Select(i => i.InstrumentString).ToArray();
 
-            InstrumentPrograms = InstrumentSheet!
-                .Where(i => !string.IsNullOrWhiteSpace(i.Instrument) || i.RowId == 0)
-                .Select(i =>
-                    i.GetMidiProgram(out SevenBitNumber id, out string name) ?
-                        (id, name) :
-                        (SevenBitNumber.MinValue, ""))
-                .ToArray();
+			PluginLog.Information("<InstrumentStrings>");
+			foreach (string s in InstrumentStrings)
+			{
+				PluginLog.Information(s);
+			}
+			PluginLog.Information("<InstrumentStrings \\>");
 
-            PluginLog.Information("<InstrumentPrograms>");
-            foreach ((byte id, string name) in InstrumentPrograms)
-            {
-                PluginLog.Information($"[{id}] {name}");
-            }
-            PluginLog.Information("<InstrumentPrograms \\>");
+			ProgramInstruments = new Dictionary<SevenBitNumber, uint>();
+			foreach (var (programNumber, instrument) in Instruments.Select((i, index) => (i.ProgramNumber, index)))
+			{
+				ProgramInstruments[programNumber] = (uint)instrument;
+			}
 
-            ProgramInstruments = new Dictionary<byte, uint>();
-            foreach (var (prog, ins) in InstrumentPrograms
-                .Select((i, idx) => (i.id, idx)))
-            {
-                ProgramInstruments[prog] = (uint)ins;
-            }
-
-            PluginLog.Information("<ProgramInstruments>");
-            foreach (byte prog in ProgramInstruments.Keys)
-            {
-                PluginLog.Information($"[{prog}] {(GeneralMidiProgram)prog} {ProgramInstruments[prog]}");
-            }
-            PluginLog.Information("<ProgramInstruments \\>");
-
+			PluginLog.Information("<ProgramInstruments>");
+			foreach (var programNumber in ProgramInstruments.Keys)
+			{
+				PluginLog.Information($"[{programNumber}] {ProgramNames.GetGMProgramName(programNumber)} {ProgramInstruments[programNumber]}");
+			}
+			PluginLog.Information("<ProgramInstruments \\>");
 
 			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
@@ -142,7 +126,7 @@ namespace MidiBard
 
 			Task.Run(() => PlaylistManager.AddAsync(config.Playlist.ToArray(), true));
 
-            CurrentOutputDevice = new BardPlayDevice();
+			CurrentOutputDevice = new BardPlayDevice();
 			InputDeviceManager.ScanMidiDeviceThread.Start();
 
 			Ui = new PluginUI();

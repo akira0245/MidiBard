@@ -21,6 +21,13 @@ namespace MidiBard
 		Random
 	}
 
+	public enum GuitarToneMode
+	{
+		Unmodified,
+		Standard,
+		Simple,
+		Override,
+	}
 	public enum UILang
 	{
 		EN,
@@ -67,7 +74,7 @@ namespace MidiBard
 
 		//public bool autoSwitchInstrumentByTrackName = false;
 		//public bool autoTransposeByTrackName = false;
-		public bool OverrideGuitarTones = false;
+
 
 		public Vector4 themeColor = ImGui.ColorConvertU32ToFloat4(0x9C60FF8E);
 		public Vector4 themeColorDark = ImGui.ColorConvertU32ToFloat4(0x9C60FF8E) * new Vector4(0.25f, 0.25f, 0.25f, 1);
@@ -101,8 +108,10 @@ namespace MidiBard
 		public bool SyncPlaylist = false;
 		public bool SyncSongSelection = false;
 		public bool SyncMuteUnMute = false;
+		public GuitarToneMode GuitarToneMode = GuitarToneMode.Standard;
+		[JsonIgnore] public bool OverrideGuitarTones => GuitarToneMode == GuitarToneMode.Override;
 
-		public void Save()
+        public void Save()
 		{
 			var startNew = Stopwatch.StartNew();
 			DalamudApi.api.PluginInterface.SavePluginConfig(this);

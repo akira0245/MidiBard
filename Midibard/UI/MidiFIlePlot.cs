@@ -99,7 +99,7 @@ namespace MidiBard
 				var xMin = ImPlot.GetPlotLimits().X.Min;
 				var xMax = ImPlot.GetPlotLimits().X.Max;
 
-				if (!MidiBard.config.LockPlot) timeWindow = (xMax - xMin) / 2;
+				//if (!MidiBard.config.LockPlot) timeWindow = (xMax - xMin) / 2;
 
 				ImPlot.PushPlotClipRect();
 				var cp = ImGuiColors.ParsedBlue;

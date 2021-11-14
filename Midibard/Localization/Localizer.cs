@@ -122,7 +122,17 @@ namespace MidiBard
 			zh.Add("Win32 file dialog", "Win32 文件对话框");
 			zh.Add("ImGui file dialog", "ImGui 文件对话框");
 			zh.Add("Import files from clipboard", "导入剪贴板中的文件");
-			
-		}
+			zh.Add("Tone mode", "音色模式");
+			zh.Add("Choose how MidiBard will handle MIDI channels and ProgramChange events(current only affects guitar tone changing)", "选择MIDIBARD如何处理MIDI轨道和音色转换事件（当前只用于吉他音色控制）");
+            zh.Add("Unmodified", "未指定");
+			zh.Add("Standard", "标准");
+			zh.Add("Simple", "简单");
+			zh.Add("Override", "分音轨重写");
+            zh.Add("Unmodified: Does not take over game's guitar tone control.", "未指定：不使用自动吉他音色控制。");
+			zh.Add("Standard: Standard midi channel and ProgramChange handling, each channel will keep it's program state separately.", "标准：标准MIDI通道和音色转换事件处理，每个MIDI通道会分别保持其音色，直到同通道的另一个音色转换事件改写其音色状态。");
+			zh.Add("Simple: Simple ProgramChange handling, ProgramChange event on any channel will change all channels' program state. (This is BardMusicPlayer's default behavior.)", "简单：简单的音色转换事件处理方式，任一通道上的音色转换事件会改写所有MIDI通道的音色状态。（这是BardMusicPlayer的默认处理方式。）");
+			zh.Add("Override by track: Assign guitar tone manually for each track and ignore ProgramChange events.", "分音轨重写：为每个音轨手动指定电吉他音色，无视其音色转换事件。");
+
+        }
 	}
 }

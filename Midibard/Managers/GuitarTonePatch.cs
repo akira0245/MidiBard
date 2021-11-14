@@ -113,7 +113,7 @@ namespace MidiBard.Managers
 
 					var ret = PlayNoteWithToneHook.Original(a1, a2, a3, a4, a5, a6);
 #if DEBUG
-					PluginLog.Warning($"ret:{ret:X} a1:{a1:X} a2:{a2:X} a3:{a3:X} a4:{a4} a5:{a5} a6:{a6}");
+					//PluginLog.Warning($"ret:{ret:X} a1:{a1:X} a2:{a2:X} a3:{a3:X} a4:{a4} a5:{a5} a6:{a6}");
 #endif
 					return ret;
 				});

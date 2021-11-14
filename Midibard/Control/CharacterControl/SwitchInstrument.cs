@@ -157,7 +157,7 @@ namespace MidiBard.Control.CharacterControl
 
 			if (config.bmpTrackNames)
 			{
-				MidiBard.config.OverrideGuitarTones = true;
+				//MidiBard.config.OverrideGuitarTones = true;
 
 				var firstEnabledTrack = MidiBard.CurrentTracks.Select(i => i.trackInfo).FirstOrDefault(i => i.IsEnabled);
 				var idFromTrackName = firstEnabledTrack?.InstrumentIDFromTrackName;

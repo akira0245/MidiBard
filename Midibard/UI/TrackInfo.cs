@@ -12,7 +12,7 @@ namespace MidiBard
 	{
 		public string[] TrackNameEventsText;
 		public string[] TextEventsText;
-		public string[] ProgramChangeEvent;
+		public string[] ProgramChangeEventsText;
 		public ChannelInfo[] ChannelInfos;
 		public int NoteCount;
 		public Note LowestNote;
@@ -34,11 +34,10 @@ namespace MidiBard
 
 		public string ToLongString()
 		{
-			return $"Track name:\n　{TrackName} \nNote count: \n　{NoteCount} notes \nRange:\n　{LowestNote}-{HighestNote} \n ProgramChange events: \n　{string.Join("\n　", ProgramChangeEvent.Distinct())} \nDuration: \n　{DurationMetric}";
+			return $"Track name:\n　{TrackName} \nNote count: \n　{NoteCount} notes \nRange:\n　{LowestNote}-{HighestNote} \n ProgramChange events: \n　{string.Join("\n　", ProgramChangeEventsText.Distinct())} \nDuration: \n　{DurationMetric}";
 		}
 
 		public string TrackName => TrackNameEventsText.FirstOrDefault() ?? "Untitled";
-
 
 		public static uint? GetInstrumentIDByName(string name)
 		{
