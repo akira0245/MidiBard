@@ -156,7 +156,7 @@ public class MidiBard : IDalamudPlugin
 
         if (AgentPerformance.InPerformanceMode)
         {
-            playlib.ConfirmReadyCheck();
+            playlib.ConfirmReceiveReadyCheck();
 
             if (!AgentMetronome.EnsembleModeRunning && wasEnsembleModeRunning)
             {

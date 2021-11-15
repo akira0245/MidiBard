@@ -43,10 +43,10 @@ public static class FilePlayback
         {
             CurrentTracks = midifile.GetTrackChunks()
                 .Where(i => i.Events.Any(j => j is NoteOnEvent))
-                .Select(i =>
+                .Select((i, index) =>
                 {
                     var notes = i.GetNotes().ToArray();
-                    return GetTrackInfos(notes, i);
+                    return (i, GetTrackInfos(notes, i, index));
                 }).ToList();
         }
         catch (Exception exception1)
@@ -64,10 +64,10 @@ public static class FilePlayback
 
                 CurrentTracks = trackChunks
                     .Where(i => i.Events.Any(j => j is NoteOnEvent))
-                    .Select(i =>
+                    .Select((i, index) =>
                     {
                         var notes = i.Events.OfType<NoteEvent>().GetNotes().ToArray();
-                        return GetTrackInfos(notes, i);
+                        return (i, GetTrackInfos(notes, i, index));
                     }).ToList();
             }
             catch (Exception exception2)
@@ -77,8 +77,8 @@ public static class FilePlayback
             }
         }
 
-        int givenIndex = 0;
-        CurrentTracks.ForEach(tuple => tuple.trackInfo.Index = givenIndex++);
+        //int givenIndex = 0;
+        //CurrentTracks.ForEach(tuple => tuple.trackInfo.Index = givenIndex++);
 
         var timedEvents = CurrentTracks.Select(i => i.trackChunk).AsParallel()
             .SelectMany((chunk, index) => chunk.GetTimedEvents().Select(e =>
@@ -136,11 +136,11 @@ public static class FilePlayback
             Speed = config.playSpeed,
             TrackProgram = true,
 #if DEBUG
-                NoteCallback = (data, time, length, playbackTime) =>
-                {
-                    PluginLog.Verbose($"[NOTE] {new Note(data.NoteNumber)} time:{time} len:{length} time:{playbackTime}");
-                    return data;
-                }
+            NoteCallback = (data, time, length, playbackTime) =>
+            {
+                PluginLog.Verbose($"[NOTE] {new Note(data.NoteNumber)} time:{time} len:{length} time:{playbackTime}");
+                return data;
+            }
 #endif
         };
 
@@ -157,19 +157,28 @@ public static class FilePlayback
         return playback;
     }
 
-    private static (TrackChunk i, TrackInfo) GetTrackInfos(Note[] notes, TrackChunk i)
+    private static TrackInfo GetTrackInfos(Note[] notes, TrackChunk i, int index)
     {
-        return (i, new TrackInfo
+        var eventsCollection = i.Events;
+        var TrackNameEventsText = eventsCollection.OfType<SequenceTrackNameEvent>().Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct().ToArray();
+        var TrackName = TrackNameEventsText.FirstOrDefault() ?? "Untitled";
+        var IsProgramControlled = Regex.IsMatch(TrackName, @"^Program:.+$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        var timedNoteOffEvent = notes.LastOrDefault()?.GetTimedNoteOffEvent();
+        return new TrackInfo
         {
-            TrackNameEventsText = i.Events.OfType<SequenceTrackNameEvent>().Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct().ToArray(),
-            TextEventsText = i.Events.OfType<TextEvent>().Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct().ToArray(),
-            ProgramChangeEventsText = i.Events.OfType<ProgramChangeEvent>().Select(j => $"channel {j.Channel}, {j.GetGMProgramName()}").Distinct().ToArray(),
+            //TextEventsText = eventsCollection.OfType<TextEvent>().Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct().ToArray(),
+            ProgramChangeEventsText = eventsCollection.OfType<ProgramChangeEvent>().Select(j => $"channel {j.Channel}, {j.GetGMProgramName()}").Distinct().ToArray(),
+            TrackNameEventsText = TrackNameEventsText,
             HighestNote = notes.MaxElement(j => (int)j.NoteNumber),
             LowestNote = notes.MinElement(j => (int)j.NoteNumber),
             NoteCount = notes.Length,
-            DurationMetric = notes.LastOrDefault()?.GetTimedNoteOffEvent()?.TimeAs<MetricTimeSpan>(CurrentTMap) ?? new MetricTimeSpan(),
-            DurationMidi = notes.LastOrDefault()?.GetTimedNoteOffEvent()?.Time ?? 0
-        });
+            DurationMetric = timedNoteOffEvent?.TimeAs<MetricTimeSpan>(CurrentTMap) ?? new MetricTimeSpan(),
+            DurationMidi = timedNoteOffEvent?.Time ?? 0,
+            TrackName = TrackName,
+            IsProgramControlled = IsProgramControlled,
+            Index = index
+        };
     }
 
     public static DateTime? waitUntil { get; set; } = null;

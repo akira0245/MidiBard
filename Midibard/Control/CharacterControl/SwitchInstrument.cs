@@ -42,10 +42,7 @@ internal static class SwitchInstrument
                 if (MidiBard.guitarGroup.Contains((byte)instrumentId))
                 {
                     var tone = (int)instrumentId - MidiBard.guitarGroup[0];
-                    if (playlib.GuitarSwitchTone(tone))
-                    {
-                        UITone.Set((uint)tone);
-                    }
+                    playlib.GuitarSwitchTone(tone);
 
                     return;
                 }

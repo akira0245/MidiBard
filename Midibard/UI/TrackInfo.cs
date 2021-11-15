@@ -8,19 +8,26 @@ using Melanchall.DryWetMidi.Interaction;
 
 namespace MidiBard;
 
-public class TrackInfo
+public record TrackInfo
 {
-    public string[] TrackNameEventsText;
-    public string[] TextEventsText;
-    public string[] ProgramChangeEventsText;
-    public ChannelInfo[] ChannelInfos;
-    public int NoteCount;
-    public Note LowestNote;
-    public Note HighestNote;
-    public MetricTimeSpan DurationMetric;
-    public long DurationMidi;
+    //var (programTrackChunk, programTrackInfo) =
+    //    CurrentTracks.FirstOrDefault(i => Regex.IsMatch(i.trackInfo.TrackName, @"^Program:.+$", RegexOptions.Compiled | RegexOptions.IgnoreCase));
 
-    public int Index;
+    public string[] TrackNameEventsText { get; init; }
+    public string[] TextEventsText { get; init; }
+    public string[] ProgramChangeEventsText { get; init; }
+    public int NoteCount { get; init; }
+    public Note LowestNote { get; init; }
+    public Note HighestNote { get; init; }
+    public MetricTimeSpan DurationMetric { get; init; }
+    public long DurationMidi { get; init; }
+    public bool IsProgramControlled { get; init; }
+    public string TrackName { get; init; }
+
+    public int Index { get; init; }
+
+    public ChannelInfo[] ChannelInfos;
+
     public bool IsEnabled => MidiBard.config.EnabledTracks[Index];
     public bool IsPlaying => MidiBard.config.SoloedTrack is int t ? t == Index : IsEnabled;
     public int TransposeFromTrackName => GetTransposeByName(TrackName);
@@ -36,8 +43,6 @@ public class TrackInfo
     {
         return $"Track name:\n　{TrackName} \nNote count: \n　{NoteCount} notes \nRange:\n　{LowestNote}-{HighestNote} \n ProgramChange events: \n　{string.Join("\n　", ProgramChangeEventsText.Distinct())} \nDuration: \n　{DurationMetric}";
     }
-
-    public string TrackName => TrackNameEventsText.FirstOrDefault() ?? "Untitled";
 
     public static uint? GetInstrumentIDByName(string name)
     {

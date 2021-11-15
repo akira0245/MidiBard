@@ -13,10 +13,10 @@ internal static class PerformExtensions
     /// </summary>
     /// <param name="perform">perform sheet row</param>
     /// <param name="id">
-    /// The SevenBitNumber range is 0-127 (0 as Acoustic Grand Piano), but the game is using 1-128 range, so we subtract the parsed ids by 1
+    /// SevenBitNumber range is 0-127 (0 as Acoustic Grand Piano), but FFXIV is using 1-128 range, so we subtract FFXIV program numbers by 1
     /// and use 0-127 representations internally to avoid confusion. </param>
-    /// <param name="name">game's instrument program name</param>
-    /// <returns>returns true if the parsing succeeded</returns>
+    /// <param name="name">FFXIV instrument program name</param>
+    /// <returns>returns true if successful parsed</returns>
     public static bool GetMidiProgram(this Perform perform, out SevenBitNumber id, out string name)
     {
         id = SevenBitNumber.MinValue;

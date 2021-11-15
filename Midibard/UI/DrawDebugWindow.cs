@@ -589,8 +589,10 @@ namespace MidiBard
 					{
 						var b = CurrentOutputDevice.CurrentChannel == i;
 						if (b) PushStyleColor(ImGuiCol.Text, ImGuiColors.ParsedGreen);
-						TextUnformatted($"{CurrentOutputDevice.Channels[i].Program}");
+						TextUnformatted($"[{i:00}]");
 						SameLine(40);
+						TextUnformatted($"{CurrentOutputDevice.Channels[i].Program}");
+                        SameLine(70);
 						TextUnformatted($"{ProgramNames.GetGMProgramName(CurrentOutputDevice.Channels[i].Program)}");
 						if (b) PopStyleColor();
 					}

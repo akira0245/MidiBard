@@ -18,8 +18,8 @@ public class Instrument
         IsGuitar = guitarGroup.Contains((byte)Row.RowId);
         GuitarTone = (byte)(IsGuitar ? Row.RowId - guitarGroup[0] : 0);
         ProgramNumber = Row.GetMidiProgramId();
-        ExdDisplayName = row.Instrument.RawString;
-        ExdProgramName = Row.GetGameProgramName();
+        FFXIVDisplayName = row.Instrument.RawString;
+        FFXIVProgramName = Row.GetGameProgramName();
         GeneralMidiProgramName = ProgramNumber.GetGMProgramName();
         InstrumentString = $"{(row.RowId == 0 ? "None" : $"{row.RowId:00} {row.Instrument.RawString} ({row.Name})")}";
     }
@@ -28,8 +28,8 @@ public class Instrument
     public bool IsGuitar { get; }
     public byte GuitarTone { get; }
     public SevenBitNumber ProgramNumber { get; }
-    public string ExdDisplayName { get; }
-    public string ExdProgramName { get; }
+    public string FFXIVDisplayName { get; }
+    public string FFXIVProgramName { get; }
     public string GeneralMidiProgramName { get; }
 
     public readonly string InstrumentString;
