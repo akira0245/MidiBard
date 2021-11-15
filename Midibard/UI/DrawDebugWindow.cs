@@ -54,6 +54,12 @@ namespace MidiBard
 				Checkbox("EnsembleConductor", ref config.DebugEnsemble);
 				Checkbox("fontwindow", ref fontwindow);
 				Checkbox("midiChannels", ref midiChannels);
+
+     //           if (Button("get setting"))
+     //           {
+     //               var backgroundFrameLimit = MidiBard.AgentConfigSystem.BackgroundFrameLimit;
+					//PluginLog.Warning(backgroundFrameLimit.ToString());
+     //           }
 			}
 			End();
 

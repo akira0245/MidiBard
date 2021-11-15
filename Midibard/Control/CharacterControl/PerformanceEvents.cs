@@ -19,16 +19,29 @@ class PerformanceEvents
     private void EnteringPerformance()
     {
         if (config.AutoOpenPlayerWhenPerforming)
-            Ui.Open();
+            if (!SwitchInstrument.SwitchingInstrument)
+                Ui.Open();
+
+        _backgroundFrameLimit = AgentConfigSystem.BackgroundFrameLimit;
+        AgentConfigSystem.BackgroundFrameLimit = false;
+        AgentConfigSystem.ApplyGraphicSettings();
     }
 
     private void ExitingPerformance()
     {
         if (config.AutoOpenPlayerWhenPerforming)
-            Ui.Close();
+            if (!SwitchInstrument.SwitchingInstrument)
+                Ui.Close();
+
+        if (_backgroundFrameLimit is { } b && AgentConfigSystem.BackgroundFrameLimit != b)
+        {
+            AgentConfigSystem.BackgroundFrameLimit = b;
+            AgentConfigSystem.ApplyGraphicSettings();
+        }
     }
 
     private bool inPerformanceMode;
+    private bool? _backgroundFrameLimit;
 
     public bool InPerformanceMode
     {
@@ -36,14 +49,12 @@ class PerformanceEvents
         {
             if (value && !inPerformanceMode)
             {
-                if (!SwitchInstrument.SwitchingInstrument)
-                    EnteringPerformance();
+                EnteringPerformance();
             }
 
             if (!value && inPerformanceMode)
             {
-                if (!SwitchInstrument.SwitchingInstrument)
-                    ExitingPerformance();
+                ExitingPerformance();
             }
 
             inPerformanceMode = value;

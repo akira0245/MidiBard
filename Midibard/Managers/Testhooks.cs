@@ -9,6 +9,7 @@ using Dalamud.Hooking;
 using Dalamud.Logging;
 using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.System.Configuration;
+using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using MidiBard.DalamudApi;
 using MidiBard.Managers.Agents;
 
@@ -80,64 +81,69 @@ namespace MidiBard.Managers;
 
 		private Testhooks()
 		{
-			//GetETHook = new Hook<sub_1401EF560>(Offsets.Instance.GetErozeaTime, a1 =>
-			//{
-			//	var original = GetETHook.Original(a1);
-			//	PluginLog.Information(original.ToString());
-			//	return original;
-			//});
-			//GetETHook.Enable();
-
-			//SetoptionHook = new Hook<SetOptionDelegate>(Offsets.SetOption,
-			//	(module, id, value, unknown, unk2, unk3) =>
-			//	{
-			//		PluginLog.Information($"{module.ToInt64():X}, kind: {id} value: {value}, unk: {unknown}, unk2: {unk2}, unk3: {unk3}");
-			//		PluginUI.configIndex = (int)id;
-			//		PluginUI.configValue = (int)value;
-			//		return SetoptionHook.Original(module, id, value, unknown, unk2, unk3);
-			//	});
-			//SetoptionHook.Enable();
-
-			//ChangeKeyboardLayoutHook = new Hook<sub_140C7D860>(Offsets.ChangeKeyboardLayout, (a1, a2) =>
-			//{
-			//	var a2p = sub_1404AF1A0(a2);
-			//	var ret = ChangeKeyboardLayoutHook.Original(a1, a2);
-			//	PluginLog.Information($"{a1:X} {a2:X} {a2p:X} {ret}");
-			//	return ret;
-			//});
-			//ChangeKeyboardLayoutHook.Enable();
-
-			//sub_14050EC70Hook = new Hook<sub_14050EC70>(
-			//	api.SigScanner.ScanText("48 89 5C 24 ?? 57 48 83 EC 40 C7 02 ?? ?? ?? ?? 41 8B F9 "),
-			//	(a1, a2, a3, a4) =>
-			//	{
-			//		var original = sub_14050EC70Hook.Original(a1, a2, a3, a4);
-			//		PluginLog.Warning($"{original:X} {a1:X} {a2:X} {a3:X} {a4:X}");
-			//		return original;
-			//	});
-			//sub_14050EC70Hook.Enable();
-
-			//EncodingSelfNotesHook = new Hook<ScanningSelfNotePressDelegate>(api.SigScanner.ScanText("E9 ?? ?? ?? ?? 0F 2F 0D ?? ?? ?? ?? "),
-			//	(a1, a2, a3) =>
-			//	{
-			//		EncodingSelfNotesHook.Original(a1, a2, a3);
-			//		PluginLog.Warning($"{a1:X} {(long)a2:X} {a3:X}");
-			//	});
-			//EncodingSelfNotesHook.Enable();
-
-			//HandleOthers_141198820Hook = new Hook<HandleOthers_141198820>(
-			//	api.SigScanner.ScanText("48 8B C4 48 89 58 10 48 89 68 20 56 "),
-			//	(a1, a2) =>
-			//	{
-			//		var ret = HandleOthers_141198820Hook.Original(a1, a2);
-			//		PluginLog.Warning($"{ret:X} {a1:X} {a2}");
-			//		return ret;
-			//	});
-			//HandleOthers_141198820Hook.Enable();
+        //GetETHook = new Hook<sub_1401EF560>(Offsets.Instance.GetErozeaTime, a1 =>
+        //{
+        //	var original = GetETHook.Original(a1);
+        //	PluginLog.Information(original.ToString());
+        //	return original;
+        //});
+        //GetETHook.Enable();
 
 
 
-			playnoteHook = new Hook<sub_140C7ED20>(Offsets.PressNote, (agentPerformance, note, isPressing) =>
+
+        //8 1 2 1 1 enable
+        //8 0 2 1 1 disable
+        //SetoptionHook = new Hook<SetOptionDelegate>(Offsets.SetOption,
+        //    (module, id, value, unknown, unk2, unk3) =>
+        //    {
+        //        PluginLog.Information($"{module.ToInt64():X}, kind: {id} value: {value}, unk: {unknown}, unk2: {unk2}, unk3: {unk3}");
+        //        PluginUI.configIndex = (int)id;
+        //        PluginUI.configValue = (int)value;
+        //        return SetoptionHook.Original(module, id, value, unknown, unk2, unk3);
+        //    });
+        //SetoptionHook.Enable();
+
+        //ChangeKeyboardLayoutHook = new Hook<sub_140C7D860>(Offsets.ChangeKeyboardLayout, (a1, a2) =>
+        //{
+        //	var a2p = sub_1404AF1A0(a2);
+        //	var ret = ChangeKeyboardLayoutHook.Original(a1, a2);
+        //	PluginLog.Information($"{a1:X} {a2:X} {a2p:X} {ret}");
+        //	return ret;
+        //});
+        //ChangeKeyboardLayoutHook.Enable();
+
+        //sub_14050EC70Hook = new Hook<sub_14050EC70>(
+        //	api.SigScanner.ScanText("48 89 5C 24 ?? 57 48 83 EC 40 C7 02 ?? ?? ?? ?? 41 8B F9 "),
+        //	(a1, a2, a3, a4) =>
+        //	{
+        //		var original = sub_14050EC70Hook.Original(a1, a2, a3, a4);
+        //		PluginLog.Warning($"{original:X} {a1:X} {a2:X} {a3:X} {a4:X}");
+        //		return original;
+        //	});
+        //sub_14050EC70Hook.Enable();
+
+        //EncodingSelfNotesHook = new Hook<ScanningSelfNotePressDelegate>(api.SigScanner.ScanText("E9 ?? ?? ?? ?? 0F 2F 0D ?? ?? ?? ?? "),
+        //	(a1, a2, a3) =>
+        //	{
+        //		EncodingSelfNotesHook.Original(a1, a2, a3);
+        //		PluginLog.Warning($"{a1:X} {(long)a2:X} {a3:X}");
+        //	});
+        //EncodingSelfNotesHook.Enable();
+
+        //HandleOthers_141198820Hook = new Hook<HandleOthers_141198820>(
+        //	api.SigScanner.ScanText("48 8B C4 48 89 58 10 48 89 68 20 56 "),
+        //	(a1, a2) =>
+        //	{
+        //		var ret = HandleOthers_141198820Hook.Original(a1, a2);
+        //		PluginLog.Warning($"{ret:X} {a1:X} {a2}");
+        //		return ret;
+        //	});
+        //HandleOthers_141198820Hook.Enable();
+
+
+
+        playnoteHook = new Hook<sub_140C7ED20>(Offsets.PressNote, (agentPerformance, note, isPressing) =>
 			{
 				//PluginLog.Verbose($"{agentPerformance.ToInt64():X}, {note}, {isPressing}");
 				if (!MidiBard.IsPlaying || note != off)
