@@ -23,7 +23,7 @@ public enum PlayMode
 
 public enum GuitarToneMode
 {
-    Unmodified,
+    Off,
     Standard,
     Simple,
     Override,
@@ -108,7 +108,7 @@ public class Configuration : IPluginConfiguration
     public bool SyncPlaylist = false;
     public bool SyncSongSelection = false;
     public bool SyncMuteUnMute = false;
-    public GuitarToneMode GuitarToneMode = GuitarToneMode.Standard;
+    public GuitarToneMode GuitarToneMode = GuitarToneMode.Off;
     [JsonIgnore] public bool OverrideGuitarTones => GuitarToneMode == GuitarToneMode.Override;
 
     public void Save()

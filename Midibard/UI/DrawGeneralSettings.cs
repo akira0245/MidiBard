@@ -7,7 +7,7 @@ namespace MidiBard;
 public partial class PluginUI
 {
     private readonly string[] _toolTips = {
-        "Unmodified: Does not take over game's guitar tone control.",
+        "Off: Does not take over game's guitar tone control.",
         "Standard: Standard midi channel and ProgramChange handling, each channel will keep it's program state separately.",
         "Simple: Simple ProgramChange handling, ProgramChange event on any channel will change all channels' program state. (This is BardMusicPlayer's default behavior.)",
         "Override by track: Assign guitar tone manually for each track and ignore ProgramChange events.",

@@ -93,7 +93,7 @@ internal class BardPlayDevice : IOutputDevice
                 {
                     switch (MidiBard.config.GuitarToneMode)
                     {
-                        case GuitarToneMode.Unmodified:
+                        case GuitarToneMode.Off:
                             break;
                         case GuitarToneMode.Standard:
                         case GuitarToneMode.Simple:
@@ -148,7 +148,7 @@ internal class BardPlayDevice : IOutputDevice
                 {
                     switch (MidiBard.config.GuitarToneMode)
                     {
-                        case GuitarToneMode.Unmodified:
+                        case GuitarToneMode.Off:
                             break;
                         case GuitarToneMode.Standard:
                             Channels[@event.Channel].Program = @event.ProgramNumber;

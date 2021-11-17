@@ -66,8 +66,10 @@ public static class FilePlayback
                     .Where(i => i.Events.Any(j => j is NoteOnEvent))
                     .Select((i, index) =>
                     {
-                        var notes = i.Events.OfType<NoteEvent>().GetNotes().ToArray();
-                        return (i, GetTrackInfos(notes, i, index));
+                        var noteEvents = i.Events.Where(i=>i is NoteEvent or ProgramChangeEvent or TextEvent);
+                        var notes = noteEvents.GetNotes().ToArray();
+                        var trackChunk = new TrackChunk(noteEvents);
+                        return (trackChunk, GetTrackInfos(notes, trackChunk, index));
                     }).ToList();
             }
             catch (Exception exception2)
