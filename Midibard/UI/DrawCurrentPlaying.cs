@@ -39,40 +39,50 @@ public partial class PluginUI
         float progress = 0;
         ImGui.PushStyleColor(ImGuiCol.PlotHistogram, FilePlayback.isWaiting ? *ImGui.GetStyleColorVec4(ImGuiCol.Text) : MidiBard.config.themeColor);
         ImGui.PushStyleColor(ImGuiCol.FrameBg, MidiBard.config.themeColorDark);
-        if (FilePlayback.isWaiting)
+        try
         {
-            try
+            if (FilePlayback.isWaiting)
             {
-                ImGui.ProgressBar(FilePlayback.waitProgress, new Vector2(-1, 3));
-            }
-            catch (Exception e)
-            {
-                PluginLog.Error(e.ToString());
-            }
-        }
-        else
-        {
-            if (MidiBard.CurrentPlayback != null)
-            {
-                currentTime = MidiBard.CurrentPlayback.GetCurrentTime<MetricTimeSpan>();
-                duration = MidiBard.CurrentPlayback.GetDuration<MetricTimeSpan>();
                 try
                 {
-                    progress = (float)currentTime.Divide(duration);
+                    ImGui.ProgressBar(FilePlayback.waitProgress, new Vector2(-1, 3));
+                }
+                catch (Exception e)
+                {
+                    PluginLog.Error(e.ToString());
+                }
+            }
+            else
+            {
+                try
+                {
+                    if (MidiBard.CurrentPlayback != null)
+                    {
+                        currentTime = MidiBard.CurrentPlayback.GetCurrentTime<MetricTimeSpan>();
+                        duration = MidiBard.CurrentPlayback.GetDuration<MetricTimeSpan>();
+                        progress = (float)currentTime.Divide(duration);
+
+                        ImGui.ProgressBar(progress, new Vector2(-1, 3));
+                    }
+                    else
+                    {
+                        ImGui.ProgressBar(progress, new Vector2(-1, 3));
+                    }
                 }
                 catch (Exception e)
                 {
                     //
                 }
-
-                ImGui.ProgressBar(progress, new Vector2(-1, 3));
-            }
-            else
-            {
-                ImGui.ProgressBar(progress, new Vector2(-1, 3));
             }
         }
-        ImGui.PopStyleColor();
+        catch (Exception e)
+        {
+            PluginLog.Error(e.ToString());
+        }
+        finally
+        {
+            ImGui.PopStyleColor();
+        }
 
         ImGui.TextUnformatted($"{currentTime.Hours}:{currentTime.Minutes:00}:{currentTime.Seconds:00}");
         var durationText = $"{duration.Hours}:{duration.Minutes:00}:{duration.Seconds:00}";
@@ -105,7 +115,9 @@ public partial class PluginUI
         {
             //
         }
-
-        ImGui.PopStyleColor();
+        finally
+        {
+            ImGui.PopStyleColor();
+        }
     }
 }

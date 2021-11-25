@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -196,8 +196,11 @@ public static class FilePlayback
             {
                 try
                 {
-                    valueTotalMilliseconds = 1 - (float)((waitUntil - DateTime.Now).Value.TotalMilliseconds /
-                                                         (waitUntil - waitStart).Value.TotalMilliseconds);
+                    if (waitUntil != null)
+                        if (waitStart != null)
+                            valueTotalMilliseconds = 1 -
+                                                     (float)((waitUntil - DateTime.Now).Value.TotalMilliseconds /
+                                                             (waitUntil - waitStart).Value.TotalMilliseconds);
                 }
                 catch (Exception e)
                 {
