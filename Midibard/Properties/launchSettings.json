@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "MidiBard": {
-      "commandName": "Project",
-      "nativeDebugging": true
-    }
-  }
-}

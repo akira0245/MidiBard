@@ -2,10 +2,10 @@
   <PropertyGroup>
     <TargetFramework>net5.0-windows</TargetFramework>
     <LangVersion>10.0</LangVersion>
-    <AssemblyVersion>1.9.2.5</AssemblyVersion>
-    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-    <Nullable>disable</Nullable>
+    <AssemblyVersion>1.9.2.6</AssemblyVersion>
+	  <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+	  <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+	  <Nullable>disable</Nullable>
     <UseWpf>true</UseWpf>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -22,8 +22,8 @@
     <None Remove="lib\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="DalamudPackager" Version="2.1.4" />
-    <PackageReference Include="ILRepack" Version="2.0.18" />
+    <PackageReference Include="DalamudPackager" Version="2.1.5" />
+    <!--<PackageReference Include="ILRepack" Version="2.0.18" />-->
     <PackageReference Include="Melanchall.DryWetMidi" Version="5.2.1" />
   </ItemGroup>
 
@@ -50,30 +50,12 @@
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>$(AppData)\XIVLauncher\addon\Hooks\dev\Newtonsoft.Json.dll</HintPath>
-      <!--<Private>false</Private>-->
+      <Private>false</Private>
     </Reference>
-    <Reference Include="playlib">
-      <HintPath>..\lib\playlib.dll</HintPath>
-    </Reference>
-    <Reference Include="playlib">
-      <HintPath>..\lib\System.Text.Encoding.CodePages.dll</HintPath>
-      <Private>true</Private>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Properties\Settings.Designer.cs">
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
+	  <Reference Include="playlib">
+		  <HintPath>..\lib\playlib.dll</HintPath>
+		  <Private>true</Private>
+	  </Reference>
   </ItemGroup>
 
   <Target Name="CopyFiles" AfterTargets="Build">
@@ -87,7 +69,7 @@
     </ItemGroup>
     <Message Text="Deleting @(DeleteAssemblies)" Importance="high" />
     <Delete Files="@(DeleteAssemblies)" />
-    <RemoveDir Directories="$(TargetDir)\ref\" />
+    <RemoveDir Directories="$(TargetDir)\ref\"/>
   </Target>
 
   <Target Name="PackagePlugin" AfterTargets="CleanOutDir" Condition="'$(Configuration)' == 'Release'">

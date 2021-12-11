@@ -33,7 +33,7 @@ namespace MidiBard.Managers.Agents
         public static unsafe void EnableBackgroundFrameLimit() =>  Framework.Instance()->UIModule->GetConfigModule()->SetOption(8,1,2,true,true);
         public static unsafe void DisableBackgroundFrameLimit() =>  Framework.Instance()->UIModule->GetConfigModule()->SetOption(8,0,2, true, true);
 
-        public unsafe T GetSettings<T>(int id) where T : unmanaged => *(T*)&(Framework.Instance()->UIModule->GetConfigModule()->GetValue(8)->Value);
+        public unsafe T GetSettings<T>(int id) where T : unmanaged => *(T*)&(Framework.Instance()->UIModule->GetConfigModule()->GetValue(8)->UInt);
         public unsafe bool BackgroundFrameLimit
         {
             get
