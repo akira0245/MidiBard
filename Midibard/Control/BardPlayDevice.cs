@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Dalamud.Logging;
 using Melanchall.DryWetMidi.Common;
@@ -65,79 +66,55 @@ internal class BardPlayDevice : IOutputDevice
     /// <param name="midiEvent">Raw midi event</param>
     /// <param name="metadata">Currently is track index</param>
     /// <returns></returns>
+    [SuppressMessage("Usage", "CA2208", MessageId = "Instantiate argument exceptions correctly")]
     public bool SendEventWithMetadata(MidiEvent midiEvent, object metadata)
     {
         if (!MidiBard.AgentPerformance.InPerformanceMode) return false;
 
         var trackIndex = (int?)metadata;
-        if (trackIndex is { } trackIndexValue)
+        if (trackIndex is not { } trackIndexValue || midiEvent is not NoteOnEvent noteOnEvent || !MidiBard.PlayingGuitar)
+            return SendMidiEvent(midiEvent, trackIndex);
+
+        if (MidiBard.config.SoloedTrack is { } soloing && trackIndexValue != soloing || !MidiBard.config.EnabledTracks[trackIndexValue])
+            return false;
+
+        switch (MidiBard.config.GuitarToneMode)
         {
-            if (MidiBard.config.SoloedTrack is { } soloing)
+            case GuitarToneMode.Off:
+                break;
+            case GuitarToneMode.Standard:
             {
-                if (trackIndexValue != soloing)
-                {
-                    return false;
-                }
+                HandleToneSwitchEvent(noteOnEvent);
+                break;
             }
-            else
+            case GuitarToneMode.Simple:
             {
-                if (!MidiBard.config.EnabledTracks[trackIndexValue])
-                {
-                    return false;
-                }
+                if (MidiBard.CurrentTracks[trackIndexValue].trackInfo.IsProgramControlled)
+                    HandleToneSwitchEvent(noteOnEvent);
+                break;
             }
-
-            if (midiEvent is NoteOnEvent noteOnEvent)
+            case GuitarToneMode.Override:
             {
-                if (MidiBard.PlayingGuitar)
-                {
-                    switch (MidiBard.config.GuitarToneMode)
-                    {
-                        case GuitarToneMode.Off:
-                            break;
-                        case GuitarToneMode.Standard:
-                        case GuitarToneMode.Simple:
-                            {
-                                if (MidiBard.CurrentTracks[trackIndexValue].trackInfo.IsProgramControlled)
-                                {
-                                    // if (CurrentChannel != noteOnEvent.Channel)
-                                    // {
-                                    //     PluginLog.Verbose($"[N][Channel][{trackIndex}:{noteOnEvent.Channel}] Changing channel from {CurrentChannel} to {noteOnEvent.Channel}");
-                                    CurrentChannel = noteOnEvent.Channel;
-                                    // }
-                                    SevenBitNumber program = Channels[CurrentChannel].Program;
-                                    if (MidiBard.ProgramInstruments.TryGetValue(program, out var instrumentId))
-                                    {
-                                        var instrument = MidiBard.Instruments[instrumentId];
-                                        if (instrument.IsGuitar)
-                                        {
-                                            int tone = instrument.GuitarTone;
-                                            playlib.GuitarSwitchTone(tone);
-                                            // var (id, name) = MidiBard.InstrumentPrograms[MidiBard.ProgramInstruments[prog]];
-                                            // PluginLog.Verbose($"[N][NoteOn][{trackIndex}:{noteOnEvent.Channel}] Changing guitar program to [{id} t:({tone})] {name} ({(GeneralMidiProgram)(byte)prog})");
-                                        }
-                                    }
-
-                                }
-
-                                break;
-                            }
-                        case GuitarToneMode.Override:
-                            {
-                                int tone = MidiBard.config.TonesPerTrack[trackIndexValue];
-                                playlib.GuitarSwitchTone(tone);
-
-                                // PluginLog.Verbose($"[N][NoteOn][{trackIndex}:{noteOnEvent.Channel}] Overriding guitar tone {tone}");
-                                break;
-                            }
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
-                }
+                playlib.GuitarSwitchTone(MidiBard.config.TonesPerTrack[trackIndexValue]);
+                break;
             }
+            default:
+                throw new ArgumentOutOfRangeException();
         }
 
         return SendMidiEvent(midiEvent, trackIndex);
+    }
+
+    private void HandleToneSwitchEvent(ChannelEvent noteOnEvent)
+    {
+        CurrentChannel = noteOnEvent.Channel;
+        SevenBitNumber program = Channels[CurrentChannel].Program;
+        if (!MidiBard.ProgramInstruments.TryGetValue(program, out var instrumentId)) return;
+
+        var instrument = MidiBard.Instruments[instrumentId];
+        if (!instrument.IsGuitar) return;
+;
+        playlib.GuitarSwitchTone(instrument.GuitarTone);
     }
 
     private unsafe bool SendMidiEvent(MidiEvent midiEvent, int? trackIndex)
