@@ -30,15 +30,23 @@ namespace MidiBard.Managers.Agents
             api.ToastGui.Toast += OnToast;
             PluginLog.Information($"graphic config saved and refreshed. func:{(long)refreshConfigGraphicState:X} agent:{Pointer:X} result:{result:X}");
         }
-        public static unsafe void EnableBackgroundFrameLimit() =>  Framework.Instance()->UIModule->GetConfigModule()->SetOption(8,1,2,true,true);
-        public static unsafe void DisableBackgroundFrameLimit() =>  Framework.Instance()->UIModule->GetConfigModule()->SetOption(8,0,2, true, true);
+        public static unsafe void EnableBackgroundFrameLimit() => Framework.Instance()->UIModule->GetConfigModule()->SetOption(8, 1, 2, true, true);
+        public static unsafe void DisableBackgroundFrameLimit() => Framework.Instance()->UIModule->GetConfigModule()->SetOption(8, 0, 2, true, true);
 
         public unsafe T GetSettings<T>(int id) where T : unmanaged => *(T*)&(Framework.Instance()->UIModule->GetConfigModule()->GetValue(8)->UInt);
         public unsafe bool BackgroundFrameLimit
         {
             get
             {
-                return GetSettings<bool>(8);
+                try
+                {
+                    if (GetSettings<bool>(8)) return true;
+                }
+                catch (Exception e)
+                {
+                    //
+                }
+                return false;
             }
             set
             {

@@ -101,13 +101,14 @@ public class Configuration : IPluginConfiguration
     public bool PlotTracks;
     public bool LockPlot;
 
-    public float plotScale = 10f;
+    //public float plotScale = 10f;
 
 
     //public List<EnsembleTrack> EnsembleTracks = new List<EnsembleTrack>();
-    public bool SyncPlaylist = false;
-    public bool SyncSongSelection = false;
-    public bool SyncMuteUnMute = false;
+    public bool StopPlayingWhenEnsembleEnds = true;
+    //public bool SyncPlaylist = false;
+    //public bool SyncSongSelection = false;
+    //public bool SyncMuteUnMute = false;
     public GuitarToneMode GuitarToneMode = GuitarToneMode.Off;
     [JsonIgnore] public bool OverrideGuitarTones => GuitarToneMode == GuitarToneMode.Override;
 

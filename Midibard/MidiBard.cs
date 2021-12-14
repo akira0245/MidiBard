@@ -160,7 +160,10 @@ public class MidiBard : IDalamudPlugin
 
             if (!AgentMetronome.EnsembleModeRunning && wasEnsembleModeRunning)
             {
-                MidiPlayerControl.Stop();
+                if (config.StopPlayingWhenEnsembleEnds)
+                {
+                    MidiPlayerControl.Stop();
+                }
             }
 
             wasEnsembleModeRunning = AgentMetronome.EnsembleModeRunning;
