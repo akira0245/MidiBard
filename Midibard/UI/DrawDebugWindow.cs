@@ -1,11 +1,17 @@
 ﻿#if DEBUG
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Dalamud;
 using Dalamud.Interface;
+using Dalamud.Interface.Colors;
+using Dalamud.Interface.ImGuiFileDialog;
 using Dalamud.Logging;
 using Dalamud.Memory;
 using Dalamud.Utility;
@@ -14,34 +20,53 @@ using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Common.Configuration;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
+using ImPlotNET;
 using Lumina.Excel.GeneratedSheets;
+using Melanchall.DryWetMidi.Common;
+using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Devices;
+using Melanchall.DryWetMidi.Interaction;
+using MidiBard.Control;
 using MidiBard.DalamudApi;
 using MidiBard.Managers;
 using MidiBard.Managers.Agents;
 using MidiBard.Managers.Ipc;
+using MidiBard.UI;
+using MidiBard.Util;
 using static ImGuiNET.ImGui;
+using static MidiBard.MidiBard;
 
 namespace MidiBard
 {
 	public partial class PluginUI
 	{
-		private static unsafe void DrawDebugWindow()
+		private bool fontwindow;
+		private bool midiChannels;
+		private unsafe void DrawDebugWindow()
 		{
 			if (Begin("MIDIBARD DEBUG"))
 			{
-				Checkbox("AgentInfo", ref MidiBard.config.DebugAgentInfo);
-				Checkbox("DeviceInfo", ref MidiBard.config.DebugDeviceInfo);
-				Checkbox("Offsets", ref MidiBard.config.DebugOffsets);
-				Checkbox("KeyStroke", ref MidiBard.config.DebugKeyStroke);
-				Checkbox("Misc", ref MidiBard.config.DebugMisc);
+				Checkbox("AgentInfo", ref config.DebugAgentInfo);
+				Checkbox("DeviceInfo", ref config.DebugDeviceInfo);
+				Checkbox("Offsets", ref config.DebugOffsets);
+				Checkbox("KeyStroke", ref config.DebugKeyStroke);
+				Checkbox("Misc", ref config.DebugMisc);
+				Checkbox("EnsembleConductor", ref config.DebugEnsemble);
+				Checkbox("fontwindow", ref fontwindow);
+				Checkbox("midiChannels", ref midiChannels);
+
+     //           if (Button("get setting"))
+     //           {
+     //               var backgroundFrameLimit = MidiBard.AgentConfigSystem.BackgroundFrameLimit;
+					//PluginLog.Warning(backgroundFrameLimit.ToString());
+     //           }
 			}
 			End();
 
-			PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(2, 2));
+			//PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(2, 2));
 			try
 			{
-				if (MidiBard.config.DebugAgentInfo && Begin(nameof(MidiBard) + "AgentInfo"))
+				if (config.DebugAgentInfo && Begin(nameof(MidiBard) + "AgentInfo"))
 				{
 					try
 					{
@@ -115,15 +140,15 @@ namespace MidiBard
 					Separator();
 					try
 					{
-						var performInfos = Offsets.PerformInfos;
+						var performInfos = Offsets.PerformanceStructPtr;
 						TextUnformatted($"PerformInfos: {performInfos.ToInt64() + 3:X}");
 						SameLine();
 						if (SmallButton("C##PerformInfos")) SetClipboardText($"{performInfos.ToInt64() + 3:X}");
-						TextUnformatted($"CurrentInstrumentKey: {MidiBard.CurrentInstrument}");
+						TextUnformatted($"CurrentInstrumentKey: {CurrentInstrument}");
 						TextUnformatted(
-							$"Instrument: {MidiBard.InstrumentSheet.GetRow(MidiBard.CurrentInstrument).Instrument}");
+							$"Instrument: {InstrumentSheet.GetRow(CurrentInstrument).Instrument}");
 						TextUnformatted(
-							$"Name: {MidiBard.InstrumentSheet.GetRow(MidiBard.CurrentInstrument).Name.RawString}");
+							$"Name: {InstrumentSheet.GetRow(CurrentInstrument).Name.RawString}");
 						TextUnformatted($"Tone: {MidiBard.AgentPerformance.CurrentGroupTone}");
 						//ImGui.Text($"unkFloat: {UnkFloat}");
 						////ImGui.Text($"unkByte: {UnkByte1}");
@@ -136,14 +161,14 @@ namespace MidiBard
 					Separator();
 					TextUnformatted($"currentPlaying: {PlaylistManager.CurrentPlaying}");
 					TextUnformatted($"currentSelected: {PlaylistManager.CurrentSelected}");
-					TextUnformatted($"FilelistCount: {PlaylistManager.Filelist.Count}");
+					TextUnformatted($"FilelistCount: {PlaylistManager.FilePathList.Count}");
 					TextUnformatted($"currentUILanguage: {api.PluginInterface.UiLanguage}");
 
 
 				}
 				End();
 
-				if (MidiBard.config.DebugDeviceInfo && Begin(nameof(MidiBard) + "DeviceInfo"))
+				if (config.DebugDeviceInfo && Begin(nameof(MidiBard) + "DeviceInfo"))
 				{
 					try
 					{
@@ -202,7 +227,7 @@ namespace MidiBard
 
 						TextUnformatted(
 							$"CurrentInputDevice: \n{InputDeviceManager.CurrentInputDevice} Listening: {InputDeviceManager.CurrentInputDevice?.IsListeningForEvents}");
-						TextUnformatted($"CurrentOutputDevice: \n{MidiBard.CurrentOutputDevice}");
+						TextUnformatted($"CurrentOutputDevice: \n{CurrentOutputDevice}");
 					}
 					catch (Exception e)
 					{
@@ -422,7 +447,7 @@ namespace MidiBard
 				}
 				End();
 
-				if (MidiBard.config.DebugOffsets && Begin(nameof(MidiBard) + "Offsets"))
+				if (config.DebugOffsets && Begin(nameof(MidiBard) + "Offsets"))
 				{
 					try
 					{
@@ -466,7 +491,7 @@ namespace MidiBard
 				}
 				End();
 
-				if (MidiBard.config.DebugKeyStroke && Begin(nameof(MidiBard) + "KeyStroke"))
+				if (config.DebugKeyStroke && Begin(nameof(MidiBard) + "KeyStroke"))
 				{
 					TextUnformatted($"useRawHook: {Testhooks.Instance?.playnoteHook?.IsEnabled}");
 					if (Button("useRawhook"))
@@ -553,6 +578,26 @@ namespace MidiBard
 					}
 				}
 				End();
+
+				if (midiChannels && Begin(nameof(MidiBard) + "midiChannels"))
+				{
+					TextUnformatted($"current channel: {CurrentOutputDevice.CurrentChannel}");
+
+
+					Spacing();
+					for (var i = 0; i < CurrentOutputDevice.Channels.Length; i++)
+					{
+						var b = CurrentOutputDevice.CurrentChannel == i;
+						if (b) PushStyleColor(ImGuiCol.Text, ImGuiColors.ParsedGreen);
+						TextUnformatted($"[{i:00}]");
+						SameLine(40);
+						TextUnformatted($"{CurrentOutputDevice.Channels[i].Program}");
+                        SameLine(70);
+						TextUnformatted($"{ProgramNames.GetGMProgramName(CurrentOutputDevice.Channels[i].Program)}");
+						if (b) PopStyleColor();
+					}
+				}
+				End();
 #if false
 				if (MidiBard.config.DebugMisc && ImGui.Begin(nameof(MidiBard) + "Misc"))
 				{
@@ -620,44 +665,44 @@ namespace MidiBard
 				ImGui.End();
 #endif
 
-				if (MidiBard.config.DebugMisc && Begin(nameof(MidiBard) + "Misc2"))
-				{
-					var ipc = RPCManager.Instance;
+				//if (MidiBard.config.DebugMisc && Begin(nameof(MidiBard) + "Rpc"))
+				//{
+				//	//if (Button("SetupBroadcastingRPCBuffers"))
+				//	//{
+				//	//	RPCManager.Instance.SetupBroadcastingRPCBuffers();
+				//	//}
+				//	//if (Button("DisposeBroadcastingRPCBuffers"))
+				//	//{
+				//	//	RPCManager.Instance.DisposeBroadcastingRPCBuffers();
+				//	//}
 
-				}
+				//	if (Button("SetInstrument 1"))
+				//	{
+				//		RPCManager.Instance.RPCBroadcast(IpcOpCode.SetInstrument, new MidiBardIpcSetInstrument() { InstrumentId = 1 });
+				//	}
+				//	if (Button("SetInstrument 0"))
+				//	{
+				//		RPCManager.Instance.RPCBroadcast(IpcOpCode.SetInstrument, new MidiBardIpcSetInstrument() { InstrumentId = 0 });
+				//	}
 
-				if (Button("Create RPC manger instance"))
-				{
-				}
-				if (Button("SetupBroadcastingRPCBuffers"))
-				{
-					RPCManager.Instance.SetupBroadcastingRPCBuffers();
-				}
-				if (Button("DisposeBroadcastingRPCBuffers"))
-				{
-					RPCManager.Instance.DisposeBroadcastingRPCBuffers();
-				}
+				//	if (Button("Reload playlist"))
+				//	{
+				//		RPCManager.Instance.RPCBroadcast(IpcOpCode.PlayListReload,
+				//			new MidiBardIpcPlaylist() { Paths = PlaylistManager.FilePathList.Select(i => i.path).ToArray() });
+				//	}
 
-				if (Button("SetInstrument 1"))
-				{
-					RPCManager.Instance.RPCBroadCast(IpcOpCode.SetInstrument, new MidiBardIpcSetInstrument() { InstrumentId = 1 });
-				}
-				if (Button("SetInstrument 0"))
-				{
-					RPCManager.Instance.RPCBroadCast(IpcOpCode.SetInstrument, new MidiBardIpcSetInstrument() { InstrumentId = 0 });
-				}
+				//	TextUnformatted($"RpcSource:");
+				//	foreach (var (cid, rpcSource) in RPCManager.Instance.RPCSources)
+				//	{
+				//		TextUnformatted($"{cid:X} bytes: {rpcSource.Statistics.BytesWritten} sent: {rpcSource.Statistics.MessagesSent} recv: {rpcSource.Statistics.ResponsesReceived} error: {rpcSource.Statistics.ErrorsReceived}");
+				//	}
+				//	TextUnformatted($"RpcClient:\n\t{RPCManager.Instance.RpcClient}");
+				//}
 
-				if (Button("Reload playlist"))
-				{
-					RPCManager.Instance.RPCBroadCast(IpcOpCode.ReloadPlayList,
-						new MidiBardIpcReloadPlaylist() { Paths = PlaylistManager.Filelist.Select(i => i.path).ToArray() });
-				}
-
-				TextUnformatted($"BroadcastingRPCBuffers:");
-				foreach (var (cid, rpcMaster) in RPCManager.Instance.BroadcastingRPCBuffers)
-				{
-					TextUnformatted($"{cid:X} {rpcMaster}");
-				}
+				//if (MidiBard.config.DebugEnsemble)
+				//{
+				//	EnsemblePartyList();
+				//}
 
 				//if (setup)
 				//{
@@ -686,17 +731,37 @@ namespace MidiBard
 				//	};
 				//}
 
-				End();
 
 				//DrawFontIconView();
+
+
+				//if (Button("open"))
+				//{
+				//	fileDialogManager.OpenFileDialog("Import midi file", ".mid", (b, strings) =>
+				//	{
+				//		PluginLog.Information($"{b}\n{string.Join("\n", strings)}");
+				//		if (b) ImportMidiFiles(strings);
+				//	});
+				//}
+
+				//if (Button("close"))
+				//{
+				//	fileDialogManager.Reset();
+				//}
+
+
+				if (fontwindow)
+				{
+					DrawFontIconView();
+				}
 			}
 			finally
 			{
-				PopStyleVar();
+				End();
+				//PopStyleVar();
 			}
 		}
 
-		private static bool setup = true;
 
 		private static void DrawFontIconView()
 		{

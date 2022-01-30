@@ -5,49 +5,59 @@ using System.Text;
 using System.Threading.Tasks;
 using static MidiBard.MidiBard;
 
-namespace MidiBard.Control.CharacterControl
+namespace MidiBard.Control.CharacterControl;
+
+class PerformanceEvents
 {
-	class PerformanceEvents
-	{
-		private PerformanceEvents()
-		{
+    private PerformanceEvents()
+    {
 
-		}
+    }
 
-		public static PerformanceEvents Instance { get; } = new PerformanceEvents();
+    public static PerformanceEvents Instance { get; } = new PerformanceEvents();
 
-		private void EnteringPerformance()
-		{
-			if (config.AutoOpenPlayerWhenPerforming)
-				Ui.Open();
-		}
+    private void EnteringPerformance()
+    {
+        if (config.AutoOpenPlayerWhenPerforming)
+            if (!SwitchInstrument.SwitchingInstrument)
+                Ui.Open();
 
-		private void ExitingPerformance()
-		{
-			if (config.AutoOpenPlayerWhenPerforming)
-				Ui.Close();
-		}
+        //_backgroundFrameLimit = AgentConfigSystem.BackgroundFrameLimit;
+        //AgentConfigSystem.BackgroundFrameLimit = false;
+        //AgentConfigSystem.ApplyGraphicSettings();
+    }
 
-		private bool inPerformanceMode;
+    private void ExitingPerformance()
+    {
+        if (config.AutoOpenPlayerWhenPerforming)
+            if (!SwitchInstrument.SwitchingInstrument)
+                Ui.Close();
 
-		public bool InPerformanceMode
-		{
-			set
-			{
-				if (value && !inPerformanceMode)
-				{
-					if (!SwitchInstrument.SwitchingInstrument)
-						EnteringPerformance();
-				}
+        //if (_backgroundFrameLimit is { } b && AgentConfigSystem.BackgroundFrameLimit != b)
+        //{
+        //    AgentConfigSystem.BackgroundFrameLimit = b;
+        //    AgentConfigSystem.ApplyGraphicSettings();
+        //}
+    }
 
-				if (!value && inPerformanceMode)
-				{
-					if (!SwitchInstrument.SwitchingInstrument)
-						ExitingPerformance();
-				}
+    private bool inPerformanceMode;
+    private bool? _backgroundFrameLimit;
 
-				inPerformanceMode = value;
-			}
-		}
-	}
+    public bool InPerformanceMode
+    {
+        set
+        {
+            if (value && !inPerformanceMode)
+            {
+                EnteringPerformance();
+            }
+
+            if (!value && inPerformanceMode)
+            {
+                ExitingPerformance();
+            }
+
+            inPerformanceMode = value;
+        }
+    }
 }

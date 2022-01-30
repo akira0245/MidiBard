@@ -1,219 +1,289 @@
-﻿using System;
-using System.Threading.Tasks;
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Dalamud.Logging;
+using Melanchall.DryWetMidi.Common;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Standards;
-using MidiBard.Managers;
+using MidiBard.Control.CharacterControl;
+using MidiBard.Util;
 using playlibnamespace;
 
-namespace MidiBard.Control
+namespace MidiBard.Control;
+
+internal class BardPlayDevice : IOutputDevice
 {
-	class BardPlayDevice : IOutputDevice
-	{
-		public event EventHandler<MidiEventSentEventArgs> EventSent;
+    internal struct ChannelState
+    {
+        public SevenBitNumber Program { get; set; }
 
-		public void PrepareForEventsSending()
-		{
+        public ChannelState(SevenBitNumber? program)
+        {
+            this.Program = program ?? SevenBitNumber.MinValue;
+        }
+    }
 
-		}
+    public readonly ChannelState[] Channels;
+    public FourBitNumber CurrentChannel;
 
-		public void SendEvent(MidiEvent midiEvent)
-		{
-			SendEventWithMetadata(midiEvent, null);
-		}
+    public event EventHandler<MidiEventSentEventArgs> EventSent;
 
-		record MidiEventMetaData
-		{
-			public enum EventSource
-			{
-				Playback,
-				MidiListener
-			}
-			public int TrackIndex { get; init; }
-			public EventSource Source { get; init; }
-		}
+    public BardPlayDevice()
+    {
+        Channels = new ChannelState[16];
+        CurrentChannel = FourBitNumber.MinValue;
+    }
 
-		public bool SendEventWithMetadata(MidiEvent midiEvent, object metadata)
-		{
-			if (!MidiBard.AgentPerformance.InPerformanceMode) return false;
+    public void PrepareForEventsSending()
+    {
+    }
 
-			var trackIndex = (int?)metadata;
-			if (trackIndex != null)
-			{
-				if (MidiBard.config.SoloedTrack is int soloing)
-				{
-					if (trackIndex != soloing)
-					{
-						return false;
-					}
-				}
-				else
-				{
-					if (!MidiBard.config.EnabledTracks[trackIndex.Value])
-					{
-						return false;
-					}
-				}
+    /// <summary>
+    /// Midi events send from input device
+    /// </summary>
+    /// <param name="midiEvent">Raw midi event</param>
+    public void SendEvent(MidiEvent midiEvent)
+    {
+        SendEventWithMetadata(midiEvent, null);
+    }
 
-				if (MidiBard.PlayingGuitar && MidiBard.config.OverrideGuitarTones && midiEvent is NoteOnEvent)
-				{
-					playlib.GuitarSwitchTone(MidiBard.config.TonesPerTrack[trackIndex.Value]);
-				}
-			}
+    record MidiEventMetaData
+    {
+        public enum EventSource
+        {
+            Playback,
+            MidiListener
+        }
 
-			return SendMidiEvent(midiEvent, trackIndex);
-		}
+        public int TrackIndex { get; init; }
+        public EventSource Source { get; init; }
+    }
 
-		private static unsafe bool SendMidiEvent(MidiEvent midiEvent, int? trackIndex)
-		{
-			switch (midiEvent)
-			{
-				case ProgramChangeEvent programChange:
-					{
-						PluginLog.Verbose($"[N][ProgramChange][{trackIndex}:{programChange.Channel}] {programChange.ProgramNumber,-3} {(GeneralMidiProgram)(byte)programChange.ProgramNumber}");
-						break;
-					}
-				case NoteOnEvent noteOnEvent:
-					{
-						//PluginLog.Verbose($"[NoteOnEvent] [{trackIndex}:{noteOnEvent.Channel}] {noteOnEvent.NoteNumber,-3}");
+    /// <summary>
+    /// Directly invoked by midi events sent from file playback
+    /// </summary>
+    /// <param name="midiEvent">Raw midi event</param>
+    /// <param name="metadata">Currently is track index</param>
+    /// <returns></returns>
+    [SuppressMessage("Usage", "CA2208", MessageId = "Instantiate argument exceptions correctly")]
+    public bool SendEventWithMetadata(MidiEvent midiEvent, object metadata)
+    {
+        if (!MidiBard.AgentPerformance.InPerformanceMode) return false;
 
-						var noteNum = GetTranlatedNoteNum(noteOnEvent.NoteNumber, trackIndex, out int octave);
-						var s = $"[N][DOWN][{trackIndex}:{noteOnEvent.Channel}] {GetNoteName(noteOnEvent)} ({noteNum})";
+        var trackIndex = (int?)metadata;
+        if (trackIndex is not { } trackIndexValue || midiEvent is not NoteOnEvent noteOnEvent || !MidiBard.PlayingGuitar)
+            return SendMidiEvent(midiEvent, trackIndex);
 
-						if (noteNum is < 0 or > 36)
-						{
-							s += "(out of range)";
-							PluginLog.Verbose(s);
-							return false;
-						}
+        if (MidiBard.config.SoloedTrack is { } soloing && trackIndexValue != soloing || !MidiBard.config.EnabledTracks[trackIndexValue])
+            return false;
 
-						if (octave != 0) s += $"[adapted {octave:+#;-#;0} Oct]";
+        switch (MidiBard.config.GuitarToneMode)
+        {
+            case GuitarToneMode.Off:
+                break;
+            case GuitarToneMode.Standard:
+            {
+                HandleToneSwitchEvent(noteOnEvent);
+                break;
+            }
+            case GuitarToneMode.Simple:
+            {
+                if (MidiBard.CurrentTracks[trackIndexValue].trackInfo.IsProgramControlled)
+                    HandleToneSwitchEvent(noteOnEvent);
+                break;
+            }
+            case GuitarToneMode.Override:
+            {
+                playlib.GuitarSwitchTone(MidiBard.config.TonesPerTrack[trackIndexValue]);
+                break;
+            }
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
 
-						{
-							if (MidiBard.AgentPerformance.noteNumber - 39 == noteNum)
-							{
-								// release repeated note in order to press it again
-								PluginLog.Verbose($"[N][PUP ][{trackIndex}:{noteOnEvent.Channel}] {GetNoteName(noteOnEvent)} ({noteNum})");
+        return SendMidiEvent(midiEvent, trackIndex);
+    }
+
+    private void HandleToneSwitchEvent(ChannelEvent noteOnEvent)
+    {
+        CurrentChannel = noteOnEvent.Channel;
+        SevenBitNumber program = Channels[CurrentChannel].Program;
+        if (!MidiBard.ProgramInstruments.TryGetValue(program, out var instrumentId)) return;
+
+        var instrument = MidiBard.Instruments[instrumentId];
+        if (!instrument.IsGuitar) return;
+;
+        playlib.GuitarSwitchTone(instrument.GuitarTone);
+    }
+
+    private unsafe bool SendMidiEvent(MidiEvent midiEvent, int? trackIndex)
+    {
+        switch (midiEvent)
+        {
+            case ProgramChangeEvent @event:
+                {
+                    switch (MidiBard.config.GuitarToneMode)
+                    {
+                        case GuitarToneMode.Off:
+                            break;
+                        case GuitarToneMode.Standard:
+                            Channels[@event.Channel].Program = @event.ProgramNumber;
+
+                            //int PCChannel = @event.Channel;
+                            //SevenBitNumber currentProgram = Channels[PCChannel].Program;
+                            //SevenBitNumber newProgram = @event.ProgramNumber;
+
+                            PluginLog.Verbose($"[N][ProgramChange][{trackIndex}:{@event.Channel}] {@event.ProgramNumber,-3} {@event.GetGMProgramName()}");
+
+                            //if (currentProgram == newProgram) break;
+
+                            //if (MidiBard.PlayingGuitar)
+                            //{
+                            //    uint instrument = MidiBard.ProgramInstruments[newProgram];
+                            //    //if (!MidiBard.guitarGroup.Contains((byte)instrument))
+                            //    //{
+                            //    //    newProgram = MidiBard.Instruments[MidiBard.CurrentInstrument].ProgramNumber;
+                            //    //    instrument = MidiBard.ProgramInstruments[newProgram];
+                            //    //}
+
+                            //    if (Channels[PCChannel].Program != newProgram)
+                            //    {
+                            //        PluginLog.Verbose($"[N][ProgramChange][{trackIndex}:{@event.Channel}] Changing guitar program to ({instrument} {MidiBard.Instruments[instrument].FFXIVDisplayName}) {@event.GetGMProgramName()}");
+                            //    }
+                            //}
+
+                            //Channels[PCChannel].Program = newProgram;
+                            break;
+                        case GuitarToneMode.Simple:
+                            Array.Fill(Channels, new ChannelState(@event.ProgramNumber));
+                            break;
+                        case GuitarToneMode.Override:
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+
+
+                    break;
+                }
+            case NoteOnEvent noteOnEvent:
+                {
+                    //PluginLog.Verbose($"[NoteOnEvent] [{trackIndex}:{noteOnEvent.Channel}] {noteOnEvent.NoteNumber,-3}");
+
+                    var noteNum = GetTranslatedNoteNum(noteOnEvent.NoteNumber, trackIndex, out int octave);
+                    var s = $"[N][DOWN][{trackIndex}:{noteOnEvent.Channel}] {GetNoteName(noteOnEvent)} ({noteNum})";
+
+                    if (noteNum is < 0 or > 36)
+                    {
+                        s += "(out of range)";
+                        PluginLog.Verbose(s);
+                        return false;
+                    }
+
+                    if (octave != 0) s += $"[adapted {octave:+#;-#;0} Oct]";
+
+                    {
+                        if (MidiBard.AgentPerformance.noteNumber - 39 == noteNum)
+                        {
+                            // release repeated note in order to press it again
+
+                            if (playlib.ReleaseKey(noteNum))
+                            {
+                                MidiBard.AgentPerformance.Struct->PressingNoteNumber = -100;
+                                // PluginLog.Verbose($"[N][PUP ][{trackIndex}:{noteOnEvent.Channel}] {GetNoteName(noteOnEvent)} ({noteNum})");
+                            }
+                        }
+
+                        PluginLog.Verbose(s);
+
+                        if (playlib.PressKey(noteNum, ref MidiBard.AgentPerformance.Struct->NoteOffset,
+                                ref MidiBard.AgentPerformance.Struct->OctaveOffset))
+                        {
+                            MidiBard.AgentPerformance.Struct->PressingNoteNumber = noteNum + 39;
+                            return true;
+                        }
+                    }
+
+                    break;
+                }
+            case NoteOffEvent noteOffEvent:
+                {
+                    var noteNum = GetTranslatedNoteNum(noteOffEvent.NoteNumber, trackIndex, out _);
+                    if (noteNum is < 0 or > 36) return false;
+
+                    if (MidiBard.AgentPerformance.Struct->PressingNoteNumber - 39 != noteNum)
+                    {
 #if DEBUG
-								if (Testhooks.Instance.playnoteHook.IsEnabled)
-								{
-									Testhooks.Instance.noteOff();
-									MidiBard.AgentPerformance.Struct->PressingNoteNumber = -100;
-								}
-								else
+                        //PluginLog.Verbose($"[N][IGOR][{trackIndex}:{noteOffEvent.Channel}] {GetNoteName(noteOffEvent)} ({noteNum})");
 #endif
-								if (playlib.ReleaseKey(noteNum))
-								{
-									MidiBard.AgentPerformance.Struct->PressingNoteNumber = -100;
-								}
-							}
+                        return false;
+                    }
 
-							PluginLog.Verbose(s);
-#if DEBUG
-							if (Testhooks.Instance.playnoteHook.IsEnabled)
-							{
-								Testhooks.Instance.noteOn(noteNum + Testhooks.min);
-								MidiBard.AgentPerformance.Struct->PressingNoteNumber = noteNum + 39;
-								return true;
-							}
-							else
-#endif
-							if (playlib.PressKey(noteNum, ref MidiBard.AgentPerformance.Struct->NoteOffset,
-								ref MidiBard.AgentPerformance.Struct->OctaveOffset))
-							{
-								MidiBard.AgentPerformance.Struct->PressingNoteNumber = noteNum + 39;
-								return true;
-							}
-						}
+                    // only release a key when it been pressing
+                    // PluginLog.Verbose($"[N][UP  ][{trackIndex}:{noteOffEvent.Channel}] {GetNoteName(noteOffEvent)} ({noteNum})");
 
-						break;
-					}
-				case NoteOffEvent noteOffEvent:
-					{
-						var noteNum = GetTranlatedNoteNum(noteOffEvent.NoteNumber, trackIndex, out _);
-						if (noteNum is < 0 or > 36) return false;
+                    if (playlib.ReleaseKey(noteNum))
+                    {
+                        MidiBard.AgentPerformance.Struct->PressingNoteNumber = -100;
+                        return true;
+                    }
 
-						if (MidiBard.AgentPerformance.Struct->PressingNoteNumber - 39 != noteNum)
-						{
-#if DEBUG
-							//PluginLog.Verbose($"[N][IGOR][{trackIndex}:{noteOffEvent.Channel}] {GetNoteName(noteOffEvent)} ({noteNum})");
-#endif
-							return false;
-						}
+                    break;
+                }
+        }
 
-						// only release a key when it been pressing
-						PluginLog.Verbose($"[N][UP  ][{trackIndex}:{noteOffEvent.Channel}] {GetNoteName(noteOffEvent)} ({noteNum})");
-#if DEBUG
-						if (Testhooks.Instance.playnoteHook.IsEnabled)
-						{
-							Testhooks.Instance.noteOff();
-							MidiBard.AgentPerformance.Struct->PressingNoteNumber = -100;
-							return true;
-						}
-						else
-#endif
-						if (playlib.ReleaseKey(noteNum))
-						{
-							MidiBard.AgentPerformance.Struct->PressingNoteNumber = -100;
-							return true;
-						}
-						break;
-					}
-			}
-			return false;
-		}
+        return false;
+    }
 
-		static string GetNoteName(NoteEvent note) => $"{note.GetNoteName().ToString().Replace("Sharp", "#")}{note.GetNoteOctave()}";
+    static string GetNoteName(NoteEvent note) => $"{note.GetNoteName().ToString().Replace("Sharp", "#")}{note.GetNoteOctave()}";
 
-		private static int GetTranlatedNoteNum(int noteNumber, int? trackIndex, out int octave)
-		{
-			noteNumber = noteNumber - 48 +
-							MidiBard.config.TransposeGlobal +
-							(MidiBard.config.EnableTransposePerTrack && trackIndex is { } index ? MidiBard.config.TransposePerTrack[index] : 0);
+    public static int GetTranslatedNoteNum(int noteNumber, int? trackIndex, out int octave)
+    {
+        noteNumber = noteNumber - 48 +
+                     MidiBard.config.TransposeGlobal +
+                     (MidiBard.config.EnableTransposePerTrack && trackIndex is { } index ? MidiBard.config.TransposePerTrack[index] : 0);
 
-			octave = 0;
-			if (MidiBard.config.AdaptNotesOOR)
-			{
-				while (noteNumber < 0)
-				{
-					noteNumber += 12;
-					octave++;
-				}
-				while (noteNumber > 36)
-				{
-					noteNumber -= 12;
-					octave--;
-				}
-			}
+        octave = 0;
+        if (MidiBard.config.AdaptNotesOOR)
+        {
+            while (noteNumber < 0)
+            {
+                noteNumber += 12;
+                octave++;
+            }
 
-			return noteNumber;
-		}
+            while (noteNumber > 36)
+            {
+                noteNumber -= 12;
+                octave--;
+            }
+        }
 
-		//bool GetKey( ,int midiNoteNumber, int trackIndex, out int key, out int octave)
-		//{
-		//	octave = 0;
+        return noteNumber;
+    }
 
-		//	key = midiNoteNumber - 48 +
-		//	          MidiBard.config.TransposeGlobal +
-		//	          (MidiBard.config.EnableTransposePerTrack ? MidiBard.config.TransposePerTrack[trackIndex] : 0);
-		//	if (MidiBard.config.AdaptNotesOOR)
-		//	{
-		//		while (key < 0)
-		//		{
-		//			key += 12;
-		//			octave++;
-		//		}
-		//		while (key > 36)
-		//		{
-		//			key -= 12;
-		//			octave--;
-		//		}
-		//	}
+    //bool GetKey( ,int midiNoteNumber, int trackIndex, out int key, out int octave)
+    //{
+    //	octave = 0;
+
+    //	key = midiNoteNumber - 48 +
+    //	          MidiBard.config.TransposeGlobal +
+    //	          (MidiBard.config.EnableTransposePerTrack ? MidiBard.config.TransposePerTrack[trackIndex] : 0);
+    //	if (MidiBard.config.AdaptNotesOOR)
+    //	{
+    //		while (key < 0)
+    //		{
+    //			key += 12;
+    //			octave++;
+    //		}
+    //		while (key > 36)
+    //		{
+    //			key -= 12;
+    //			octave--;
+    //		}
+    //	}
 
 
-		//}
-
-
-	}
+    //}
 }
