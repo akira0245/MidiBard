@@ -72,9 +72,9 @@ internal class BardPlayDevice : IOutputDevice
         if (!MidiBard.AgentPerformance.InPerformanceMode) return false;
 
         var trackIndex = (int?)metadata;
-        int trackIndexValue = (int)trackIndex;
+        int trackIndexValue = metadata != null ? (int)trackIndex : -1;
 
-        if (trackIndex != null && MidiBard.config.SoloedTrack is { } soloing && trackIndexValue != soloing || !MidiBard.config.EnabledTracks[trackIndexValue])
+        if ( metadata != null && ( trackIndex != null && MidiBard.config.SoloedTrack is { } soloing && trackIndexValue != soloing || !MidiBard.config.EnabledTracks[trackIndexValue]))
             return false;
 
         if (midiEvent is not NoteOnEvent noteOnEvent || !MidiBard.PlayingGuitar)
