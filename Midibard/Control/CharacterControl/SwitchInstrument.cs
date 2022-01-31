@@ -147,7 +147,7 @@ internal static class SwitchInstrument
             else
             {
                 var firstEnabledTrack = MidiBard.CurrentTracks.Select(i => i.trackInfo).FirstOrDefault(i => i.IsEnabled);
-                var transpose = firstEnabledTrack != null ? firstEnabledTrack.TransposeFromTrackName : 0;
+                var transpose = firstEnabledTrack?.TransposeFromTrackName ?? 0;
                 config.TransposeGlobal = transpose;
             }
         }

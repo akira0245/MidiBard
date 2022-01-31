@@ -129,8 +129,8 @@ public partial class PluginUI
             MidiBard.Localizer = new Localizer((UILang)MidiBard.config.uiLang);
 
         //#if DEBUG
-        //			ImGui.Checkbox("BMP track name compatible".Localize(), ref MidiBard.config.bmpTrackNames);
-        //			ImGuiUtil.ToolTip("transpose/switch instrument based on first enabled midi track name.\nPlease know what you are doing before enabling this.".Localize());
+        ImGui.Checkbox("BMP track name compatible(testing)".Localize(), ref MidiBard.config.bmpTrackNames);
+        ImGuiUtil.ToolTip("Transpose/switch instrument based on first enabled midi track name.".Localize());
         //#endif
     }
 }

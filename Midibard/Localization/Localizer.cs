@@ -132,6 +132,8 @@ class Localizer
         zh.Add("Standard: Standard midi channel and ProgramChange handling, each channel will keep it's program state separately.", "标准：标准MIDI通道和音色转换事件处理，每个MIDI通道会分别保持其音色，直到同通道的另一个音色转换事件改写其音色状态。");
         zh.Add("Simple: Simple ProgramChange handling, ProgramChange event on any channel will change all channels' program state. (This is BardMusicPlayer's default behavior.)", "简单：简单的音色转换事件处理方式，任一通道上的音色转换事件会改写所有MIDI通道的音色状态。（这是BardMusicPlayer的默认处理方式。）");
         zh.Add("Override by track: Assign guitar tone manually for each track and ignore ProgramChange events.", "分音轨重写：为每个音轨手动指定电吉他音色，无视其音色转换事件。");
+        zh.Add("BMP track name compatible(testing)", "BMP音轨名兼容(测试版)");
+        zh.Add("Transpose/switch instrument based on first enabled midi track name.", "根据首个被启用的音轨的音轨名自动切换乐器和移调。");
 
     }
 }
