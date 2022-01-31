@@ -96,30 +96,14 @@ internal class BardPlayDevice : IOutputDevice
                         case GuitarToneMode.Off:
                             break;
                         case GuitarToneMode.Standard:
+                            HandleToneSwitchEvent(noteOnEvent);
+                            break;
                         case GuitarToneMode.Simple:
                             {
                                 if (MidiBard.CurrentTracks[trackIndexValue].trackInfo.IsProgramControlled)
                                 {
-                                    // if (CurrentChannel != noteOnEvent.Channel)
-                                    // {
-                                    //     PluginLog.Verbose($"[N][Channel][{trackIndex}:{noteOnEvent.Channel}] Changing channel from {CurrentChannel} to {noteOnEvent.Channel}");
-                                    CurrentChannel = noteOnEvent.Channel;
-                                    // }
-                                    SevenBitNumber program = Channels[CurrentChannel].Program;
-                                    if (MidiBard.ProgramInstruments.TryGetValue(program, out var instrumentId))
-                                    {
-                                        var instrument = MidiBard.Instruments[instrumentId];
-                                        if (instrument.IsGuitar)
-                                        {
-                                            int tone = instrument.GuitarTone;
-                                            playlib.GuitarSwitchTone(tone);
-                                            // var (id, name) = MidiBard.InstrumentPrograms[MidiBard.ProgramInstruments[prog]];
-                                            // PluginLog.Verbose($"[N][NoteOn][{trackIndex}:{noteOnEvent.Channel}] Changing guitar program to [{id} t:({tone})] {name} ({(GeneralMidiProgram)(byte)prog})");
-                                        }
-                                    }
-
+                                    HandleToneSwitchEvent(noteOnEvent);
                                 }
-
                                 break;
                             }
                         case GuitarToneMode.Override:
@@ -138,6 +122,27 @@ internal class BardPlayDevice : IOutputDevice
         }
 
         return SendMidiEvent(midiEvent, trackIndex);
+    }
+
+    private void HandleToneSwitchEvent(NoteOnEvent noteOnEvent)
+    {
+        // if (CurrentChannel != noteOnEvent.Channel)
+        // {
+        //     PluginLog.Verbose($"[N][Channel][{trackIndex}:{noteOnEvent.Channel}] Changing channel from {CurrentChannel} to {noteOnEvent.Channel}");
+            CurrentChannel = noteOnEvent.Channel;
+        // }
+        SevenBitNumber program = Channels[CurrentChannel].Program;
+        if (MidiBard.ProgramInstruments.TryGetValue(program, out var instrumentId))
+        {
+            var instrument = MidiBard.Instruments[instrumentId];
+            if (instrument.IsGuitar)
+            {
+                int tone = instrument.GuitarTone;
+                playlib.GuitarSwitchTone(tone);
+                // var (id, name) = MidiBard.InstrumentPrograms[MidiBard.ProgramInstruments[prog]];
+                // PluginLog.Verbose($"[N][NoteOn][{trackIndex}:{noteOnEvent.Channel}] Changing guitar program to [{id} t:({tone})] {name} ({(GeneralMidiProgram)(byte)prog})");
+            }
+        }
     }
 
     private unsafe bool SendMidiEvent(MidiEvent midiEvent, int? trackIndex)
