@@ -22,9 +22,9 @@
     <None Remove="lib\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="DalamudPackager" Version="2.1.5" />
+    <PackageReference Include="DalamudPackager" Version="2.1.7" />
     <!--<PackageReference Include="ILRepack" Version="2.0.18" />-->
-    <PackageReference Include="Melanchall.DryWetMidi" Version="5.2.1" />
+    <PackageReference Include="Melanchall.DryWetMidi" Version="6.0.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -69,7 +69,7 @@
     </ItemGroup>
     <Message Text="Deleting @(DeleteAssemblies)" Importance="high" />
     <Delete Files="@(DeleteAssemblies)" />
-    <RemoveDir Directories="$(TargetDir)\ref\"/>
+    <RemoveDir Directories="$(TargetDir)\ref\" />
   </Target>
 
   <Target Name="PackagePlugin" AfterTargets="CleanOutDir" Condition="'$(Configuration)' == 'Release'">

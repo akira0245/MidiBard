@@ -10,7 +10,6 @@ using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 using ImPlotNET;
-using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Interaction;
 using MidiBard.DalamudApi;
 using MidiBard.Managers;

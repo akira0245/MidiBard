@@ -3,7 +3,7 @@ using System.Linq;
 using Dalamud.Logging;
 using Melanchall.DryWetMidi.Common;
 using Melanchall.DryWetMidi.Core;
-using Melanchall.DryWetMidi.Devices;
+using Melanchall.DryWetMidi.Multimedia;
 using Melanchall.DryWetMidi.Standards;
 using MidiBard.Control.CharacterControl;
 using MidiBard.Util;

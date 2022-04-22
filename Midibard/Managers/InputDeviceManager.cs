@@ -8,7 +8,7 @@ using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Logging;
 using Dalamud.Plugin;
 using Melanchall.DryWetMidi.Core;
-using Melanchall.DryWetMidi.Devices;
+using Melanchall.DryWetMidi.Multimedia;
 using MidiBard.DalamudApi;
 
 namespace MidiBard;
@@ -24,7 +24,7 @@ static class InputDeviceManager
                 {
                     try
                     {
-                        Devices = InputDevice.GetAll().OrderBy(i => i.Id).ToArray();
+                        Devices = InputDevice.GetAll().OrderBy(i => i.Name).ToArray();
                         var devicesNames = Devices.Select(i => i.DeviceName()).ToArray();
 
                         //PluginLog.Information(string.Join(", ", devicesNames));
@@ -130,7 +130,7 @@ static class InputDeviceManager
         try
         {
             CurrentInputDevice.EventReceived -= InputDevice_EventReceived;
-            CurrentInputDevice.Reset();
+            CurrentInputDevice.Dispose();
             ImGuiUtil.AddNotification(NotificationType.Info, $"Stop event listening on \"{CurrentInputDevice.Name}\"	.", "Midi device disconnected");
         }
         catch (Exception e)

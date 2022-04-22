@@ -43,7 +43,7 @@ public partial class PluginUI
             for (int i = 0; i < inputDevices.Length; i++)
             {
                 var device = inputDevices[i];
-                if (ImGui.Selectable($"{device.Name}##{i}", device.Id == InputDeviceManager.CurrentInputDevice?.Id))
+                if (ImGui.Selectable($"{device.Name}##{i}", device.Name == InputDeviceManager.CurrentInputDevice?.Name))
                 {
                     InputDeviceManager.SetDevice(device);
                 }

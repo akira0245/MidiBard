@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Melanchall.DryWetMidi.Core;
-using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Interaction;
+using Melanchall.DryWetMidi.Multimedia;
 
 namespace MidiBard.Control.MidiControl.PlaybackInstance;
 
