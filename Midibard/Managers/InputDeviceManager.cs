@@ -9,6 +9,7 @@ using Dalamud.Logging;
 using Dalamud.Plugin;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Multimedia;
+using MidiBard.Control;
 using MidiBard.DalamudApi;
 
 namespace MidiBard;
@@ -147,6 +148,6 @@ static class InputDeviceManager
     private static void InputDevice_EventReceived(object sender, MidiEventReceivedEventArgs e)
     {
         PluginLog.Verbose($"[{sender}]{e.Event}");
-        MidiBard.CurrentOutputDevice.SendEvent(e.Event);
+        BardPlayDevice.Instance.SendEventWithMetadata(e.Event, new BardPlayDevice.MidiDeviceMetaData());
     }
 }

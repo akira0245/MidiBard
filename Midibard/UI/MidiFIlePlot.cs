@@ -124,7 +124,7 @@ public partial class PluginUI
 
                     foreach (var (start, end, noteNumber) in notes.Where(i => i.end > xMin && i.start < xMax))
                     {
-                        var translatedNoteNum = BardPlayDevice.GetTranslatedNoteNum(noteNumber, trackInfo.Index, out _) + 48;
+                        var translatedNoteNum = BardPlayDevice.GetNoteNumberTranslatedPerTrack(noteNumber, trackInfo.Index, out _) + 48;
                         drawList.AddRectFilled(
                             ImPlot.PlotToPixels(start, translatedNoteNum + 1),
                             ImPlot.PlotToPixels(end, translatedNoteNum),

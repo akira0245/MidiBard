@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Numerics;
 using System.Threading.Tasks;
+using Dalamud.Interface;
 using ImGuiNET;
 using Melanchall.DryWetMidi.Interaction;
 using MidiBard.Control.CharacterControl;
@@ -135,11 +137,33 @@ public partial class PluginUI
         {
             UIcurrentInstrument = MidiBard.AgentPerformance.CurrentGroupTone + MidiBard.guitarGroup[0]; ;
         }
-        if (ImGui.Combo("Instrument".Localize(), ref UIcurrentInstrument, MidiBard.InstrumentStrings,
-                MidiBard.InstrumentStrings.Length, 20))
+
+        if (ImGui.BeginCombo("Instrument".Localize(), MidiBard.InstrumentStrings[UIcurrentInstrument], ImGuiComboFlags.HeightLarge))
         {
-            SwitchInstrument.SwitchToContinue((uint)UIcurrentInstrument);
+            ImGui.GetWindowDrawList().ChannelsSplit(2);
+            for (int i = 0; i < MidiBard.Instruments.Length; i++)
+            {
+                var instrument = MidiBard.Instruments[i];
+                ImGui.GetWindowDrawList().ChannelsSetCurrent(1);
+                ImGui.Image(instrument.IconTextureWrap.ImGuiHandle, new Vector2(ImGui.GetTextLineHeightWithSpacing()));
+                ImGui.SameLine();
+                ImGui.GetWindowDrawList().ChannelsSetCurrent(0);
+                ImGui.AlignTextToFramePadding();
+                if (ImGui.Selectable($"{instrument.InstrumentString}##{i}", UIcurrentInstrument == i, ImGuiSelectableFlags.SpanAllColumns))
+                {
+                    UIcurrentInstrument = i;
+                    SwitchInstrument.SwitchToContinue((uint)i);
+                }
+            }
+            ImGui.GetWindowDrawList().ChannelsMerge();
+            ImGui.EndCombo();
         }
+
+        //if (ImGui.Combo("Instrument".Localize(), ref UIcurrentInstrument, MidiBard.InstrumentStrings,
+        //        MidiBard.InstrumentStrings.Length, 20))
+        //{
+        //    SwitchInstrument.SwitchToContinue((uint)UIcurrentInstrument);
+        //}
 
         ToolTip("Select current instrument. \nRight click to quit performance mode.".Localize());
 

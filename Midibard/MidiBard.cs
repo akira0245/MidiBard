@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Dalamud.Interface;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Logging;
 using Dalamud.Plugin;
@@ -43,7 +44,6 @@ public class MidiBard : IDalamudPlugin
 #else
     public static bool Debug = false;
 #endif
-    internal static BardPlayDevice CurrentOutputDevice { get; set; }
     internal static MidiFile CurrentOpeningMidiFile { get; }
     internal static Playback CurrentPlayback { get; set; }
     internal static TempoMap CurrentTMap { get; set; }
@@ -64,7 +64,7 @@ public class MidiBard : IDalamudPlugin
     internal static string[] InstrumentStrings;
 
     internal static IDictionary<SevenBitNumber, uint> ProgramInstruments;
-		
+
     internal static byte CurrentInstrument => Marshal.ReadByte(Offsets.PerformanceStructPtr + 3 + Offsets.InstrumentOffset);
     internal static byte CurrentTone => Marshal.ReadByte(Offsets.PerformanceStructPtr + 3 + Offsets.InstrumentOffset + 1);
     internal static readonly byte[] guitarGroup = { 24, 25, 26, 27, 28 };
@@ -86,6 +86,7 @@ public class MidiBard : IDalamudPlugin
             .ToArray();
 
         InstrumentStrings = Instruments.Select(i => i.InstrumentString).ToArray();
+
 
         PluginLog.Information("<InstrumentStrings>");
         foreach (string s in InstrumentStrings)
@@ -128,7 +129,7 @@ public class MidiBard : IDalamudPlugin
 
         Task.Run(() => PlaylistManager.AddAsync(config.Playlist.ToArray(), true));
 
-        CurrentOutputDevice = new BardPlayDevice();
+        _ = BardPlayDevice.Instance;
         InputDeviceManager.ScanMidiDeviceThread.Start();
 
         Ui = new PluginUI();
@@ -251,32 +252,32 @@ public class MidiBard : IDalamudPlugin
                     }
                     break;
                 case "rewind":
-                {
-                    double timeInSeconds = -5;
-                    try
                     {
-                        timeInSeconds = -double.Parse(argStrings[1]);
-                    }
-                    catch (Exception e)
-                    {
-                    }
+                        double timeInSeconds = -5;
+                        try
+                        {
+                            timeInSeconds = -double.Parse(argStrings[1]);
+                        }
+                        catch (Exception e)
+                        {
+                        }
 
-                    MidiPlayerControl.MoveTime(timeInSeconds);
-                }
+                        MidiPlayerControl.MoveTime(timeInSeconds);
+                    }
                     break;
                 case "fastforward":
-                {
-                    double timeInSeconds = 5;
-                    try
                     {
-                        timeInSeconds = double.Parse(argStrings[1]);
-                    }
-                    catch (Exception e)
-                    {
-                    }
+                        double timeInSeconds = 5;
+                        try
+                        {
+                            timeInSeconds = double.Parse(argStrings[1]);
+                        }
+                        catch (Exception e)
+                        {
+                        }
 
-                    MidiPlayerControl.MoveTime(timeInSeconds);
-                }
+                        MidiPlayerControl.MoveTime(timeInSeconds);
+                    }
                     break;
             }
         }
@@ -323,6 +324,18 @@ public class MidiBard : IDalamudPlugin
             InputDeviceManager.ShouldScanMidiDeviceThread = false;
             Framework.Update -= Tick;
             PluginInterface.UiBuilder.Draw -= Ui.Draw;
+
+            foreach (var instrument in Instruments)
+            {
+                try
+                {
+                    instrument.IconTextureWrap.Dispose();
+                }
+                catch (Exception e)
+                {
+                    //
+                }
+            }
 
             EnsembleManager.Instance.Dispose();
 #if DEBUG
