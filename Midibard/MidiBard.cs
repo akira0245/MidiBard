@@ -87,6 +87,7 @@ public class MidiBard : IDalamudPlugin
 
         InstrumentStrings = Instruments.Select(i => i.InstrumentString).ToArray();
 
+#if DEBUG
 
         PluginLog.Information("<InstrumentStrings>");
         foreach (string s in InstrumentStrings)
@@ -94,6 +95,7 @@ public class MidiBard : IDalamudPlugin
             PluginLog.Information(s);
         }
         PluginLog.Information("<InstrumentStrings \\>");
+#endif
 
         ProgramInstruments = new Dictionary<SevenBitNumber, uint>();
         foreach (var (programNumber, instrument) in Instruments.Select((i, index) => (i.ProgramNumber, index)))
@@ -101,12 +103,15 @@ public class MidiBard : IDalamudPlugin
             ProgramInstruments[programNumber] = (uint)instrument;
         }
 
+#if DEBUG
+
         PluginLog.Information("<ProgramInstruments>");
         foreach (var programNumber in ProgramInstruments.Keys)
         {
             PluginLog.Information($"[{programNumber}] {ProgramNames.GetGMProgramName(programNumber)} {ProgramInstruments[programNumber]}");
         }
         PluginLog.Information("<ProgramInstruments \\>");
+#endif
 
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
@@ -311,7 +316,7 @@ public class MidiBard : IDalamudPlugin
     }
 
 
-    #region IDisposable Support
+#region IDisposable Support
 
     void FreeUnmanagedResources()
     {
@@ -379,5 +384,5 @@ public class MidiBard : IDalamudPlugin
     {
         FreeUnmanagedResources();
     }
-    #endregion
+#endregion
 }

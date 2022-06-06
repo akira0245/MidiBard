@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 using Dalamud.Interface;
 using ImGuiNET;
 using MidiBard.Control.MidiControl;
@@ -13,20 +15,112 @@ public partial class PluginUI
 {
     private string PlaylistSearchString = "";
     private List<int> searchedPlaylistIndexs = new();
-    private void DrawPlayList()
+
+    private void DrawPlaylist()
+    {
+        if (MidiBard.config.UseStandalonePlaylistWindow)
+        {
+            ImGui.SetNextWindowSize(new(ImGui.GetWindowSize().Y), ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowPos(ImGui.GetWindowPos() - new Vector2(2, 0), ImGuiCond.Appearing, new Vector2(1, 0));
+            if (ImGui.Begin($"MidiBard Playlist ({PlaylistManager.FilePathList.Count})###MidibardPlaylist", ref MidiBard.config.UseStandalonePlaylistWindow, ImGuiWindowFlags.NoDecoration & ~ImGuiWindowFlags.NoResize))
+            {
+                DrawContent();
+            }
+
+            ImGui.End();
+        }
+        else
+        {
+            if (!MidiBard.config.miniPlayer)
+            {
+                DrawContent();
+                ImGui.Spacing();
+            }
+        }
+
+        void DrawContent()
+        {
+            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(4, 4));
+            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(15, 4));
+
+            if (!_isImportRunning)
+                ButtonImport();
+            else
+                ButtonImportInProgress();
+
+            ImGui.SameLine();
+            ButtonSearch();
+            ImGui.SameLine();
+            ButtonStandalonePlaylist();
+            ImGui.SameLine();
+            ButtonClearPlaylist();
+
+
+            if (MidiBard.Localizer.Language == UILang.CN)
+            {
+                ImGui.SameLine(ImGui.GetWindowContentRegionWidth() -
+                               ImGui.CalcTextSize(FontAwesomeIcon.QuestionCircle.ToIconString()).X -
+                               ImGui.GetStyle().FramePadding.X * 2 - ImGui.GetCursorPosX() - 2);
+
+                if (IconButton(FontAwesomeIcon.QuestionCircle, "helpbutton"))
+                {
+                    showhelp ^= true;
+                }
+
+                DrawHelp();
+            }
+
+            ImGui.PopStyleVar(2);
+
+            if (MidiBard.config.enableSearching)
+            {
+                TextBoxSearch();
+            }
+
+            if (!PlaylistManager.FilePathList.Any())
+            {
+                if (ImGui.Button("Import midi files to start performing!".Localize(),
+                        new Vector2(-1, ImGui.GetFrameHeight())))
+                {
+                    if (MidiBard.config.useLegacyFileDialog)
+                    {
+                        RunImportTaskLegacy();
+                    }
+                    else
+                    {
+                        RunImportTask();
+                    }
+                }
+            }
+            else
+            {
+                DrawPlaylistTable();
+            }
+        }
+    }
+
+    private void DrawPlaylistTable()
     {
         ImGui.PushStyleColor(ImGuiCol.Button, 0);
         ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0);
         ImGui.PushStyleColor(ImGuiCol.ButtonActive, 0);
         ImGui.PushStyleColor(ImGuiCol.Header, MidiBard.config.themeColorTransparent);
-        if (ImGui.BeginChild("child",
-                new Vector2(x: -1,
-                    y: ImGui.GetTextLineHeightWithSpacing() *
-                       Math.Min(val1: 10, val2: PlaylistManager.FilePathList.Count))))
+
+        bool beginChild;
+        if (MidiBard.config.UseStandalonePlaylistWindow)
+        {
+            beginChild = ImGui.BeginChild("playlistchild");
+        }
+        else
+        {
+            beginChild = ImGui.BeginChild("playlistchild", new Vector2(x: -1, y: ImGui.GetTextLineHeightWithSpacing() * Math.Min(val1: 10, val2: PlaylistManager.FilePathList.Count)));
+        }
+
+        if (beginChild)
         {
             if (ImGui.BeginTable(str_id: "##PlaylistTable", column: 3,
                     flags: ImGuiTableFlags.RowBg | ImGuiTableFlags.PadOuterX |
-                           ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.BordersInnerV))
+                           ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.BordersInnerV, ImGui.GetWindowSize()))
             {
                 ImGui.TableSetupColumn("\ue035", ImGuiTableColumnFlags.WidthFixed);
                 ImGui.TableSetupColumn("##deleteColumn", ImGuiTableColumnFlags.WidthFixed);
@@ -40,7 +134,7 @@ public partial class PluginUI
 
                 if (MidiBard.config.enableSearching && !string.IsNullOrEmpty(PlaylistSearchString))
                 {
-                    clipper.Begin(searchedPlaylistIndexs.Count);
+                    clipper.Begin(searchedPlaylistIndexs.Count, ImGui.GetTextLineHeightWithSpacing());
                     while (clipper.Step())
                     {
                         for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
@@ -48,18 +142,21 @@ public partial class PluginUI
                             DrawPlayListEntry(searchedPlaylistIndexs[i]);
                         }
                     }
+
                     clipper.End();
                 }
                 else
                 {
-                    clipper.Begin(PlaylistManager.FilePathList.Count);
+                    clipper.Begin(PlaylistManager.FilePathList.Count, ImGui.GetTextLineHeightWithSpacing());
                     while (clipper.Step())
                     {
                         for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
                         {
                             DrawPlayListEntry(i);
+                            //ImGui.SameLine(800); ImGui.TextUnformatted($"[{i}] {clipper.DisplayStart} {clipper.DisplayEnd} {clipper.ItemsCount}");
                         }
                     }
+
                     clipper.End();
                 }
 
@@ -69,7 +166,6 @@ public partial class PluginUI
         }
 
         ImGui.EndChild();
-
 
         ImGui.PopStyleColor(4);
     }
@@ -156,6 +252,22 @@ public partial class PluginUI
         }
     }
 
+    private static void ButtonStandalonePlaylist()
+    {
+        if (ImGuiUtil.IconButton(FontAwesomeIcon.Eject, "ButtonStandalonePlaylist"))
+        {
+            MidiBard.config.UseStandalonePlaylistWindow ^= true;
+        }
+
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.BeginTooltip();
+            ImGui.TextUnformatted("Standalone Playlist".Localize());
+            ImGui.EndTooltip();
+        }
+    }
+
+
     private void TextBoxSearch()
     {
         ImGui.SetNextItemWidth(-1);
@@ -163,6 +275,7 @@ public partial class PluginUI
                 ImGuiInputTextFlags.AutoSelectAll))
         {
             searchedPlaylistIndexs.Clear();
+
             for (var i = 0; i < PlaylistManager.FilePathList.Count; i++)
             {
                 if (PlaylistManager.FilePathList[i].fileName.ContainsIgnoreCase(PlaylistSearchString))
@@ -170,7 +283,6 @@ public partial class PluginUI
                     searchedPlaylistIndexs.Add(i);
                 }
             }
-            //MidiBard.config.enableSearching = false;
         }
     }
 
@@ -186,4 +298,31 @@ public partial class PluginUI
         ImGui.PopStyleColor();
         ToolTip("Search playlist".Localize());
     }
+#if DEBUG
+
+    class NeoPlaylistManager
+    {
+        class Playlist
+        {
+            private string PlaylistName;
+            private List<string> filePaths;
+
+
+        }
+
+        class SongUserData
+        {
+            public int TranspositionAll { get; set; }
+            public bool TranspositionPerTrack { get; set; }
+            public Dictionary<int, TrackUserData> TrackStatus { get; set; } = new();
+            public record TrackUserData
+            {
+                public bool Enabled { get; set; }
+                public int Transposition { get; set; }
+                public int Instrument { get; set; }
+                public int Tone { get; set; }
+            }
+        }
+    }
+#endif
 }

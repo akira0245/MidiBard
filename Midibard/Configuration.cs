@@ -45,6 +45,7 @@ public class Configuration : IPluginConfiguration
     public bool DebugMisc;
     public bool DebugEnsemble;
 
+    public List<List<string>> PlaylistList = new();
     public List<string> Playlist = new List<string>();
 
     public float playSpeed = 1f;
@@ -52,6 +53,10 @@ public class Configuration : IPluginConfiguration
     public int PlayMode = 0;
     public int TransposeGlobal = 0;
     public bool AdaptNotesOOR = true;
+
+    public bool UseStandalonePlaylistWindow = false;
+    public bool UseStandaloneTrackWindow = false;
+    public bool LowLatencyMode = false;
 
     public bool MonitorOnEnsemble = true;
     public bool AutoOpenPlayerWhenPerforming = true;

@@ -1,11 +1,13 @@
 using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Dalamud.Logging;
 using Melanchall.DryWetMidi.Common;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Multimedia;
 using Melanchall.DryWetMidi.Standards;
 using MidiBard.Control.CharacterControl;
+using MidiBard.Managers;
 using MidiBard.Util;
 using playlibnamespace;
 
@@ -38,7 +40,7 @@ internal class BardPlayDevice : IOutputDevice
 
     private FourBitNumber CurrentChannel;
 
-    public void ResetChannelState()
+    public void ResetChannelStates()
     {
         for (var i = 0; i < Channels.Length; i++)
         {
@@ -152,6 +154,11 @@ internal class BardPlayDevice : IOutputDevice
                                     }
                                 }
 
+                                if (MidiBard.config.LowLatencyMode)
+                                {
+                                    return noteOn(noteNum + 39);
+                                }
+
                                 //currently holding the same note?
                                 if (MidiBard.AgentPerformance.noteNumber - 39 == noteNum)
                                 {
@@ -172,6 +179,11 @@ internal class BardPlayDevice : IOutputDevice
 
                         case NoteOffEvent:
                             {
+                                if (MidiBard.config.LowLatencyMode)
+                                {
+                                    return noteOff();
+                                }
+
                                 if (MidiBard.AgentPerformance.Struct->CurrentPressingNote - 39 != noteNum)
                                 {
                                     return false;
@@ -249,4 +261,39 @@ internal class BardPlayDevice : IOutputDevice
         return noteNumber;
     }
 
+
+
+    public const int min = 39;
+    public const int max = 75;
+    public const int off = -100;
+
+    public delegate void sub_140C7ED20(IntPtr agentPerformance, int note, byte isPressing);
+    public sub_140C7ED20 PlayNoteDirect = Offsets.PressNote == IntPtr.Zero ? null : Marshal.GetDelegateForFunctionPointer<sub_140C7ED20>(Offsets.PressNote);
+
+    public bool noteOn(int note)
+    {
+        if (!MidiBard.AgentPerformance.InPerformanceMode)
+        {
+            return false;
+        }
+        if (note is < min or > max)
+        {
+            PluginLog.Error("note must in range of 39-75 (c3-c6)");
+            return false;
+        }
+
+        PlayNoteDirect(MidiBard.AgentPerformance.Pointer, note, 1);
+        return true;
+    }
+
+    public bool noteOff()
+    {
+        if (!MidiBard.AgentPerformance.InPerformanceMode)
+        {
+            return false;
+        }
+
+        PlayNoteDirect(MidiBard.AgentPerformance.Pointer, off, 0);
+        return true;
+    }
 }

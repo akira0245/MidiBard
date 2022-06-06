@@ -59,8 +59,11 @@ public partial class PluginUI
 
         ImGuiUtil.ToolTip("Choose external midi input device. right click to reset.".Localize());
 
-        ImGui.Checkbox("Auto restart listening".Localize(), ref MidiBard.config.autoRestoreListening);
-        ImGuiUtil.ToolTip("Try auto restart listening last used midi device".Localize());
+        ImGui.Checkbox("Low latency mode".Localize(), ref MidiBard.config.LowLatencyMode);
+        ImGuiUtil.ToolTip("Use alternative note input method, May slightly reduce input latency but will affect guitar tone switching accuracy. \nOnly recommended while using Midi keyboard.".Localize());
+
+        //ImGui.Checkbox("Auto restart listening".Localize(), ref MidiBard.config.autoRestoreListening);
+        //ImGuiUtil.ToolTip("Try auto restart listening last used midi device".Localize());
         //ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
         //ImGui.Checkbox("Auto listening new device".Localize(), ref MidiBard.config.autoStartNewListening);
         //ImGuiUtil.ToolTip("Auto start listening new midi input device when idle.".Localize());
@@ -70,6 +73,16 @@ public partial class PluginUI
         ImGui.SetNextItemWidth(ImGui.GetWindowContentRegionWidth() / 3.36f);
         ImGuiUtil.EnumCombo("Tone mode".Localize(), ref MidiBard.config.GuitarToneMode, _toolTips);
         ImGuiUtil.ToolTip("Choose how MidiBard will handle MIDI channels and ProgramChange events(current only affects guitar tone changing)".Localize());
+
+
+        ImGui.Checkbox("Auto open MidiBard".Localize(), ref MidiBard.config.AutoOpenPlayerWhenPerforming);
+        ImGuiUtil.ToolTip("Open MidiBard window automatically when entering performance mode".Localize());
+
+        ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
+
+        ImGui.Checkbox("Monitor ensemble".Localize(), ref MidiBard.config.MonitorOnEnsemble);
+        ImGuiUtil.ToolTip("Auto start ensemble when entering in-game party ensemble mode.".Localize());
+
 
         ImGui.Checkbox("Tracks visualization".Localize(), ref MidiBard.config.PlotTracks);
         ImGuiUtil.ToolTip("Draw midi tracks in a new window\nshowing the on/off and actual transposition of each track".Localize());
@@ -84,16 +97,7 @@ public partial class PluginUI
             MidiBard.config.LockPlot
                 ? "Lock tracks window and auto following current playback progress\nScroll mouse here to adjust view timeline scale".Localize()
                 :"Lock tracks window and auto following current playback progress".Localize());
-			
-        ImGui.Checkbox("Auto open MidiBard".Localize(), ref MidiBard.config.AutoOpenPlayerWhenPerforming);
-        ImGuiUtil.ToolTip("Open MidiBard window automatically when entering performance mode".Localize());
-        //ImGui.Checkbox("Auto Confirm Ensemble Ready Check".Localize(), ref config.AutoConfirmEnsembleReadyCheck);
-        //if (localizer.Language == UILang.CN) HelpMarker("在收到合奏准备确认时自动选择确认。");
-
-        ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
-
-        ImGui.Checkbox("Monitor ensemble".Localize(), ref MidiBard.config.MonitorOnEnsemble);
-        ImGuiUtil.ToolTip("Auto start ensemble when entering in-game party ensemble mode.".Localize());
+        
 
         ImGui.Checkbox("Auto switch instrument".Localize(), ref MidiBard.config.autoSwitchInstrumentBySongName);
         ImGuiUtil.ToolTip("Auto switch instrument on demand. If you need this, \nplease add #instrument name# before file name.\nE.g. #harp#demo.mid".Localize());
@@ -102,6 +106,8 @@ public partial class PluginUI
 
         ImGui.Checkbox("Auto transpose".Localize(), ref MidiBard.config.autoTransposeBySongName);
         ImGuiUtil.ToolTip("Auto transpose notes on demand. If you need this, \nplease add #transpose number# before file name.\nE.g. #-12#demo.mid".Localize());
+
+
 
         //ImGui.Checkbox("Override guitar tones".Localize(), ref MidiBard.config.OverrideGuitarTones);
         //ImGuiUtil.ToolTip("Assign different guitar tones for each midi tracks".Localize());

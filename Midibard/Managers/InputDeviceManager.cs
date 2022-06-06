@@ -30,6 +30,7 @@ static class InputDeviceManager
 
                         //PluginLog.Information(string.Join(", ", devicesNames));
                         //PluginLog.Information(MidiBard.config.lastUsedMidiDeviceName);
+
                         if (CurrentInputDevice is not null)
                         {
                             if (!devicesNames.Contains(CurrentInputDevice.DeviceName()))
@@ -40,13 +41,12 @@ static class InputDeviceManager
                         }
                         else if (CurrentInputDevice is null)
                         {
-                            if (MidiBard.config.autoRestoreListening)
+                            //if (MidiBard.config.autoRestoreListening)
                             {
                                 if (devicesNames.Contains(MidiBard.config.lastUsedMidiDeviceName))
                                 {
-                                    PluginLog.Warning($"try restoring midi device: \"{MidiBard.config.lastUsedMidiDeviceName}\"");
-                                    var newDevice = Devices?.FirstOrDefault(i =>
-                                        i.Name == MidiBard.config.lastUsedMidiDeviceName);
+                                    PluginLog.Information($"try restoring midi device: \"{MidiBard.config.lastUsedMidiDeviceName}\"");
+                                    var newDevice = Devices?.FirstOrDefault(i => i.Name == MidiBard.config.lastUsedMidiDeviceName);
                                     if (newDevice != null)
                                     {
                                         SetDevice(newDevice);

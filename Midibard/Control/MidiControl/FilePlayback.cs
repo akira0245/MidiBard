@@ -24,135 +24,22 @@ public static class FilePlayback
 {
     private static readonly Regex regex = new Regex(@"^#.*?([-|+][0-9]+).*?#", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-    public static BardPlayback GetFilePlayback(MidiFile midifile, string trackName)
+    private static BardPlayback GetPlaybackObject(MidiFile midifile, string trackName)
     {
         PluginLog.Information($"[LoadPlayback] -> {trackName} START");
         var stopwatch = Stopwatch.StartNew();
 
-        try
-        {
-            CurrentTMap = midifile.GetTempoMap();
-        }
-        catch (Exception e)
-        {
-            PluginLog.Warning("[LoadPlayback] error when getting file TempoMap, using default TempoMap instead.");
-            CurrentTMap = TempoMap.Default;
-        }
+        CurrentTMap = TryGetTempoNap(midifile);
+        CurrentTracks = TryGetNoteTracks(midifile).Select((chunk, index) => (chunk, GetTrackInfos(chunk, index))).ToList();
 
-        try
-        {
-            CurrentTracks = midifile.GetTrackChunks()
-                .Where(i => i.Events.Any(j => j is NoteOnEvent))
-                .Select((trackChunk, index) =>
-                {
-                    var notes = trackChunk.GetNotes().ToArray();
-                    return (i: trackChunk, GetTrackInfos(notes, trackChunk, index));
-                }).ToList();
-        }
-        catch (Exception exception1)
-        {
-            PluginLog.Warning(exception1, $"[LoadPlayback] error when parsing tracks, falling back to generated NoteEvent playback.");
+        var timedEvents = GetTimedEventWithMetadata();
 
-            try
-            {
-                PluginLog.Debug($"[LoadPlayback] file.Chunks.Count {midifile.Chunks.Count}");
-                var trackChunks = midifile.GetTrackChunks().ToList();
-                PluginLog.Debug($"[LoadPlayback] file.GetTrackChunks.Count {trackChunks.Count}");
-                PluginLog.Debug($"[LoadPlayback] file.GetTrackChunks.First {trackChunks.First()}");
-                PluginLog.Debug($"[LoadPlayback] file.GetTrackChunks.Events.Count {trackChunks.First().Events.Count}");
-                PluginLog.Debug($"[LoadPlayback] file.GetTrackChunks.Events.OfType<NoteEvent>.Count {trackChunks.First().Events.OfType<NoteEvent>().Count()}");
-
-                CurrentTracks = trackChunks
-                    .Where(i => i.Events.Any(j => j is NoteOnEvent))
-                    .Select((i, index) =>
-                    {
-                        var noteEvents = i.Events.Where(i=>i is NoteEvent or ProgramChangeEvent or TextEvent);
-                        var notes = noteEvents.GetNotes().ToArray();
-                        var trackChunk = new TrackChunk(noteEvents);
-                        return (trackChunk, GetTrackInfos(notes, trackChunk, index));
-                    }).ToList();
-            }
-            catch (Exception exception2)
-            {
-                PluginLog.Error(exception2, "[LoadPlayback] still errors? check your file");
-                throw;
-            }
-        }
-
-        //int givenIndex = 0;
-        //CurrentTracks.ForEach(tuple => tuple.trackInfo.Index = givenIndex++);
-
-        var timedEvents = CurrentTracks.Select(i => i.trackChunk).AsParallel()
-            .SelectMany((chunk, index) => chunk.GetTimedEvents().Select(e =>
-            {
-                var compareValue = e.Event switch
-                {
-                    //order chords so they always play from low to high
-                    NoteEvent noteEvent => noteEvent.NoteNumber,
-                    //order program change events so they always get processed before notes 
-                    ProgramChangeEvent => -2,
-                    //keep other unimportant events order
-                    _ => -1
-                };
-                return (compareValue, timedEvent: new TimedEventWithMetadata(e.Event, e.Time, new BardPlayDevice.MidiPlaybackMetaData(index)));
-            }))
-            .OrderBy(e => e.timedEvent.Time)
-            .ThenBy(i => i.compareValue)
-            .Select(i => i.timedEvent);
-
-        //var (programTrackChunk, programTrackInfo) =
-        //    CurrentTracks.FirstOrDefault(i => Regex.IsMatch(i.trackInfo.TrackName, @"^Program:.+$", RegexOptions.Compiled | RegexOptions.IgnoreCase));
-
-        BardPlayDevice.Instance.ResetChannelState();
-
-        //if (programTrackChunk is not null && programTrackInfo is not null)
-        //{
-        //	PluginLog.Verbose($"FOUND PROGRAM TRACK i:{programTrackInfo.Index}");
-
-        //	foreach (ProgramChangeEvent programChangeEvent in timedEvents
-        //		.Where(e => (int)e.Metadata == programTrackInfo.Index && e.Time == 0)
-        //		.Select(e => e.Event)
-        //		.OfType<ProgramChangeEvent>())
-        //	{
-        //		FourBitNumber channel = programChangeEvent.Channel;
-        //		SevenBitNumber prog = (SevenBitNumber)Math.Max(0, programChangeEvent.ProgramNumber + 1);
-        //		//PluginLog.Verbose($"FOUND INIT PROGRAMCHANGE c:{channel} p:{prog}");
-
-        //		for (int i = 0; i < CurrentOutputDevice.Channels.Length; i++)
-        //		{
-        //			CurrentOutputDevice.Channels[i].Program = prog;
-        //		}
-        //	}
-        //}
-        //else
-        //{
-        //	SevenBitNumber prog = InstrumentPrograms[CurrentInstrument].id;
-        //	for (int i = 0; i < CurrentOutputDevice.Channels.Length; i++)
-        //	{
-        //		CurrentOutputDevice.Channels[i].Program = prog;
-        //	}
-        //}
-        
         var playback = new BardPlayback(timedEvents, CurrentTMap)
         {
             InterruptNotesOnStop = true,
             Speed = config.playSpeed,
             TrackProgram = true,
-#if DEBUG
-            NoteCallback = (data, time, length, playbackTime) =>
-            {
-                PluginLog.Verbose($"[NOTE] {new Note(data.NoteNumber)} time:{time} len:{length} time:{playbackTime}");
-                return data;
-            }
-#endif
         };
-
-        //PluginLog.Information($"[LoadPlayback] Channels for {trackName}:");
-        //for (int i = 0; i < BardPlayDevice.Instance.Channels.Length; i++)
-        //{
-        //    uint prog = BardPlayDevice.Instance.Channels[i].Program;
-        //    PluginLog.Information($"  - [{i}]: {ProgramNames.GetGMProgramName((byte)prog)} ({prog})");
-        //}
 
         playback.Finished += Playback_Finished;
         PluginLog.Information($"[LoadPlayback] -> {trackName} OK! in {stopwatch.Elapsed.TotalMilliseconds} ms");
@@ -160,8 +47,55 @@ public static class FilePlayback
         return playback;
     }
 
-    private static TrackInfo GetTrackInfos(Note[] notes, TrackChunk i, int index)
+    private static TempoMap TryGetTempoNap(MidiFile midifile)
     {
+        try
+        {
+            return midifile.GetTempoMap();
+        }
+        catch (Exception e)
+        {
+            PluginLog.Warning($"[LoadPlayback] {e} error when getting file TempoMap, using default TempoMap instead.");
+            return TempoMap.Default;
+        }
+    }
+
+    private static IEnumerable<TrackChunk> TryGetNoteTracks(MidiFile midifile)
+    {
+        try
+        {
+            return midifile.GetTrackChunks().Where(i => i.Events.Any(j => j is NoteOnEvent));
+        }
+        catch (Exception e)
+        {
+            PluginLog.Warning(e, $"[LoadPlayback] error when parsing tracks, falling back to generated NoteEvent playback.");
+            try
+            {
+                PluginLog.Debug($"[LoadPlayback] file.Chunks.Count {midifile.Chunks.Count}");
+                var trackChunks = midifile.GetTrackChunks().ToArray();
+                PluginLog.Debug($"[LoadPlayback] file.GetTrackChunks.Count {trackChunks.Length}");
+                PluginLog.Debug($"[LoadPlayback] file.GetTrackChunks.First {trackChunks.First()}");
+                PluginLog.Debug($"[LoadPlayback] file.GetTrackChunks.Events.Count {trackChunks.First().Events.Count}");
+                PluginLog.Debug($"[LoadPlayback] file.GetTrackChunks.Events.OfType<NoteEvent>.Count {trackChunks.First().Events.OfType<NoteEvent>().Count()}");
+
+                return trackChunks.Where(i => i.Events.Any(j => j is NoteOnEvent))
+                    .Select((i) =>
+                    {
+                        var noteEvents = i.Events.Where(midiEvent => midiEvent is NoteEvent or ProgramChangeEvent or TextEvent);
+                        return new TrackChunk(noteEvents);
+                    });
+            }
+            catch (Exception exception2)
+            {
+                PluginLog.Error(exception2, "[LoadPlayback] still errors? check your file");
+                throw;
+            }
+        }
+    }
+
+    private static TrackInfo GetTrackInfos(TrackChunk i, int index)
+    {
+        var notes = i.GetNotes();
         var eventsCollection = i.Events;
         var TrackNameEventsText = eventsCollection.OfType<SequenceTrackNameEvent>().Select(j => j.Text.Replace("\0", string.Empty).Trim()).Distinct().ToArray();
         var TrackName = TrackNameEventsText.FirstOrDefault() ?? "Untitled";
@@ -175,13 +109,37 @@ public static class FilePlayback
             TrackNameEventsText = TrackNameEventsText,
             HighestNote = notes.MaxElement(j => (int)j.NoteNumber),
             LowestNote = notes.MinElement(j => (int)j.NoteNumber),
-            NoteCount = notes.Length,
+            NoteCount = notes.Count,
             DurationMetric = timedNoteOffEvent?.TimeAs<MetricTimeSpan>(CurrentTMap) ?? new MetricTimeSpan(),
             DurationMidi = timedNoteOffEvent?.Time ?? 0,
             TrackName = TrackName,
             IsProgramControlled = IsProgramControlled,
             Index = index
         };
+    }
+
+    private static IEnumerable<TimedEventWithMetadata> GetTimedEventWithMetadata()
+    {
+        var timedEvents = CurrentTracks
+            .Select(i => i.trackChunk)
+            .SelectMany((chunk, index) => chunk.GetTimedEvents()
+                .Select(e =>
+                {
+                    var compareValue = e.Event switch
+                    {
+                        //order chords so they always play from low to high
+                        NoteEvent noteEvent => noteEvent.NoteNumber,
+                        //order program change events so they always get processed before notes 
+                        ProgramChangeEvent => -2,
+                        //keep other unimportant events order
+                        _ => -1
+                    };
+                    return (compareValue, timedEvent: new TimedEventWithMetadata(e.Event, e.Time, new BardPlayDevice.MidiPlaybackMetaData(index)));
+                }))
+            .OrderBy(e => e.timedEvent.Time)
+            .ThenBy(i => i.compareValue)
+            .Select(i => i.timedEvent);
+        return timedEvents;
     }
 
     public static DateTime? waitUntil { get; set; } = null;
@@ -322,9 +280,11 @@ public static class FilePlayback
         }
         else
         {
-            CurrentPlayback = await Task.Run(() => GetFilePlayback(midiFile, PlaylistManager.FilePathList[index].displayName));
+            CurrentPlayback = await Task.Run(() => GetPlaybackObject(midiFile, PlaylistManager.FilePathList[index].displayName));
             Ui.RefreshPlotData();
             PlaylistManager.CurrentPlaying = index;
+            BardPlayDevice.Instance.ResetChannelStates();
+
             if (switchInstrument)
             {
                 try

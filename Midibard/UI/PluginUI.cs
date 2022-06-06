@@ -118,65 +118,8 @@ public partial class PluginUI
                         "Listening input device: ".Localize() + InputDeviceManager.CurrentInputDevice.DeviceName());
                 }
 
-                if (!config.miniPlayer)
-                {
-                    ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(4, 4));
-                    ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(15, 4));
-                    {
-                        if (!_isImportRunning)
-                            ButtonImport();
-                        else
-                            ButtonImportInProgress();
+                DrawPlaylist();
 
-                        ImGui.SameLine();
-                        ButtonSearch();
-                        ImGui.SameLine();
-                        ButtonClearPlaylist();
-
-                        if (MidiBard.Localizer.Language == UILang.CN)
-                        {
-                            ImGui.SameLine(ImGui.GetWindowContentRegionWidth() -
-                                           ImGui.CalcTextSize(FontAwesomeIcon.QuestionCircle.ToIconString()).X -
-                                           ImGui.GetStyle().FramePadding.X * 2 - ImGui.GetCursorPosX() - 2);
-
-                            if (IconButton(FontAwesomeIcon.QuestionCircle, "helpbutton"))
-                            {
-                                showhelp ^= true;
-                            }
-
-                            DrawHelp();
-                        }
-                    }
-
-                    ImGui.PopStyleVar(2);
-
-                    if (config.enableSearching)
-                    {
-                        TextBoxSearch();
-                    }
-
-                    if (!PlaylistManager.FilePathList.Any())
-                    {
-                        if (ImGui.Button("Import midi files to start performing!".Localize(),
-                                new Vector2(-1, ImGui.GetFrameHeight())))
-                        {
-                            if (MidiBard.config.useLegacyFileDialog)
-                            {
-                                RunImportTaskLegacy();
-                            }
-                            else
-                            {
-                                RunImportTask();
-                            }
-                        }
-                    }
-                    else
-                    {
-                        DrawPlayList();
-                    }
-
-                    ImGui.Spacing();
-                }
 
                 DrawCurrentPlaying();
 

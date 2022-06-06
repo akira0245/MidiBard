@@ -26,7 +26,7 @@ public class Instrument
         FFXIVProgramName = Row.GetGameProgramName();
         GeneralMidiProgramName = ProgramNumber.GetGMProgramName();
         InstrumentString = $"{(row.RowId == 0 ? "None" : $"{row.Instrument.RawString} ({row.Name})")}";
-        IconTextureWrap = api.DataManager.GetImGuiTexture(GetIconPath((uint)row.Order, String.Empty, true));
+        IconTextureWrap = api.DataManager.GetImGuiTextureIcon((uint)row.Order);
     }
     public Perform Row { get; }
     // Perform.Unk12
@@ -44,6 +44,7 @@ public class Instrument
 
 
 
+#if DEBUG
 
     private const string IconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}{3}.tex";
     public static string GetIconPath(uint icon, ClientLanguage language, bool hr)
@@ -89,4 +90,5 @@ public class Instrument
         tex ??= api.DataManager.GetFile<TexFile>(path);
         return tex;
     }
+#endif
 }

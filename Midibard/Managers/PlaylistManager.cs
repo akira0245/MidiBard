@@ -31,12 +31,9 @@ static class PlaylistManager
         {
             if (value < -1) value = -1;
             if (value > PlaylistManager.FilePathList.Count) value = PlaylistManager.FilePathList.Count;
-            if (currentPlaying != value) PlayingIndexChanged?.Invoke(value);
             currentPlaying = value;
         }
     }
-
-    public static event Action<int> PlayingIndexChanged;
 
     public static int CurrentSelected
     {
@@ -74,8 +71,10 @@ static class PlaylistManager
             PluginLog.Error(e, "error while removing track {0}");
         }
     }
+
     private static int currentPlaying = -1;
     private static int currentSelected = -1;
+
     internal static readonly ReadingSettings readingSettings = new ReadingSettings
     {
         NoHeaderChunkPolicy = NoHeaderChunkPolicy.Ignore,
@@ -92,21 +91,6 @@ static class PlaylistManager
         InvalidSystemCommonEventParameterValuePolicy = InvalidSystemCommonEventParameterValuePolicy.SnapToLimits
     };
 
-    //internal static void ReloadPlayListFromConfig(bool alsoReloadConfig = false)
-    //{
-    //	//if (alsoReloadConfig)
-    //	//{
-    //	//	// back up since we don't want the enabled tracks to be overwritten by the shared config between bards.
-    //	//	bool[] enabledTracks = MidiBard.config.EnabledTracks;
-    //	//	MidiBard.LoadConfig();
-    //	//	MidiBard.config.EnabledTracks = enabledTracks;
-    //	//}
-
-
-    //	// update playlist in case any files is being deleted
-    //	Task.Run(async () => await Reload(MidiBard.config.Playlist.ToArray()));
-    //}
-
     internal static async Task AddAsync(string[] filePaths, bool reload = false)
     {
         if (reload)
@@ -117,6 +101,7 @@ static class PlaylistManager
 
         var count = filePaths.Length;
         var success = 0;
+        var sw = Stopwatch.StartNew();
 
         await foreach (var path in GetPathsAvailable(filePaths))
         {
@@ -126,7 +111,38 @@ static class PlaylistManager
             success++;
         }
 
-        PluginLog.Information($"File import all complete! success: {success} total: {count}");
+        //await Task.Run(NewFunction2);
+
+        //void NewFunction2()
+        //{
+        //    Parallel.ForEach(filePaths, filePath =>
+        //    {
+        //        try
+        //        {
+        //            if (!File.Exists(filePath))
+        //            {
+        //                PluginLog.Warning($"File not exist! path: {filePath}");
+        //                return;
+        //            }
+
+        //            using (var f = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+        //            {
+        //                _ = MidiFile.Read(f, readingSettings);
+        //            }
+
+        //            MidiBard.config.Playlist.Add(filePath);
+        //            string fileName = Path.GetFileNameWithoutExtension(filePath);
+        //            FilePathList.Add((filePath, fileName, SwitchInstrument.ParseSongName(fileName, out _, out _)));
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            PluginLog.Warning($"error when reading midi file. {e.Message} ");
+        //        }
+        //        success++;
+        //    });
+        //}
+
+        PluginLog.Information($"File import all complete in {sw.Elapsed.TotalMilliseconds} ms! success: {success} total: {count}");
     }
 
     internal static async IAsyncEnumerable<string> GetPathsAvailable(string[] filePaths)
@@ -137,17 +153,6 @@ static class PlaylistManager
             if (file is not null) yield return path;
         }
     }
-
-    //internal static async Task<MidiFile> LoadMidiFile(int index, out string trackName)
-    //{
-    //	if (index < 0 || index >= Filelist.Count)
-    //	{
-    //		trackName = null;
-    //		return null;
-    //	}
-    //	trackName = Filelist[index].trackName;
-    //	return await LoadMidiFile(Filelist[index].path);
-    //}
 
     internal static async Task<MidiFile> LoadMidiFile(int index)
     {
@@ -164,6 +169,7 @@ static class PlaylistManager
         PluginLog.Debug($"[LoadMidiFile] -> {filePath} START");
         MidiFile loaded = null;
         var stopwatch = Stopwatch.StartNew();
+
         await Task.Run(() =>
         {
             try
@@ -173,63 +179,11 @@ static class PlaylistManager
                     PluginLog.Warning($"File not exist! path: {filePath}");
                     return;
                 }
+
                 using (var f = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
+
                     loaded = MidiFile.Read(f, readingSettings);
-                    //PluginLog.Log(f.Name);
-                    //PluginLog.LogDebug($"{loaded.OriginalFormat}, {loaded.TimeDivision}, Duration: {loaded.GetDuration<MetricTimeSpan>().Hours:00}:{loaded.GetDuration<MetricTimeSpan>().Minutes:00}:{loaded.GetDuration<MetricTimeSpan>().Seconds:00}:{loaded.GetDuration<MetricTimeSpan>().Milliseconds:000}");
-                    //foreach (var chunk in loaded.Chunks) PluginLog.LogDebug($"{chunk}");
-
-                    //try
-                    //{
-                    //	loaded.ProcessChords(chord =>
-                    //	{
-                    //		try
-                    //		{
-                    //			//PluginLog.Warning($"{chord} Time:{chord.Time} Length:{chord.Length} NotesCount:{chord.Notes.Count()}");
-                    //			var i = 0;
-                    //			foreach (var chordNote in chord.Notes.OrderBy(j => j.NoteNumber))
-                    //			{
-                    //				var starttime = chordNote.GetTimedNoteOnEvent().Time;
-                    //				var offtime = chordNote.GetTimedNoteOffEvent().Time;
-
-                    //				chordNote.Time += i;
-                    //				if (chordNote.Length - i < 0)
-                    //				{
-                    //					chordNote.Length = 0;
-                    //				}
-                    //				else
-                    //				{
-                    //					chordNote.Length -= i;
-                    //				}
-
-
-                    //				i++;
-
-                    //				//PluginLog.Verbose($"[{i}]Note:{chordNote} start/processed:[{starttime}/{chordNote.GetTimedNoteOnEvent().Time}] off/processed:[{offtime}/{chordNote.GetTimedNoteOffEvent().Time}]");
-                    //			}
-                    //		}
-                    //		catch (Exception e)
-                    //		{
-                    //			try
-                    //			{
-                    //				PluginLog.Verbose($"{chord.Channel} {chord} {chord.Time} {e}");
-                    //			}
-                    //			catch (Exception exception)
-                    //			{
-                    //				PluginLog.Verbose($"error when processing a chord: {exception}");
-                    //			}
-                    //		}
-                    //	}, chord => chord.Notes.Count() > 1);
-
-                    //	//PluginLog.Error(" \n \n \n \n \n \n \n ");
-                    //	//PluginLog.Error(" \n \n \n \n \n \n \n ");
-                    //	//PluginLog.Error(" \n \n \n \n \n \n \n ");
-                    //}
-                    //catch (Exception e)
-                    //{
-                    //	PluginLog.Error(e, $"error when processing chords on {filePath}");
-                    //}
                 }
 
                 PluginLog.Debug($"[LoadMidiFile] -> {filePath} OK! in {stopwatch.Elapsed.TotalMilliseconds} ms");

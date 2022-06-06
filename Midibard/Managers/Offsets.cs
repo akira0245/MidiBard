@@ -33,6 +33,8 @@ public static class Offsets
     [Function("48 8B C4 56 48 81 EC ?? ?? ?? ?? 48 89 58 10 ")]
     public static IntPtr ApplyGraphicConfigsFunc { get; private set; }
 
+    [Function("48 89 ? ? ? 48 89 ? ? ? 57 48 83 EC ? 8B FA 41 0F ? ? 03 79")]
+    public static IntPtr PressNote { get; private set; }
 
 
 #if DEBUG
@@ -51,8 +53,6 @@ public static class Offsets
 
 
 
-    [Function("48 89 ? ? ? 48 89 ? ? ? 57 48 83 EC ? 8B FA 41 0F ? ? 03 79")]
-    public static IntPtr PressNote { get; private set; }
 
     [Function("E8 ?? ?? ?? ?? 48 8B D7 48 8D 4D D8 44 8B E0")]
     public static IntPtr ChangeOctave { get; private set; }
