@@ -12,178 +12,178 @@ using MidiBard.Structs;
 #if DEBUG
 namespace MidiBard.Managers
 {
-	class NetworkManager : IDisposable
-	{
-		//[StructLayout(LayoutKind.Explicit, Size = 1)]
-		//public struct Note
-		//{
-		//	[FieldOffset(0)] public byte note;
+    class NetworkManager : IDisposable
+    {
+        //[StructLayout(LayoutKind.Explicit, Size = 1)]
+        //public struct Note
+        //{
+        //	[FieldOffset(0)] public byte note;
 
-		//	public override string ToString()
-		//	{
-		//		return new Melanchall.DryWetMidi.MusicTheory.Note();
-		//	}
-		//}
+        //	public override string ToString()
+        //	{
+        //		return new Melanchall.DryWetMidi.MusicTheory.Note();
+        //	}
+        //}
 
-		private unsafe void SoloSend(IntPtr dataptr)
-		{
+        private unsafe void SoloSend(IntPtr dataptr)
+        {
 #if DEBUG
-			var l = 10;
-			LogNotes("SoloSend",dataptr, l);
+            var l = 10;
+            LogNotes("SoloSend", dataptr, l);
 
 #endif
-		}
+        }
 
-		private unsafe void LogNotes(string label, IntPtr dataptr, int count)
-		{
-			Span<byte> notes = new Span<byte>((dataptr + 0x10).ToPointer(), count);
-			Span<byte> tones = new Span<byte>((dataptr + 0x10 + count).ToPointer(), count);
-			//for (int i = 0; i < notes.Length; i++)
-			//{
-			//	if (notes[i] is not (0xFF or 0xFE))
-			//	{
-			//		tones[i] = 3;
-			//	}
-			//}
-			StringBuilder sb = new StringBuilder();
-			sb.Append($"[{label}] ");
-			for (int i = 0; i < count; i++)
-			{
-				var t = tones[i] switch
-				{
-					0 => "A",
-					1 => "B",
-					2 => "C",
-					3 => "D",
-					4 => "E",
-					_ => throw new ArgumentOutOfRangeException()
-				};
+        private unsafe void LogNotes(string label, IntPtr dataptr, int count)
+        {
+            Span<byte> notes = new Span<byte>((dataptr + 0x10).ToPointer(), count);
+            Span<byte> tones = new Span<byte>((dataptr + 0x10 + count).ToPointer(), count);
+            //for (int i = 0; i < notes.Length; i++)
+            //{
+            //	if (notes[i] is not (0xFF or 0xFE))
+            //	{
+            //		tones[i] = 3;
+            //	}
+            //}
+            StringBuilder sb = new StringBuilder();
+            sb.Append($"[{label}] ");
+            for (int i = 0; i < count; i++)
+            {
+                var t = tones[i] switch
+                {
+                    0 => "A",
+                    1 => "B",
+                    2 => "C",
+                    3 => "D",
+                    4 => "E",
+                    _ => throw new ArgumentOutOfRangeException()
+                };
 
-				var s = notes[i] switch
-				{
-					0xff => "    ",
-					0xfe => "----",
-					var n => $"{n:00} {t}"
-				};
+                var s = notes[i] switch
+                {
+                    0xff => "    ",
+                    0xfe => "----",
+                    var n => $"{n:00} {t}"
+                };
 
-				sb.Append(s + "|");
-			}
+                sb.Append(s + "|");
+            }
 
-			//PluginLog.Information($"[{nameof(SoloSend)}] {notes.toString()} : {tones.toString()}");
-			PluginLog.Information(sb.ToString());
-		}
+            //PluginLog.Information($"[{nameof(SoloSend)}] {notes.toString()} : {tones.toString()}");
+            PluginLog.Information(sb.ToString());
+        }
 
-		private unsafe void SoloRecv(uint sourceId, IntPtr data)
-		{
+        private unsafe void SoloRecv(uint sourceId, IntPtr data)
+        {
 #if DEBUG
-			//var ipc = Marshal.PtrToStructure<SoloPerformanceIpc>(data);
-			//PluginLog.Information($"[{nameof(SoloRecv)}] {toString(ipc.NoteNumbers)} : {toString(ipc.NoteTones)}");
+            //var ipc = Marshal.PtrToStructure<SoloPerformanceIpc>(data);
+            //PluginLog.Information($"[{nameof(SoloRecv)}] {toString(ipc.NoteNumbers)} : {toString(ipc.NoteTones)}");
 #endif
-		}
+        }
 
-		private unsafe void EnsembleSend(IntPtr dataptr)
-		{
+        private unsafe void EnsembleSend(IntPtr dataptr)
+        {
 #if DEBUG
-			LogNotes("EnsembleSend",dataptr, 60);
+            LogNotes("EnsembleSend", dataptr, 60);
 #endif
-		}
+        }
 
-		private unsafe void EnsembleRecv(uint sourceId, IntPtr data)
-		{
+        private unsafe void EnsembleRecv(uint sourceId, IntPtr data)
+        {
 #if DEBUG
-			var ipc = Marshal.PtrToStructure<EnsemblePerformanceIpc>(data);
-			if (MidiBard.Debug)
-				foreach (var perCharacterData in ipc.EnsembleCharacterDatas.Where(i => i.IsValid))
-				{
-					PluginLog.Information($"[{nameof(EnsembleRecv)}] {perCharacterData.CharacterId:X} {perCharacterData.NoteNumbers.toString()}");
-				}
+            var ipc = Marshal.PtrToStructure<EnsemblePerformanceIpc>(data);
+            //if (MidiBard.Debug)
+            foreach (var perCharacterData in ipc.EnsembleCharacterDatas.Where(i => i.IsValid))
+            {
+                PluginLog.Information($"[{nameof(EnsembleRecv)}] {perCharacterData.CharacterId:X} {perCharacterData.NoteNumbers.toString()}");
+            }
 #endif
-		}
+        }
 
-		delegate IntPtr sub_14070A1C0(uint sourceId, IntPtr data);
-		private readonly Hook<sub_14070A1C0> soloReceivedHook;
+        delegate IntPtr sub_14070A1C0(uint sourceId, IntPtr data);
+        private readonly Hook<sub_14070A1C0> soloReceivedHook;
 
-		delegate IntPtr sub_14070A230(uint sourceId, IntPtr data);
-		private readonly Hook<sub_14070A230> ensembleReceivedHook;
+        delegate IntPtr sub_14070A230(uint sourceId, IntPtr data);
+        private readonly Hook<sub_14070A230> ensembleReceivedHook;
 
-		delegate void sub_14119B2E0(IntPtr a1);
-		private readonly Hook<sub_14119B2E0> soloSendHook;
+        delegate void sub_14119B2E0(IntPtr a1);
+        private readonly Hook<sub_14119B2E0> soloSendHook;
 
-		delegate void sub_14119B120(IntPtr a1);
-		private readonly Hook<sub_14119B120> ensembleSendHook;
+        delegate void sub_14119B120(IntPtr a1);
+        private readonly Hook<sub_14119B120> ensembleSendHook;
 
-		private NetworkManager()
-		{
-			ensembleSendHook = new Hook<sub_14119B120>(Offsets.EnsembleSendHandler, (dataptr) =>
-			{
-				try
-				{
-					EnsembleSend(dataptr);
-				}
-				catch (Exception e)
-				{
-					PluginLog.Error(e, $"error in {nameof(ensembleSendHook)}");
-				}
+        private NetworkManager()
+        {
+            ensembleSendHook = new Hook<sub_14119B120>(Offsets.EnsembleSendHandler, (dataptr) =>
+            {
+                try
+                {
+                    EnsembleSend(dataptr);
+                }
+                catch (Exception e)
+                {
+                    PluginLog.Error(e, $"error in {nameof(ensembleSendHook)}");
+                }
 
-				ensembleSendHook.Original(dataptr);
-			});
+                ensembleSendHook.Original(dataptr);
+            });
 
-			soloSendHook = new Hook<sub_14119B2E0>(Offsets.SoloSendHandler, (dataptr) =>
-			{
-				try
-				{
-					SoloSend(dataptr);
-				}
-				catch (Exception e)
-				{
-					PluginLog.Error(e, "error in solo send handler hook");
-				}
+            soloSendHook = new Hook<sub_14119B2E0>(Offsets.SoloSendHandler, (dataptr) =>
+            {
+                try
+                {
+                    SoloSend(dataptr);
+                }
+                catch (Exception e)
+                {
+                    PluginLog.Error(e, "error in solo send handler hook");
+                }
 
-				soloSendHook.Original(dataptr);
-			});
+                soloSendHook.Original(dataptr);
+            });
 
-			soloReceivedHook = new Hook<sub_14070A1C0>(Offsets.SoloReceivedHandler, (id, data) =>
-			{
-				try
-				{
-					SoloRecv(id, data);
-				}
-				catch (Exception e)
-				{
-					PluginLog.Error(e, "error in solo recv handler hook");
-				}
-				return soloReceivedHook.Original(id, data);
-			});
+            soloReceivedHook = new Hook<sub_14070A1C0>(Offsets.SoloReceivedHandler, (id, data) =>
+            {
+                try
+                {
+                    SoloRecv(id, data);
+                }
+                catch (Exception e)
+                {
+                    PluginLog.Error(e, "error in solo recv handler hook");
+                }
+                return soloReceivedHook.Original(id, data);
+            });
 
-			ensembleReceivedHook = new Hook<sub_14070A230>(Offsets.EnsembleReceivedHandler, (id, data) =>
-			{
-				try
-				{
-					EnsembleRecv(id, data);
-				}
-				catch (Exception e)
-				{
-					PluginLog.Error(e, "error in ensemble recv handler hook");
-				}
-				return ensembleReceivedHook.Original(id, data);
-			});
+            ensembleReceivedHook = new Hook<sub_14070A230>(Offsets.EnsembleReceivedHandler, (id, data) =>
+            {
+                try
+                {
+                    EnsembleRecv(id, data);
+                }
+                catch (Exception e)
+                {
+                    PluginLog.Error(e, "error in ensemble recv handler hook");
+                }
+                return ensembleReceivedHook.Original(id, data);
+            });
 
 
-			ensembleSendHook.Enable();
-			soloSendHook.Enable();
-			soloReceivedHook.Enable();
-			ensembleReceivedHook.Enable();
-		}
+            ensembleSendHook.Enable();
+            soloSendHook.Enable();
+            soloReceivedHook.Enable();
+            ensembleReceivedHook.Enable();
+        }
 
-		public static NetworkManager Instance { get; } = new NetworkManager();
+        public static NetworkManager Instance { get; } = new NetworkManager();
 
-		public void Dispose()
-		{
-			soloSendHook?.Dispose();
-			ensembleSendHook?.Dispose();
-			soloReceivedHook?.Dispose();
-			ensembleReceivedHook?.Dispose();
-		}
-	}
+        public void Dispose()
+        {
+            soloSendHook?.Dispose();
+            ensembleSendHook?.Dispose();
+            soloReceivedHook?.Dispose();
+            ensembleReceivedHook?.Dispose();
+        }
+    }
 }
 #endif

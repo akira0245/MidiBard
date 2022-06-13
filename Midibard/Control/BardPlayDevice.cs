@@ -97,7 +97,9 @@ internal class BardPlayDevice : IOutputDevice
                         case GuitarToneMode.Simple:
                             Array.Fill(Channels, new ChannelState(programChangeEvent.ProgramNumber));
                             break;
-                        case GuitarToneMode.Override:
+                        case GuitarToneMode.OverrideByTrack:
+                            break;
+                        case GuitarToneMode.OverrideByChannel:
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();
@@ -141,11 +143,17 @@ internal class BardPlayDevice : IOutputDevice
                                             break;
                                         case GuitarToneMode.Standard:
                                         case GuitarToneMode.Simple:
-                                            SetCurrentChannelTone(noteOnEvent.Channel);
+                                            UpdateChannelsProgramState(noteOnEvent.Channel);
                                             break;
-                                        case GuitarToneMode.Override when metadata is MidiPlaybackMetaData midiPlaybackMetaData:
+                                        case GuitarToneMode.OverrideByTrack when metadata is MidiPlaybackMetaData midiPlaybackMetaData:
                                             {
                                                 int tone = MidiBard.config.TonesPerTrack[midiPlaybackMetaData.TrackIndex];
+                                                playlib.GuitarSwitchTone(tone);
+                                                break;
+                                            }
+                                        case GuitarToneMode.OverrideByChannel:
+                                            {
+                                                int tone = MidiBard.config.ChannelStatus[noteOnEvent.Channel].Tone;
                                                 playlib.GuitarSwitchTone(tone);
                                                 break;
                                             }
@@ -156,44 +164,53 @@ internal class BardPlayDevice : IOutputDevice
 
                                 if (MidiBard.config.LowLatencyMode)
                                 {
+                                    if (MidiBard.AgentPerformance.noteNumber - 39 == noteNum)
+                                    {
+                                        noteOff();
+                                    }
+
                                     return noteOn(noteNum + 39);
                                 }
-
-                                //currently holding the same note?
-                                if (MidiBard.AgentPerformance.noteNumber - 39 == noteNum)
+                                else
                                 {
-                                    // release repeated note in order to press it again
-                                    if (playlib.ReleaseKey(noteNum))
+                                    //currently holding the same note?
+                                    if (MidiBard.AgentPerformance.noteNumber - 39 == noteNum)
                                     {
-                                        MidiBard.AgentPerformance.Struct->CurrentPressingNote = -100;
+                                        // release repeated note in order to press it again
+                                        if (playlib.ReleaseKey(noteNum))
+                                        {
+                                            MidiBard.AgentPerformance.Struct->CurrentPressingNote = -100;
+                                        }
                                     }
-                                }
 
-                                if (playlib.PressKey(noteNum, ref MidiBard.AgentPerformance.Struct->NoteOffset, ref MidiBard.AgentPerformance.Struct->OctaveOffset))
-                                {
-                                    MidiBard.AgentPerformance.Struct->CurrentPressingNote = noteNum + 39;
-                                    return true;
+                                    if (playlib.PressKey(noteNum, ref MidiBard.AgentPerformance.Struct->NoteOffset, ref MidiBard.AgentPerformance.Struct->OctaveOffset))
+                                    {
+                                        MidiBard.AgentPerformance.Struct->CurrentPressingNote = noteNum + 39;
+                                        return true;
+                                    }
                                 }
                             }
                             break;
 
                         case NoteOffEvent:
                             {
-                                if (MidiBard.config.LowLatencyMode)
-                                {
-                                    return noteOff();
-                                }
-
                                 if (MidiBard.AgentPerformance.Struct->CurrentPressingNote - 39 != noteNum)
                                 {
                                     return false;
                                 }
 
-                                // only release a key when it been pressing
-                                if (playlib.ReleaseKey(noteNum))
+                                if (MidiBard.config.LowLatencyMode)
                                 {
-                                    MidiBard.AgentPerformance.Struct->CurrentPressingNote = -100;
-                                    return true;
+                                    return noteOff();
+                                }
+                                else
+                                {
+                                    // only release a key when it been pressing
+                                    if (playlib.ReleaseKey(noteNum))
+                                    {
+                                        MidiBard.AgentPerformance.Struct->CurrentPressingNote = -100;
+                                        return true;
+                                    }
                                 }
                             }
                             break;
@@ -208,7 +225,7 @@ internal class BardPlayDevice : IOutputDevice
         return false; ;
     }
 
-    private void SetCurrentChannelTone(FourBitNumber channel)
+    private void UpdateChannelsProgramState(FourBitNumber channel)
     {
         // if (CurrentChannel != noteOnEvent.Channel)
         // {

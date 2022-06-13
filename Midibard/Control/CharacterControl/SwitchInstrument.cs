@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Logging;
 using Lumina.Excel.GeneratedSheets;
+using MidiBard.Control.MidiControl.PlaybackInstance;
 using MidiBard.Managers;
 using MidiBard.Managers.Agents;
 using playlibnamespace;
@@ -131,8 +132,8 @@ internal static class SwitchInstrument
         {
             if (config.EnableTransposePerTrack)
             {
-                var currentTracks = MidiBard.CurrentTracks;
-                foreach (var (_, trackInfo) in currentTracks)
+                var currentTracks = MidiBard.CurrentPlayback.TrackInfos;
+                foreach (var trackInfo in currentTracks)
                 {
                     var transposePerTrack = trackInfo.TransposeFromTrackName;
                     if (transposePerTrack != 0)
@@ -146,7 +147,7 @@ internal static class SwitchInstrument
             }
             else
             {
-                var firstEnabledTrack = MidiBard.CurrentTracks.Select(i => i.trackInfo).FirstOrDefault(i => i.IsEnabled);
+                var firstEnabledTrack = MidiBard.CurrentPlayback.TrackInfos.FirstOrDefault(i => i.IsEnabled);
                 var transpose = firstEnabledTrack?.TransposeFromTrackName ?? 0;
                 config.TransposeGlobal = transpose;
             }
@@ -156,7 +157,7 @@ internal static class SwitchInstrument
         {
             //MidiBard.config.OverrideGuitarTones = true;
 
-            var firstEnabledTrack = MidiBard.CurrentTracks.Select(i => i.trackInfo).FirstOrDefault(i => i.IsEnabled);
+            var firstEnabledTrack = MidiBard.CurrentPlayback.TrackInfos.FirstOrDefault(i => i.IsEnabled);
             var idFromTrackName = firstEnabledTrack?.InstrumentIDFromTrackName;
             if (idFromTrackName != null)
             {
@@ -191,16 +192,16 @@ internal static class SwitchInstrument
 
     internal static void UpdateGuitarToneByConfig()
     {
-        if (MidiBard.CurrentTracks == null)
+        if (MidiBard.CurrentPlayback.TrackInfos == null)
         {
             return;
         }
 
-        for (int track = 0; track < MidiBard.CurrentTracks.Count; track++)
+        for (int track = 0; track < MidiBard.CurrentPlayback.TrackInfos.Length; track++)
         {
-            if (MidiBard.config.EnabledTracks[track] && MidiBard.CurrentTracks[track].trackInfo != null)
+            if (MidiBard.config.EnabledTracks[track] && MidiBard.CurrentPlayback?.TrackInfos[track] != null)
             {
-                var curInstrument = MidiBard.CurrentTracks[track].trackInfo?.InstrumentIDFromTrackName;
+                var curInstrument = MidiBard.CurrentPlayback?.TrackInfos[track]?.InstrumentIDFromTrackName;
                 if (curInstrument != null && MidiBard.guitarGroup.Contains((byte)curInstrument))
                 {
                     var toneID = curInstrument - MidiBard.guitarGroup[0];

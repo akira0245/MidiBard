@@ -164,7 +164,7 @@ public partial class PluginUI
         if (!_isImportRunning)
         {
             _isImportRunning = true;
-            fileDialogManager.OpenFileDialog("Import midi files", ".mid", (b, strings) =>
+            fileDialogManager.OpenFileDialog("Import midi files", ".mid,.MID", (b, strings) =>
             {
                 PluginLog.Debug($"dialog result: {b}\n{string.Join("\n", strings)}");
                 if (b) Task.Run(async () =>

@@ -25,6 +25,7 @@ using Melanchall.DryWetMidi.Standards;
 using MidiBard.Control;
 using MidiBard.Control.CharacterControl;
 using MidiBard.Control.MidiControl;
+using MidiBard.Control.MidiControl.PlaybackInstance;
 using MidiBard.DalamudApi;
 using MidiBard.Managers;
 using MidiBard.Managers.Agents;
@@ -39,15 +40,7 @@ public class MidiBard : IDalamudPlugin
 {
     public static Configuration config { get; private set; }
     internal static PluginUI Ui { get; set; }
-#if DEBUG
-		public static bool Debug = true;
-#else
-    public static bool Debug = false;
-#endif
-    internal static MidiFile CurrentOpeningMidiFile { get; }
-    internal static Playback CurrentPlayback { get; set; }
-    internal static TempoMap CurrentTMap { get; set; }
-    internal static List<(TrackChunk trackChunk, TrackInfo trackInfo)> CurrentTracks { get; set; }
+    internal static BardPlayback CurrentPlayback { get; set; }
     internal static Localizer Localizer { get; set; }
     internal static AgentMetronome AgentMetronome { get; set; }
     internal static AgentPerformance AgentPerformance { get; set; }
@@ -60,6 +53,7 @@ public class MidiBard : IDalamudPlugin
     internal static ExcelSheet<Perform> InstrumentSheet;
 
     public static Instrument[] Instruments;
+    public static Instrument[] Guitars;
 
     internal static string[] InstrumentStrings;
 
@@ -85,7 +79,14 @@ public class MidiBard : IDalamudPlugin
             .Select(i => new Instrument(i))
             .ToArray();
 
+        Guitars = Instruments.Where(i => i.IsGuitar).ToArray();
+
+
         InstrumentStrings = Instruments.Select(i => i.InstrumentString).ToArray();
+
+        var a = 1;
+        void* values = &a;
+        var value = ((uint*)values)[0];
 
 #if DEBUG
 
@@ -181,14 +182,13 @@ public class MidiBard : IDalamudPlugin
     public void Command1(string command, string args) => OnCommand(command, args);
 
     [Command("/mbard")]
-    [HelpMessage("toggle MidiBard window\n" +
+    [HelpMessage("Toggle MidiBard window\n" +
                  "/mbard perform [instrument name|instrument ID] → switch to specified instrument\n" +
                  "/mbard cancel → quit performance mode\n" +
                  "/mbard visual [on|off|toggle] → midi tracks visualization\n" +
-                 "/mbard [play|pause|playpause|stop|next|prev|rewind (seconds)|fastforward (seconds)] → playback control")]
-    public void Command2(string command, string args) => OnCommand(command, args);
-
-    async Task OnCommand(string command, string args)
+                 "/mbard transpose [set] <semitones> → Set or change transpose semitones value\n" +
+                 "/mbard [play|pause|playpause|stop|next|prev|rewind <seconds>|fastforward <seconds>] → playback control")]
+    public void OnCommand(string command, string args)
     {
         var argStrings = args.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
         PluginLog.Debug($"command: {command}, {string.Join('|', argStrings)}");
@@ -284,6 +284,25 @@ public class MidiBard : IDalamudPlugin
                         MidiPlayerControl.MoveTime(timeInSeconds);
                     }
                     break;
+                case "transpose":
+                    {
+                        try
+                        {
+                            if (argStrings[1] == "set")
+                            {
+                                MidiBard.config.TransposeGlobal = int.Parse(argStrings[2]);
+                            }
+                            else
+                            {
+                                MidiBard.config.TransposeGlobal += int.Parse(argStrings[1]);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            //
+                        }
+                    }
+                    break;
             }
         }
         else
@@ -316,7 +335,7 @@ public class MidiBard : IDalamudPlugin
     }
 
 
-#region IDisposable Support
+    #region IDisposable Support
 
     void FreeUnmanagedResources()
     {
@@ -384,5 +403,5 @@ public class MidiBard : IDalamudPlugin
     {
         FreeUnmanagedResources();
     }
-#endregion
+    #endregion
 }

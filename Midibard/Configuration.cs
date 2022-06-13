@@ -26,12 +26,30 @@ public enum GuitarToneMode
     Off,
     Standard,
     Simple,
-    Override,
+    OverrideByTrack,
+    OverrideByChannel,
 }
 public enum UILang
 {
     EN,
     CN
+}
+
+public abstract class TrackChannelStatus
+{
+    public bool Enabled = true;
+    public int Tone;
+    public int Transpose;
+}
+
+public sealed class TrackStatus : TrackChannelStatus
+{
+
+}
+
+public sealed class ChannelStatus : TrackChannelStatus
+{
+
 }
 
 public class Configuration : IPluginConfiguration
@@ -45,7 +63,10 @@ public class Configuration : IPluginConfiguration
     public bool DebugMisc;
     public bool DebugEnsemble;
 
-    public List<List<string>> PlaylistList = new();
+    public TrackStatus[] TrackStatus = new TrackStatus[100];
+    public ChannelStatus[] ChannelStatus = new ChannelStatus[16];
+
+
     public List<string> Playlist = new List<string>();
 
     public float playSpeed = 1f;
@@ -61,10 +82,11 @@ public class Configuration : IPluginConfiguration
     public bool MonitorOnEnsemble = true;
     public bool AutoOpenPlayerWhenPerforming = true;
     public bool[] EnabledTracks = Enumerable.Repeat(true, 100).ToArray();
-    public int? SoloedTrack = null;
     public int[] TonesPerTrack = new int[100];
-    public bool EnableTransposePerTrack = false;
     public int[] TransposePerTrack = new int[100];
+    public int? SoloedTrack = null;
+    public int? SoloedChannel = null;
+    public bool EnableTransposePerTrack = false;
     public int uiLang = DalamudApi.api.PluginInterface.UiLanguage == "zh" ? 1 : 0;
     public bool showMusicControlPanel = true;
     public bool showSettingsPanel = true;
@@ -108,6 +130,8 @@ public class Configuration : IPluginConfiguration
 
     //public float plotScale = 10f;
 
+    public bool PlotChannelView = false;
+    public bool PlotShowAllPrograms = false;
 
     //public List<EnsembleTrack> EnsembleTracks = new List<EnsembleTrack>();
     public bool StopPlayingWhenEnsembleEnds = true;
@@ -115,7 +139,7 @@ public class Configuration : IPluginConfiguration
     //public bool SyncSongSelection = false;
     //public bool SyncMuteUnMute = false;
     public GuitarToneMode GuitarToneMode = GuitarToneMode.Off;
-    [JsonIgnore] public bool OverrideGuitarTones => GuitarToneMode == GuitarToneMode.Override;
+    //[JsonIgnore] public bool OverrideGuitarTones => GuitarToneMode == GuitarToneMode.Override;
 
     public void Save()
     {
@@ -123,4 +147,15 @@ public class Configuration : IPluginConfiguration
         DalamudApi.api.PluginInterface.SavePluginConfig(this);
         PluginLog.Verbose($"config saved in {startNew.Elapsed.TotalMilliseconds}.");
     }
+}
+
+class MidiFileUserData
+{
+    public double Speed;
+    public int InstrumentId;
+    public int Transpose;
+    public bool UseTrackTranspose;
+    public bool UseAdaptNotes;
+    public Dictionary<int, TrackStatus> TrackStatuses = new();
+    public Dictionary<int, ChannelStatus> ChannelStatuses = new();
 }

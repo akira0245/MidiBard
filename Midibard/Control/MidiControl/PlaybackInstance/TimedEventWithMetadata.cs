@@ -4,9 +4,9 @@ using Melanchall.DryWetMidi.Interaction;
 
 namespace MidiBard.Control.MidiControl.PlaybackInstance;
 
-sealed class TimedEventWithMetadata : TimedEvent, IMetadata
+internal sealed class TimedEventWithMetadata : TimedEvent, IMetadata
 {
-    public TimedEventWithMetadata(MidiEvent midiEvent, long time, BardPlayDevice.MidiEventMetaData metaData)
+    internal TimedEventWithMetadata(MidiEvent midiEvent, long time, BardPlayDevice.MidiEventMetaData metaData)
         : base(midiEvent, time)
     {
         Metadata = metaData;

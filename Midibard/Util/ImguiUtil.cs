@@ -35,7 +35,14 @@ public static class ImGuiUtil
 
                     if (IsItemHovered())
                     {
-                        ToolTip(toolTips[i].Localize());
+                        try
+                        {
+                            ToolTip(toolTips[i].Localize());
+                        }
+                        catch (Exception e)
+                        {
+                            //
+                        }
                     }
 
                     PopID();

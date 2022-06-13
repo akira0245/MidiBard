@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Dalamud.Logging;
 using Melanchall.DryWetMidi.Interaction;
 using MidiBard.Control.CharacterControl;
+using MidiBard.Control.MidiControl.PlaybackInstance;
 using static MidiBard.MidiBard;
 
 namespace MidiBard.Control.MidiControl;
@@ -78,7 +79,7 @@ internal static class MidiPlayerControl
         {
             if (CurrentPlayback == null)
             {
-                CurrentTracks.Clear();
+                //MidiBard.CurrentPlayback?.TrackInfos.Clear();
             }
             else
             {

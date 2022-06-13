@@ -1,28 +1,44 @@
 ﻿using System;
 using System.Linq;
 using System.Numerics;
+using Dalamud.Interface;
 using ImGuiNET;
 using static MidiBard.ImGuiUtil;
 using MidiBard.Control.CharacterControl;
 using Dalamud.Logging;
+using MidiBard.Control.MidiControl.PlaybackInstance;
 
 namespace MidiBard;
 
 public partial class PluginUI
 {
+    readonly uint[] toneColors = new uint[]
+    {
+        0xee_6666bb,
+        0xee_bbbb66,
+        0xee_66bb66,
+        0xee_66bbbb,
+        0xee_bb6666
+    };
+
+    readonly string[] toneStrings = new string[]
+    {
+        " I ", " II ", "III", "IV", " V ",
+    };
+
     private unsafe void DrawTrackTrunkSelectionWindow()
     {
-        if (MidiBard.CurrentTracks?.Any() == true)
+        if (MidiBard.CurrentPlayback?.TrackInfos?.Any() == true)
         {
             if (false)
             {
                 ImGui.SetNextWindowSizeConstraints(new Vector2(ImGui.GetWindowContentRegionWidth() - 1,
-                    Math.Min(MidiBard.CurrentTracks.Count, 4.7f) * ImGui.GetFrameHeightWithSpacing() -
+                    Math.Min(MidiBard.CurrentPlayback.TrackInfos.Length, 4.7f) * ImGui.GetFrameHeightWithSpacing() -
                     ImGui.GetStyle().ItemSpacing.Y), new Vector2(ImGui.GetWindowContentRegionWidth() - 1,
-                    Math.Min(MidiBard.CurrentTracks.Count, 4.7f) * ImGui.GetFrameHeightWithSpacing() -
+                    Math.Min(MidiBard.CurrentPlayback.TrackInfos.Length, 4.7f) * ImGui.GetFrameHeightWithSpacing() -
                     ImGui.GetStyle().ItemSpacing.Y));
                 ImGui.SetNextWindowPos(ImGui.GetWindowPos() + new Vector2(2, 0), ImGuiCond.Appearing, new Vector2(-1, 0));
-                if (ImGui.Begin($"Midifile Tracks ({MidiBard.CurrentTracks.Count})###MidifileTracksList", ref MidiBard.config.UseStandaloneTrackWindow, ImGuiWindowFlags.NoDecoration))
+                if (ImGui.Begin($"Midifile Tracks ({MidiBard.CurrentPlayback.TrackInfos.Length})###MidifileTracksList", ref MidiBard.config.UseStandaloneTrackWindow, ImGuiWindowFlags.NoDecoration))
                 {
                     DrawContent();
                 }
@@ -34,7 +50,7 @@ public partial class PluginUI
                 if (ImGui.BeginChild("TrackTrunkSelection",
                         new Vector2(
                             ImGui.GetWindowContentRegionWidth() - 1,
-                            Math.Min(MidiBard.CurrentTracks.Count, 8.5f) * ImGui.GetFrameHeightWithSpacing() - ImGui.GetStyle().ItemSpacing.Y),
+                            Math.Min(MidiBard.CurrentPlayback.TrackInfos.Length, 8.5f) * ImGui.GetFrameHeightWithSpacing() - ImGui.GetStyle().ItemSpacing.Y),
                         false, ImGuiWindowFlags.NoDecoration))
                 {
                     DrawContent();
@@ -48,19 +64,19 @@ public partial class PluginUI
         {
             ImGui.PushStyleColor(ImGuiCol.Separator, 0);
             ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 2f);
-            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(2, ImGui.GetStyle().ItemSpacing.Y));
+            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(2 * ImGuiHelpers.GlobalScale, ImGui.GetStyle().ItemSpacing.Y));
             ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign, new Vector2(0.6f, 0));
 
-            if (MidiBard.PlayingGuitar && MidiBard.config.OverrideGuitarTones)
+            if (MidiBard.PlayingGuitar && MidiBard.config.GuitarToneMode == GuitarToneMode.OverrideByTrack)
             {
                 ImGui.Columns(2);
-                ImGui.SetColumnWidth(0, ImGui.GetWindowContentRegionWidth() - 4 * ImGui.GetCursorPosX() - ImGui.GetFontSize() * 5.5f);
+                ImGui.SetColumnWidth(0, ImGui.GetWindowContentRegionWidth() - 6 * (2 * ImGuiHelpers.GlobalScale) - 5 * (ImGui.GetFrameHeight() * 0.8f));
             }
 
             bool soloing = MidiBard.config.SoloedTrack is not null;
             int? soloingTrack = MidiBard.config.SoloedTrack;
             bool showtooltip = true;
-            for (var i = 0; i < MidiBard.CurrentTracks.Count; i++)
+            for (var i = 0; i < MidiBard.CurrentPlayback.TrackInfos.Length; i++)
             {
                 try
                 {
@@ -98,7 +114,7 @@ public partial class PluginUI
                     ImGui.Dummy(Vector2.Zero);
                     ImGui.SameLine();
                     ImGui.TextUnformatted((soloingTrack == i ? "[Soloing]" : $"[{i + 1:00}]") +
-                                          $" {MidiBard.CurrentTracks[i].Item2}");
+                                          $" {MidiBard.CurrentPlayback.TrackInfos[i]}");
                     ImGui.PopStyleColor(2);
 
                     if (ImGui.IsItemClicked())
@@ -106,12 +122,10 @@ public partial class PluginUI
                         MidiBard.config.EnabledTracks[i] ^= true;
                         if (MidiBard.config.bmpTrackNames && !MidiBard.IsPlaying)
                         {
-                            var firstEnabledTrack = MidiBard.CurrentTracks.Select(i => i)
-                                .FirstOrDefault(i => i.trackInfo.IsEnabled);
-                            if (firstEnabledTrack.trackInfo != null &&
-                                firstEnabledTrack.trackInfo.InstrumentIDFromTrackName != null)
+                            var firstEnabledTrack = MidiBard.CurrentPlayback.TrackInfos.FirstOrDefault(trackInfo => trackInfo.IsEnabled);
+                            if (firstEnabledTrack?.InstrumentIDFromTrackName != null)
                             {
-                                SwitchInstrument.SwitchTo((uint)firstEnabledTrack.trackInfo.InstrumentIDFromTrackName);
+                                SwitchInstrument.SwitchTo((uint)firstEnabledTrack.InstrumentIDFromTrackName);
                             }
                             else
                             {
@@ -126,11 +140,9 @@ public partial class PluginUI
                         if (MidiBard.config.bmpTrackNames && !MidiBard.IsPlaying &&
                             MidiBard.config.SoloedTrack != null
                             && MidiBard.config.EnabledTracks[(int)MidiBard.config.SoloedTrack]
-                            && MidiBard.CurrentTracks[(int)MidiBard.config.SoloedTrack].trackInfo
-                                .InstrumentIDFromTrackName != null)
+                            && MidiBard.CurrentPlayback.TrackInfos[(int)MidiBard.config.SoloedTrack].InstrumentIDFromTrackName != null)
                         {
-                            SwitchInstrument.SwitchTo((uint)MidiBard
-                                .CurrentTracks[(int)MidiBard.config.SoloedTrack].trackInfo.InstrumentIDFromTrackName);
+                            SwitchInstrument.SwitchTo((uint)MidiBard.CurrentPlayback.TrackInfos[(int)MidiBard.config.SoloedTrack].InstrumentIDFromTrackName);
                         }
                     }
 
@@ -138,7 +150,7 @@ public partial class PluginUI
                     {
                         showtooltip = false;
                         ImGui.BeginTooltip();
-                        ImGui.TextUnformatted(MidiBard.CurrentTracks[i].Item2.ToLongString());
+                        ImGui.TextUnformatted(MidiBard.CurrentPlayback.TrackInfos[i].ToLongString());
                         ImGui.EndTooltip();
                     }
                     //ToolTip(CurrentTracks[i].Item2.ToLongString()
@@ -147,32 +159,34 @@ public partial class PluginUI
                     //	//	.Localize())
                     //	);
 
-                    if (MidiBard.PlayingGuitar && MidiBard.config.OverrideGuitarTones)
+                    if (MidiBard.PlayingGuitar && MidiBard.config.GuitarToneMode == GuitarToneMode.OverrideByTrack)
                     {
                         ImGui.NextColumn();
-                        var width = ImGui.GetWindowContentRegionWidth();
-                        //var spacing = ImGui.GetStyle().ItemSpacing.X;
-                        var buttonSize = new Vector2(ImGui.GetFontSize() * 1.1f, ImGui.GetFrameHeight());
-                        const uint colorRed = 0xee_6666bb;
-                        const uint colorCyan = 0xee_bbbb66;
-                        const uint colorGreen = 0xee_66bb66;
-                        const uint colorYellow = 0xee_66bbbb;
-                        const uint colorBlue = 0xee_bb6666;
+                        var buttonSize = new Vector2(ImGui.GetFrameHeight() * 0.8f, ImGui.GetFrameHeight());
 
-                        void drawToneSelectButton(int toneID, uint color, string toneName, int track)
+
+
+                        for (int toneId = 0; toneId < 5; toneId++)
                         {
-                            //ImGui.SameLine(width - (4.85f - toneID) * 3 * spacing);
-                            var DrawColor = MidiBard.config.TonesPerTrack[track] == toneID;
+                            if (toneId != 0) ImGui.SameLine();
+                            drawToneSelectButton(toneId, toneColors[toneId], toneStrings[toneId]);
+                        }
+
+                        ImGui.NextColumn();
+
+                        void drawToneSelectButton(int toneID, uint toneColor, string toneName)
+                        {
+                            var DrawColor = MidiBard.config.TonesPerTrack[i] == toneID;
                             if (DrawColor)
                             {
-                                ImGui.PushStyleColor(ImGuiCol.Button, color);
-                                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, color);
-                                ImGui.PushStyleColor(ImGuiCol.ButtonActive, color);
+                                ImGui.PushStyleColor(ImGuiCol.Button, toneColor);
+                                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, toneColor);
+                                ImGui.PushStyleColor(ImGuiCol.ButtonActive, toneColor);
                             }
 
                             if (ImGui.Button($"{toneName}##toneSwitchButton{i}", buttonSize))
                             {
-                                MidiBard.config.TonesPerTrack[track] = toneID;
+                                MidiBard.config.TonesPerTrack[i] = toneID;
                             }
 
                             if (DrawColor)
@@ -180,17 +194,6 @@ public partial class PluginUI
                                 ImGui.PopStyleColor(3);
                             }
                         }
-
-                        drawToneSelectButton(0, colorRed, " I ", i);
-                        ImGui.SameLine();
-                        drawToneSelectButton(1, colorCyan, " II ", i);
-                        ImGui.SameLine();
-                        drawToneSelectButton(2, colorGreen, "III", i);
-                        ImGui.SameLine();
-                        drawToneSelectButton(3, colorYellow, "IV", i);
-                        ImGui.SameLine();
-                        drawToneSelectButton(4, colorBlue, "V", i);
-                        ImGui.NextColumn();
                     }
                 }
                 catch (Exception e)

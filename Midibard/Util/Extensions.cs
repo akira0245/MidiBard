@@ -30,4 +30,5 @@ static class Extensions
 
     public static TimeSpan GetTimeSpan(this MetricTimeSpan t) => new TimeSpan(t.TotalMicroseconds * 10);
     public static double GetTotalSeconds(this MetricTimeSpan t) => t.TotalMicroseconds/1000_000d;
+    public static string JoinString(this IEnumerable<string> t, string? sep = null) => string.Join(sep, t);
 }
