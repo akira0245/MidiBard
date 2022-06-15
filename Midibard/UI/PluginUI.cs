@@ -94,8 +94,8 @@ public partial class PluginUI
             //	ensembleModeRunning ? " - Ensemble Running" : string.Empty,
             //	isListeningForEvents ? " - Listening Events" : string.Empty);
             var flag = config.miniPlayer ? ImGuiWindowFlags.NoDecoration : ImGuiWindowFlags.None;
-            ImGui.SetNextWindowSizeConstraints(new Vector2(ImGui.GetIO().FontGlobalScale * 357, 0),
-                new Vector2(ImGui.GetIO().FontGlobalScale * 357, float.MaxValue));
+            ImGui.SetNextWindowSizeConstraints(new Vector2(ImGuiHelpers.GlobalScale * 357, 0),
+                new Vector2(ImGuiHelpers.GlobalScale * 357, float.MaxValue));
 #if DEBUG
 				if (ImGui.Begin($"MidiBard - {api.ClientState.LocalPlayer?.Name.TextValue} PID{Process.GetCurrentProcess().Id}###MIDIBARD",
 					ref MainWindowVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | flag))
@@ -175,11 +175,11 @@ public partial class PluginUI
     {
         if (ImGui.Begin("Track and Channel Settings"))
         {
+            ImGui.GetWindowDrawList().ChannelsSplit(2);
+
             try
             {
                 ImGui.Columns(2);
-
-                ImGui.GetWindowDrawList().ChannelsSplit(2);
                 foreach (var trackInfo in CurrentPlayback.TrackInfos)
                 {
                     ImGui.GetWindowDrawList().ChannelsSetCurrent(1);
@@ -214,20 +214,15 @@ public partial class PluginUI
                     ImGui.PopID();
                     ImGui.NextColumn();
                 }
-                ImGui.GetWindowDrawList().ChannelsMerge();
-
             }
             catch (Exception e)
             {
                 ImGui.TextUnformatted(e.ToString());
             }
-
             ImGui.Separator();
             try
             {
                 ImGui.Columns(2);
-
-                ImGui.GetWindowDrawList().ChannelsSplit(2);
                 foreach (var channelInfo in CurrentPlayback.ChannelInfos)
                 {
                     ImGui.GetWindowDrawList().ChannelsSetCurrent(1);
@@ -262,12 +257,13 @@ public partial class PluginUI
                     ImGui.PopID();
                     ImGui.NextColumn();
                 }
-                ImGui.GetWindowDrawList().ChannelsMerge();
             }
             catch (Exception e)
             {
                 ImGui.TextUnformatted(e.ToString());
             }
+
+            ImGui.GetWindowDrawList().ChannelsMerge();
 
             void DrawToneButtons(TrackChannelStatus status)
             {

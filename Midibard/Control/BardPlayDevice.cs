@@ -17,7 +17,16 @@ internal class BardPlayDevice : IOutputDevice
 {
     public abstract record MidiEventMetaData;
     public record MidiDeviceMetaData : MidiEventMetaData;
-    public record MidiPlaybackMetaData(int TrackIndex/*, bool IsChordNote, int ChordNotesCount, int InChordPosition*/) : MidiEventMetaData;
+    public record MidiPlaybackMetaData : MidiEventMetaData
+    {
+
+        public int TrackIndex { get; init; }
+
+        public override string ToString()
+        {
+            return $"<MidiPlaybackMetaData> TrackIndex: {TrackIndex}";
+        }
+    }
 
     public static BardPlayDevice Instance { get; } = new();
     private BardPlayDevice()
@@ -180,19 +189,21 @@ internal class BardPlayDevice : IOutputDevice
                                         if (playlib.ReleaseKey(noteNum))
                                         {
                                             MidiBard.AgentPerformance.Struct->CurrentPressingNote = -100;
+                                            PluginLog.Warning($"[ONO] {metadata} {noteOnEvent}");
                                         }
                                     }
 
                                     if (playlib.PressKey(noteNum, ref MidiBard.AgentPerformance.Struct->NoteOffset, ref MidiBard.AgentPerformance.Struct->OctaveOffset))
                                     {
                                         MidiBard.AgentPerformance.Struct->CurrentPressingNote = noteNum + 39;
+                                        PluginLog.Debug($"[NO ] {metadata} {noteOnEvent}");
                                         return true;
                                     }
                                 }
                             }
                             break;
 
-                        case NoteOffEvent:
+                        case NoteOffEvent noteOffEvent:
                             {
                                 if (MidiBard.AgentPerformance.Struct->CurrentPressingNote - 39 != noteNum)
                                 {
@@ -289,28 +300,39 @@ internal class BardPlayDevice : IOutputDevice
 
     public bool noteOn(int note)
     {
-        if (!MidiBard.AgentPerformance.InPerformanceMode)
+        unsafe
         {
-            return false;
-        }
-        if (note is < min or > max)
-        {
-            PluginLog.Error("note must in range of 39-75 (c3-c6)");
-            return false;
-        }
+            if (!MidiBard.AgentPerformance.InPerformanceMode)
+            {
+                return false;
+            }
+            if (note is < min or > max)
+            {
+                PluginLog.Error("note must in range of 39-75 (c3-c6)");
+                return false;
+            }
 
-        PlayNoteDirect(MidiBard.AgentPerformance.Pointer, note, 1);
-        return true;
+            PlayNoteDirect(MidiBard.AgentPerformance.Pointer, note, 1);
+            PluginLog.Debug($"noteon {note} {MidiBard.AgentPerformance.Struct->CurrentPressingNote}");
+            //MidiBard.AgentPerformance.Struct->CurrentPressingNote = note;
+            return true;
+        }
     }
 
     public bool noteOff()
     {
-        if (!MidiBard.AgentPerformance.InPerformanceMode)
+        unsafe
         {
-            return false;
-        }
+            if (!MidiBard.AgentPerformance.InPerformanceMode)
+            {
+                return false;
+            }
 
-        PlayNoteDirect(MidiBard.AgentPerformance.Pointer, off, 0);
-        return true;
+            PlayNoteDirect(MidiBard.AgentPerformance.Pointer, off, 0);
+            PluginLog.Debug($"noteoff  {MidiBard.AgentPerformance.Struct->CurrentPressingNote}");
+            //MidiBard.AgentPerformance.Struct->CurrentPressingNote = off;
+
+            return true;
+        }
     }
 }
