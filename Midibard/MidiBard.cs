@@ -51,7 +51,7 @@ public class MidiBard : IDalamudPlugin
     internal static Localizer Localizer { get; set; }
     internal static AgentMetronome AgentMetronome { get; set; }
     internal static AgentPerformance AgentPerformance { get; set; }
-    //internal static AgentConfigSystem AgentConfigSystem { get; set; }
+    internal static AgentConfigSystem AgentConfigSystem { get; set; }
 
     private static int configSaverTick;
 
@@ -118,7 +118,7 @@ public class MidiBard : IDalamudPlugin
 
         AgentMetronome = new AgentMetronome(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.MetronomeAgent));
         AgentPerformance = new AgentPerformance(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.PerformanceAgent));
-        //AgentConfigSystem = new AgentConfigSystem(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.AgentConfigSystem));
+        AgentConfigSystem = new AgentConfigSystem(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.AgentConfigSystem));
         _ = EnsembleManager.Instance;
 
 #if DEBUG
