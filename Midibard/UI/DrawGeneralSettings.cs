@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Numerics;
+using Dalamud.Logging;
+using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using ImGuiNET;
 
 namespace MidiBard;
@@ -96,8 +98,7 @@ public partial class PluginUI
         ImGuiUtil.ToolTip(
             MidiBard.config.LockPlot
                 ? "Lock tracks window and auto following current playback progress\nScroll mouse here to adjust view timeline scale".Localize()
-                :"Lock tracks window and auto following current playback progress".Localize());
-        
+                : "Lock tracks window and auto following current playback progress".Localize());
 
         ImGui.Checkbox("Auto switch instrument".Localize(), ref MidiBard.config.autoSwitchInstrumentBySongName);
         ImGuiUtil.ToolTip("Auto switch instrument on demand. If you need this, \nplease add #instrument name# before file name.\nE.g. #harp#demo.mid".Localize());
@@ -107,7 +108,8 @@ public partial class PluginUI
         ImGui.Checkbox("Auto transpose".Localize(), ref MidiBard.config.autoTransposeBySongName);
         ImGuiUtil.ToolTip("Auto transpose notes on demand. If you need this, \nplease add #transpose number# before file name.\nE.g. #-12#demo.mid".Localize());
 
-
+        //ImGui.Checkbox("Auto set background frame limit".Localize(), ref MidiBard.config.AutoSetBackgroundFrameLimit);
+        //ImGuiUtil.ToolTip("Auto disable background frame limit when entering performance mode and re-enable it when quit performance".Localize());
 
         //ImGui.Checkbox("Override guitar tones".Localize(), ref MidiBard.config.OverrideGuitarTones);
         //ImGuiUtil.ToolTip("Assign different guitar tones for each midi tracks".Localize());
@@ -128,7 +130,7 @@ public partial class PluginUI
         ImGui.SameLine();
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() - ImGui.GetStyle().ItemInnerSpacing.X);
         ImGui.TextUnformatted("Theme color".Localize());
-            
+
         ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
         ImGui.SetNextItemWidth(ImGui.GetWindowContentRegionWidth() / 3.36f);
         if (ImGui.Combo("UI Language".Localize(), ref MidiBard.config.uiLang, uilangStrings, 2))

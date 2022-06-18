@@ -22,9 +22,11 @@ class PerformanceEvents
             if (!SwitchInstrument.SwitchingInstrument)
                 Ui.Open();
 
-        //_backgroundFrameLimit = AgentConfigSystem.BackgroundFrameLimit;
-        //AgentConfigSystem.BackgroundFrameLimit = false;
-        //AgentConfigSystem.ApplyGraphicSettings();
+        if (config.AutoSetBackgroundFrameLimit)
+        {
+            AgentConfigSystem.BackgroundFrameLimit = false;
+            AgentConfigSystem.ApplyGraphicSettings();
+        }
     }
 
     private void ExitingPerformance()
@@ -33,15 +35,14 @@ class PerformanceEvents
             if (!SwitchInstrument.SwitchingInstrument)
                 Ui.Close();
 
-        //if (_backgroundFrameLimit is { } b && AgentConfigSystem.BackgroundFrameLimit != b)
-        //{
-        //    AgentConfigSystem.BackgroundFrameLimit = b;
-        //    AgentConfigSystem.ApplyGraphicSettings();
-        //}
+        if (config.AutoSetBackgroundFrameLimit)
+        {
+            AgentConfigSystem.BackgroundFrameLimit = true;
+            AgentConfigSystem.ApplyGraphicSettings();
+        }
     }
 
     private bool inPerformanceMode;
-    private bool? _backgroundFrameLimit;
 
     public bool InPerformanceMode
     {
