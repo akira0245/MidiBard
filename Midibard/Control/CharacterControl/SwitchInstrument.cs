@@ -140,7 +140,7 @@ internal static class SwitchInstrument
                     {
                         PluginLog.Information($"applying transpose {transposePerTrack:+#;-#;0} for track [{trackInfo.Index + 1}]{trackInfo.TrackName}");
                     }
-                    config.TransposePerTrack[trackInfo.Index] = transposePerTrack;
+                    config.TrackStatus[trackInfo.Index].Transpose = transposePerTrack;
                 }
 
                 config.TransposeGlobal = 0;
@@ -199,13 +199,13 @@ internal static class SwitchInstrument
 
         for (int track = 0; track < MidiBard.CurrentPlayback.TrackInfos.Length; track++)
         {
-            if (MidiBard.config.EnabledTracks[track] && MidiBard.CurrentPlayback?.TrackInfos[track] != null)
+            if (MidiBard.config.TrackStatus[track].Enabled && MidiBard.CurrentPlayback?.TrackInfos[track] != null)
             {
                 var curInstrument = MidiBard.CurrentPlayback?.TrackInfos[track]?.InstrumentIDFromTrackName;
                 if (curInstrument != null && MidiBard.guitarGroup.Contains((byte)curInstrument))
                 {
                     var toneID = curInstrument - MidiBard.guitarGroup[0];
-                    MidiBard.config.TonesPerTrack[track] = (int)toneID;
+                    MidiBard.config.TrackStatus[track].Tone = (int)toneID;
                 }
             }
         }

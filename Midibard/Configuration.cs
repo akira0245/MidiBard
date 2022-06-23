@@ -81,9 +81,9 @@ public class Configuration : IPluginConfiguration
 
     public bool MonitorOnEnsemble = true;
     public bool AutoOpenPlayerWhenPerforming = true;
-    public bool[] EnabledTracks = Enumerable.Repeat(true, 100).ToArray();
-    public int[] TonesPerTrack = new int[100];
-    public int[] TransposePerTrack = new int[100];
+    //public bool[] EnabledTracks = Enumerable.Repeat(true, 100).ToArray();
+    //public int[] TonesPerTrack = new int[100];
+    //public int[] TransposePerTrack = new int[100];
     public int? SoloedTrack = null;
     public int? SoloedChannel = null;
     public bool EnableTransposePerTrack = false;

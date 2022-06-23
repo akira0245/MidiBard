@@ -28,7 +28,7 @@ public record TrackInfo
 
     //public FourBitNumber[] Channels { get; init; }
 
-    public bool IsEnabled => MidiBard.config.EnabledTracks[Index];
+    public bool IsEnabled => MidiBard.config.TrackStatus[Index].Enabled;
     public bool IsPlaying => MidiBard.config.SoloedTrack is int t ? t == Index : IsEnabled;
     public int TransposeFromTrackName => GetTransposeByName(TrackName);
     public uint? InstrumentIDFromTrackName => GetInstrumentIDByName(TrackName);

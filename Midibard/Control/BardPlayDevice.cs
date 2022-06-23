@@ -84,7 +84,7 @@ internal class BardPlayDevice : IOutputDevice
                 }
                 else
                 {
-                    if (!MidiBard.config.EnabledTracks[trackIndex])
+                    if (!MidiBard.config.TrackStatus[trackIndex].Enabled)
                     {
                         return false;
                     }
@@ -156,7 +156,7 @@ internal class BardPlayDevice : IOutputDevice
                                             break;
                                         case GuitarToneMode.OverrideByTrack when metadata is MidiPlaybackMetaData midiPlaybackMetaData:
                                             {
-                                                int tone = MidiBard.config.TonesPerTrack[midiPlaybackMetaData.TrackIndex];
+                                                int tone = MidiBard.config.TrackStatus[midiPlaybackMetaData.TrackIndex].Tone;
                                                 playlib.GuitarSwitchTone(tone);
                                                 break;
                                             }
@@ -262,7 +262,7 @@ internal class BardPlayDevice : IOutputDevice
 
     public static int GetNoteNumberTranslatedPerTrack(int noteNumber, int trackIndex, out int octaveAdjusted)
     {
-        noteNumber += MidiBard.config.EnableTransposePerTrack ? MidiBard.config.TransposePerTrack[trackIndex] : 0;
+        noteNumber += MidiBard.config.EnableTransposePerTrack ? MidiBard.config.TrackStatus[trackIndex].Transpose : 0;
         return GetNoteNumberTranslated(noteNumber, out octaveAdjusted);
     }
 

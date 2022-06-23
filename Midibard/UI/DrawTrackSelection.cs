@@ -84,7 +84,7 @@ public partial class PluginUI
                     ImGui.SetCursorPosX(0);
                     Vector4 color = *ImGui.GetStyleColorVec4(ImGuiCol.Text);
                     Vector4 colorCheckmark = *ImGui.GetStyleColorVec4(ImGuiCol.Text);
-                    if (!MidiBard.config.EnabledTracks[i] || soloing)
+                    if (!MidiBard.config.TrackStatus[i].Enabled || soloing)
                     {
                         color = colorCheckmark = *ImGui.GetStyleColorVec4(ImGuiCol.TextDisabled);
                     }
@@ -97,7 +97,7 @@ public partial class PluginUI
                     ImGui.PushStyleColor(ImGuiCol.Text, color);
                     ImGui.PushStyleColor(ImGuiCol.CheckMark, colorCheckmark);
 
-                    ImGui.Checkbox("##checkbox", ref MidiBard.config.EnabledTracks[i]);
+                    ImGui.Checkbox("##checkbox", ref MidiBard.config.TrackStatus[i].Enabled);
 
                     if (MidiBard.config.EnableTransposePerTrack)
                     {
@@ -105,9 +105,9 @@ public partial class PluginUI
                         ImGui.Dummy(Vector2.Zero);
                         ImGui.SameLine();
                         ImGui.SetNextItemWidth(ImGui.GetFrameHeightWithSpacing() * 3);
-                        ImGui.InputInt($"##TransposeByTrack", ref MidiBard.config.TransposePerTrack[i], 12);
+                        ImGui.InputInt($"##TransposeByTrack", ref MidiBard.config.TrackStatus[i].Transpose, 12);
                         if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
-                            MidiBard.config.TransposePerTrack[i] = 0;
+                            MidiBard.config.TrackStatus[i].Transpose = 0;
                     }
 
                     ImGui.SameLine();
@@ -119,7 +119,7 @@ public partial class PluginUI
 
                     if (ImGui.IsItemClicked())
                     {
-                        MidiBard.config.EnabledTracks[i] ^= true;
+                        MidiBard.config.TrackStatus[i].Enabled ^= true;
                         if (MidiBard.config.bmpTrackNames && !MidiBard.IsPlaying)
                         {
                             var firstEnabledTrack = MidiBard.CurrentPlayback.TrackInfos.FirstOrDefault(trackInfo => trackInfo.IsEnabled);
@@ -139,7 +139,7 @@ public partial class PluginUI
                         MidiBard.config.SoloedTrack = MidiBard.config.SoloedTrack == i ? null : i;
                         if (MidiBard.config.bmpTrackNames && !MidiBard.IsPlaying &&
                             MidiBard.config.SoloedTrack != null
-                            && MidiBard.config.EnabledTracks[(int)MidiBard.config.SoloedTrack]
+                            && MidiBard.config.TrackStatus[(int)MidiBard.config.SoloedTrack].Enabled
                             && MidiBard.CurrentPlayback.TrackInfos[(int)MidiBard.config.SoloedTrack].InstrumentIDFromTrackName != null)
                         {
                             SwitchInstrument.SwitchTo((uint)MidiBard.CurrentPlayback.TrackInfos[(int)MidiBard.config.SoloedTrack].InstrumentIDFromTrackName);
@@ -176,7 +176,7 @@ public partial class PluginUI
 
                         void drawToneSelectButton(int toneID, uint toneColor, string toneName)
                         {
-                            var DrawColor = MidiBard.config.TonesPerTrack[i] == toneID;
+                            var DrawColor = MidiBard.config.TrackStatus[i].Tone == toneID;
                             if (DrawColor)
                             {
                                 ImGui.PushStyleColor(ImGuiCol.Button, toneColor);
@@ -186,7 +186,7 @@ public partial class PluginUI
 
                             if (ImGui.Button($"{toneName}##toneSwitchButton{i}", buttonSize))
                             {
-                                MidiBard.config.TonesPerTrack[i] = toneID;
+                                MidiBard.config.TrackStatus[i].Tone = toneID;
                             }
 
                             if (DrawColor)
