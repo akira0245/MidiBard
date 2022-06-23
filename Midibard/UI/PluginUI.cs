@@ -15,6 +15,7 @@ using ImPlotNET;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using MidiBard.DalamudApi;
+using MidiBard.IPC;
 using MidiBard.Managers;
 using MidiBard.Managers.Ipc;
 using MidiBard.UI;
@@ -71,15 +72,37 @@ public partial class PluginUI
             }
         }
 
-        if (ImGui.Begin("partyIPC"))
+        if (api.ClientState.IsLoggedIn && ImGui.Begin("partyIPC"))
         {
-            ImGui.LabelText($"Length", $"{api.PartyList.Length}");
-            ImGui.LabelText($"PartyId", $"{api.PartyList.PartyId:X}");
-            ImGui.LabelText($"PartyLeaderIndex", $"{api.PartyList.PartyLeaderIndex}");
-            ImGui.LabelText($"IsInParty", $"{api.PartyList.IsInParty()}");
-            ImGui.LabelText($"IsPartyLeader", $"{api.PartyList.IsPartyLeader()}");
-            ImGui.LabelText($"GetPartyLeader", $"{api.PartyList.GetPartyLeader()?.Name}");
-            ImGui.LabelText($"PartyList", $"{api.PartyList.Select(i => $"{i.Name}@{i.World.GameData?.Name} {(i.IsPartyLeader() ? "[Leader]" : "")}\n[{i.ObjectId:X}] [{i.ContentId:X}]").JoinString("\n")}");
+            try
+            {
+                ImGui.LabelText($"Length", $"{api.PartyList.Length}");
+                ImGui.LabelText($"PartyId", $"{api.PartyList.PartyId:X}");
+                ImGui.LabelText($"PartyLeaderIndex", $"{api.PartyList.PartyLeaderIndex}");
+                ImGui.LabelText($"IsInParty", $"{api.PartyList.IsInParty()}");
+                ImGui.LabelText($"IsPartyLeader", $"{api.PartyList.IsPartyLeader()}");
+                ImGui.LabelText($"GetPartyLeader", $"{api.PartyList.GetPartyLeader()?.Name}");
+                ImGui.LabelText($"PartyList", $"{api.PartyList.Select(i => $"{i?.Name}@{i.World.GameData?.Name} {(i.IsPartyLeader() ? "[Leader]" : "")}\n[{i?.ObjectId:X}] [{i.ContentId:X}]").JoinString("\n")}");
+            }
+            catch (Exception e)
+            {
+                ImGui.TextUnformatted(e.ToString());
+            }
+            ImGui.LabelText($"Self buffer", $"Disposed {MidiBard.IpcManager.SelfBuffer.DisposeFinished}, Sent {MidiBard.IpcManager.SelfBuffer.Statistics.MessagesSent}, Received {MidiBard.IpcManager.SelfBuffer.Statistics.MessagesReceived}");
+            foreach (var pair in MidiBard.IpcManager.LeaderBuffers)
+            {
+                ImGui.LabelText($"{pair.Key:X}", $"Disposed {pair.Value?.DisposeFinished}, Sent {pair.Value?.Statistics.MessagesSent}, Received {pair.Value?.Statistics.MessagesReceived}");
+            }
+
+            if (ImGui.Button("testBroadcast"))
+            {
+                MidiBard.IpcManager.RPCBroadCast(RpcMessage.CreateSerializedIPC(RpcMessage.MessageTypeCode.Hello, null), true);
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("CONNECT"))
+            {
+                MidiBard.IpcManager.Connect();
+            }
         }
         ImGui.End();
     }

@@ -12,13 +12,12 @@ public class PartyWatcher : IDisposable
 {
     public PartyWatcher()
     {
-        PartyMemberCIDs = GetMemberCIDs;
         api.Framework.Update += Framework_Update;
     }
 
     private readonly Dictionary<long, (string name, string worldname, uint worldId)> PartyMemberLookUp = new();
 
-    public long[] PartyMemberCIDs { get; private set; }
+    public long[] PartyMemberCIDs { get; private set; } = { };
 
     public static long[] GetMemberCIDs => api.PartyList
         .Where(i => i.World.Id > 0 && i.Territory.Id > 0)
@@ -67,8 +66,8 @@ public class PartyWatcher : IDisposable
         PartyMemberCIDs = newMemberCIDs;
     }
 
-    public event EventHandler<long> PartyMemberJoin;
-    public event EventHandler<long> PartyMemberLeave;
+    public static event EventHandler<long> PartyMemberJoin;
+    public static event EventHandler<long> PartyMemberLeave;
 
     public void Dispose()
     {

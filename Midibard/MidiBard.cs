@@ -27,6 +27,7 @@ using MidiBard.Control.CharacterControl;
 using MidiBard.Control.MidiControl;
 using MidiBard.Control.MidiControl.PlaybackInstance;
 using MidiBard.DalamudApi;
+using MidiBard.IPC;
 using MidiBard.Managers;
 using MidiBard.Managers.Agents;
 using MidiBard.Managers.Ipc;
@@ -46,6 +47,7 @@ public class MidiBard : IDalamudPlugin
     internal static AgentPerformance AgentPerformance { get; set; }
     internal static AgentConfigSystem AgentConfigSystem { get; set; }
     internal static EnsembleManager EnsembleManager { get; set; }
+    internal static IPCManager IpcManager { get; set; }
 
     private int configSaverTick;
     private bool wasEnsembleModeRunning = false;
@@ -88,6 +90,7 @@ public class MidiBard : IDalamudPlugin
 
         config = (Configuration)PluginInterface.GetPluginConfig() ?? new Configuration();
         Localizer = new Localizer((UILang)config.uiLang);
+        IpcManager = new IPCManager();
         PartyWatcher = new PartyWatcher();
 
         playlib.init(this);
@@ -328,6 +331,7 @@ public class MidiBard : IDalamudPlugin
 
             EnsembleManager.Dispose();
             PartyWatcher.Dispose();
+            IpcManager.Dispose();
 #if DEBUG
 			NetworkManager.Instance.Dispose();
 #endif
