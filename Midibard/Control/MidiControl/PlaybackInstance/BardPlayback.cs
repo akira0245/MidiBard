@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Dalamud.Logging;
@@ -13,12 +14,15 @@ namespace MidiBard.Control.MidiControl.PlaybackInstance;
 
 internal sealed class BardPlayback : Playback
 {
-    public BardPlayback(MidiFile file) : this(PreparePlaybackData(file, out var tempoMap, out var trackChunks, out var trackInfos, out var channelInfos), tempoMap)
+    public BardPlayback(MidiFile file, string filePath) : this(PreparePlaybackData(file, out var tempoMap, out var trackChunks, out var trackInfos, out var channelInfos), tempoMap)
     {
         MidiFile = file;
+        FilePath = filePath;
         TrackChunks = trackChunks;
         TrackInfos = trackInfos;
         ChannelInfos = channelInfos;
+
+        SongName = Path.GetFileNameWithoutExtension(FilePath);
     }
 
     private BardPlayback(IEnumerable<TimedEventWithMetadata> timedObjects, TempoMap tempoMap)
@@ -34,6 +38,8 @@ internal sealed class BardPlayback : Playback
     }
 
     internal MidiFile MidiFile { get; }
+    internal string FilePath { get; }
+    internal string SongName { get; }
     internal TrackChunk[] TrackChunks { get; }
     internal TrackInfo[] TrackInfos { get; }
     internal ChannelInfo[] ChannelInfos { get; }

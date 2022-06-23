@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Dalamud.Logging;
 using MidiBard.DalamudApi;
+using MidiBard.Managers.Ipc;
 
 namespace MidiBard.Managers;
 
@@ -10,11 +12,13 @@ public class PartyWatcher : IDisposable
 {
     public PartyWatcher()
     {
-        OldMemberCIDs = GetMemberCIDs;
+        PartyMemberCIDs = GetMemberCIDs;
         api.Framework.Update += Framework_Update;
     }
 
-    private long[] OldMemberCIDs { get; set; }
+    private readonly Dictionary<long, (string name, string worldname, uint worldId)> PartyMemberLookUp = new();
+
+    public long[] PartyMemberCIDs { get; private set; }
 
     public static long[] GetMemberCIDs => api.PartyList
         .Where(i => i.World.Id > 0 && i.Territory.Id > 0)
@@ -25,41 +29,51 @@ public class PartyWatcher : IDisposable
     private void Framework_Update(Dalamud.Game.Framework framework)
     {
         var newMemberCIDs = GetMemberCIDs;
-        if (newMemberCIDs.Length != OldMemberCIDs.Length)
+        if (!newMemberCIDs.ToHashSet().SetEquals(PartyMemberCIDs.ToHashSet()))
         {
             //PluginLog.Warning($"CHANGE {newList.Length - PartyMembers.Length}");
             //PluginLog.Information("OLD:\n"+string.Join("\n", PartyMembers.Select(i=>$"{i.Name} {i.ContentId:X}")));
             //PluginLog.Information("NEW:\n"+string.Join("\n", newList.Select(i=>$"{i.Name} {i.ContentId:X}")));
 
-            foreach (var partyMember in newMemberCIDs)
+            foreach (var cid in newMemberCIDs)
             {
-                if (!OldMemberCIDs.Any(i => i == partyMember))
+                var partyMember = api.PartyList.GetPartyMemberFromCID(cid);
+                if (partyMember != null)
                 {
-                    PluginLog.Debug($"JOIN {partyMember}");
-                    PartyMemberJoin?.Invoke(partyMember);
+                    var tuple = (partyMember.Name.ToString(), partyMember.World.GameData?.Name.ToString(), partyMember.World.Id);
+                    if (!PartyMemberLookUp.TryAdd(cid, tuple))
+                    {
+                        PartyMemberLookUp[cid] = tuple;
+                    }
+                }
+
+                if (!PartyMemberCIDs.Any(i => i == cid))
+                {
+                    PluginLog.Debug($"JOIN {cid}");
+                    PartyMemberJoin?.Invoke(this, cid);
                 }
             }
 
-            foreach (var partyMember in OldMemberCIDs)
+            foreach (var partyMember in PartyMemberCIDs)
             {
                 if (!newMemberCIDs.Any(i => i == partyMember))
                 {
                     PluginLog.Debug($"LEAVE {partyMember}");
-                    PartyMemberLeave?.Invoke(partyMember);
+                    PartyMemberLeave?.Invoke(this, partyMember);
                 }
             }
         }
 
-        OldMemberCIDs = newMemberCIDs;
+        PartyMemberCIDs = newMemberCIDs;
     }
 
-    public event Action<long> PartyMemberJoin;
-    public event Action<long> PartyMemberLeave;
+    public event EventHandler<long> PartyMemberJoin;
+    public event EventHandler<long> PartyMemberLeave;
 
     public void Dispose()
     {
+        api.Framework.Update -= Framework_Update;
         PartyMemberJoin = delegate { };
         PartyMemberLeave = delegate { };
-        api.Framework.Update -= Framework_Update;
     }
 }

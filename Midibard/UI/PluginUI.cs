@@ -16,6 +16,7 @@ using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using MidiBard.DalamudApi;
 using MidiBard.Managers;
+using MidiBard.Managers.Ipc;
 using MidiBard.UI;
 using static MidiBard.MidiBard;
 using static MidiBard.ImGuiUtil;
@@ -57,7 +58,6 @@ public partial class PluginUI
     public unsafe void Draw()
     {
 #if DEBUG
-			//if (ImGui.Button("Debug info", new Vector2(-2, ImGui.GetFrameHeight()))) MidiBard.Debug ^= true;
 			DrawDebugWindow();
 #endif
         fileDialogManager.Draw();
@@ -70,6 +70,18 @@ public partial class PluginUI
                 DrawPlotWindow();
             }
         }
+
+        if (ImGui.Begin("partyIPC"))
+        {
+            ImGui.LabelText($"Length", $"{api.PartyList.Length}");
+            ImGui.LabelText($"PartyId", $"{api.PartyList.PartyId:X}");
+            ImGui.LabelText($"PartyLeaderIndex", $"{api.PartyList.PartyLeaderIndex}");
+            ImGui.LabelText($"IsInParty", $"{api.PartyList.IsInParty()}");
+            ImGui.LabelText($"IsPartyLeader", $"{api.PartyList.IsPartyLeader()}");
+            ImGui.LabelText($"GetPartyLeader", $"{api.PartyList.GetPartyLeader()?.Name}");
+            ImGui.LabelText($"PartyList", $"{api.PartyList.Select(i => $"{i.Name}@{i.World.GameData?.Name} {(i.IsPartyLeader() ? "[Leader]" : "")}\n[{i.ObjectId:X}] [{i.ContentId:X}]").JoinString("\n")}");
+        }
+        ImGui.End();
     }
 
 
@@ -160,7 +172,7 @@ public partial class PluginUI
                     DrawPanelGeneralSettings();
                 }
 
-                DrawTrackChannels();
+
             }
         }
         finally
@@ -170,129 +182,6 @@ public partial class PluginUI
         }
     }
 
-
-    private unsafe void DrawTrackChannels()
-    {
-        if (ImGui.Begin("Track and Channel Settings"))
-        {
-            ImGui.GetWindowDrawList().ChannelsSplit(2);
-
-            try
-            {
-                ImGui.Columns(2);
-                foreach (var trackInfo in CurrentPlayback.TrackInfos)
-                {
-                    ImGui.GetWindowDrawList().ChannelsSetCurrent(1);
-                    var index = trackInfo.Index;
-                    var enabled = config.TrackStatus[index].Enabled;
-                    //var color = _channelColorPalette[index];
-                    var colorConvertU32ToFloat4 = enabled ? MidiBard.config.themeColor : *ImGui.GetStyleColorVec4(ImGuiCol.TextDisabled);
-
-                    ImGui.SetCursorPosY(ImGui.GetCursorPosY() + ImGui.GetStyle().FramePadding.Y);
-                    ImGui.AlignTextToFramePadding();
-                    ImGui.Checkbox(trackInfo.ToString(), ref config.TrackStatus[index].Enabled);
-
-                    ImGui.SameLine();
-
-                    ImGui.NextColumn();
-                    ImGui.PushID(index);
-
-                    DrawToneButtons(config.TrackStatus[index]);
-
-                    //ImGui.PopStyleColor();
-
-                    ImGui.SameLine();
-                    ImGui.GetWindowDrawList().ChannelsSetCurrent(0);
-                    var convertU32ToFloat4 = colorConvertU32ToFloat4 * new Vector4(0.4f);
-                    ImGui.PushStyleColor(ImGuiCol.Header, convertU32ToFloat4);
-                    ImGui.PushStyleColor(ImGuiCol.HeaderHovered, convertU32ToFloat4);
-                    ImGui.PushStyleColor(ImGuiCol.HeaderActive, convertU32ToFloat4);
-                    ImGui.Selectable(" ", true, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowDoubleClick | ImGuiSelectableFlags.AllowItemOverlap, new Vector2(ImGui.GetWindowWidth(), ImGui.GetFrameHeight()));
-                    ImGui.PopStyleColor(3);
-                    ImGui.GetWindowDrawList().ChannelsSetCurrent(1);
-
-                    ImGui.PopID();
-                    ImGui.NextColumn();
-                }
-            }
-            catch (Exception e)
-            {
-                ImGui.TextUnformatted(e.ToString());
-            }
-            ImGui.Separator();
-            try
-            {
-                ImGui.Columns(2);
-                foreach (var channelInfo in CurrentPlayback.ChannelInfos)
-                {
-                    ImGui.GetWindowDrawList().ChannelsSetCurrent(1);
-                    var index = channelInfo.ChannelNumber;
-                    var enabled = config.ChannelStatus[index].Enabled;
-                    var color = _channelColorPalette[index];
-                    var colorConvertU32ToFloat4 = ImGui.ColorConvertU32ToFloat4(color);
-
-                    ImGui.SetCursorPosY(ImGui.GetCursorPosY() + ImGui.GetStyle().FramePadding.Y);
-                    ImGui.AlignTextToFramePadding();
-                    ImGui.Checkbox(channelInfo.ToString(), ref config.ChannelStatus[index].Enabled);
-
-                    ImGui.SameLine();
-
-                    ImGui.NextColumn();
-                    ImGui.PushID(index);
-
-                    DrawToneButtons(config.ChannelStatus[index]);
-
-                    //ImGui.PopStyleColor();
-
-                    ImGui.SameLine();
-                    ImGui.GetWindowDrawList().ChannelsSetCurrent(0);
-                    var convertU32ToFloat4 = colorConvertU32ToFloat4 * new Vector4(0.4f);
-                    ImGui.PushStyleColor(ImGuiCol.Header, convertU32ToFloat4);
-                    ImGui.PushStyleColor(ImGuiCol.HeaderHovered, convertU32ToFloat4);
-                    ImGui.PushStyleColor(ImGuiCol.HeaderActive, convertU32ToFloat4);
-                    ImGui.Selectable(" ", true, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowDoubleClick | ImGuiSelectableFlags.AllowItemOverlap, new Vector2(ImGui.GetWindowWidth(), ImGui.GetFrameHeight()));
-                    ImGui.PopStyleColor(3);
-                    ImGui.GetWindowDrawList().ChannelsSetCurrent(1);
-
-                    ImGui.PopID();
-                    ImGui.NextColumn();
-                }
-            }
-            catch (Exception e)
-            {
-                ImGui.TextUnformatted(e.ToString());
-            }
-
-            ImGui.GetWindowDrawList().ChannelsMerge();
-
-            void DrawToneButtons(TrackChannelStatus status)
-            {
-                for (int i = 0; i < 5; i++)
-                {
-                    if (i != 0)
-                    {
-                        ImGui.SameLine();
-                        ImGui.SetCursorPosX(ImGui.GetCursorPosX() - ImGui.GetStyle().ItemSpacing.X);
-                    }
-
-                    ImGui.AlignTextToFramePadding();
-                    if (GuitarTonesButton(i, status.Tone == i))
-                    {
-                        status.Tone = i;
-                    }
-                }
-            }
-
-            bool GuitarTonesButton(int tone, bool choosen)
-            {
-                return ImGui.ImageButton(MidiBard.Guitars[tone].IconTextureWrap.ImGuiHandle,
-                           new Vector2(ImGui.GetFrameHeightWithSpacing()), Vector2.Zero, Vector2.One, 1,
-                           new Vector4(0, 0, 0, 1), new Vector4(choosen ? 1 : 0.6f))
-                       || ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenBlockedByActiveItem) && ImGui.IsMouseDown(ImGuiMouseButton.Left);
-            }
-        }
-        ImGui.End();
-    }
 
     private static unsafe void ToggleButton(ref bool b)
     {

@@ -189,14 +189,14 @@ internal class BardPlayDevice : IOutputDevice
                                         if (playlib.ReleaseKey(noteNum))
                                         {
                                             MidiBard.AgentPerformance.Struct->CurrentPressingNote = -100;
-                                            PluginLog.Warning($"[ONO] {metadata} {noteOnEvent}");
+                                            PluginLog.Verbose($"[ONO] {metadata} {noteOnEvent}");
                                         }
                                     }
 
                                     if (playlib.PressKey(noteNum, ref MidiBard.AgentPerformance.Struct->NoteOffset, ref MidiBard.AgentPerformance.Struct->OctaveOffset))
                                     {
                                         MidiBard.AgentPerformance.Struct->CurrentPressingNote = noteNum + 39;
-                                        PluginLog.Debug($"[NO ] {metadata} {noteOnEvent}");
+                                        PluginLog.Verbose($"[NO ] {metadata} {noteOnEvent}");
                                         return true;
                                     }
                                 }

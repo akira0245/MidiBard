@@ -64,7 +64,6 @@ static class PlaylistManager
             {
                 currentPlaying--;
             }
-            MidiBard.SaveConfig();
         }
         catch (Exception e)
         {
@@ -182,7 +181,6 @@ static class PlaylistManager
 
                 using (var f = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
-
                     loaded = MidiFile.Read(f, readingSettings);
                 }
 

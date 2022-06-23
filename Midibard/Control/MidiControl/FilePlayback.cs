@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Logging;
 using Melanchall.DryWetMidi.Common;
 using Melanchall.DryWetMidi.Core;
@@ -24,28 +26,27 @@ public static class FilePlayback
 {
     private static readonly Regex regex = new Regex(@"^#.*?([-|+][0-9]+).*?#", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-    private static BardPlayback GetPlaybackObject(MidiFile midifile, string songName)
+    private static BardPlayback GetPlaybackObject(MidiFile midifile, string path)
     {
-        PluginLog.Information($"[LoadPlayback] -> {songName} START");
+        PluginLog.Information($"[LoadPlayback] -> {path} START");
         var stopwatch = Stopwatch.StartNew();
-
-        var playback = new BardPlayback(midifile)
+        var playback = new BardPlayback(midifile, path)
         {
             InterruptNotesOnStop = true,
-            Speed = config.playSpeed,
+            TrackNotes = true,
             TrackProgram = true,
+            Speed = config.playSpeed,
         };
 
         playback.Finished += Playback_Finished;
-        PluginLog.Information($"[LoadPlayback] -> {songName} OK! in {stopwatch.Elapsed.TotalMilliseconds} ms");
-
+        PluginLog.Information($"[LoadPlayback] -> {path} OK! in {stopwatch.Elapsed.TotalMilliseconds} ms");
         return playback;
     }
 
 
-    
 
-    
+
+
 
     public static DateTime? waitUntil { get; set; } = null;
     public static DateTime? waitStart { get; set; } = null;
@@ -85,6 +86,8 @@ public static class FilePlayback
                 if (MidiBard.AgentMetronome.EnsembleModeRunning)
                     return;
                 if (!PlaylistManager.FilePathList.Any())
+                    return;
+                if (MidiBard.SlaveMode)
                     return;
 
                 PerformWaiting(config.secondsBetweenTracks);
@@ -169,6 +172,31 @@ public static class FilePlayback
         });
     }
 
+    internal static async Task<bool> LoadPlayback(string path, bool startPlaying = false, bool switchInstrument = true)
+    {
+        MidiFile midiFile = await PlaylistManager.LoadMidiFile(path);
+        if (midiFile == null)
+        {
+            ImGuiUtil.AddNotification(NotificationType.Error, "Error when reading Midi file");
+            return false;
+        }
+        else
+        {
+            CurrentPlayback = await Task.Run(() =>
+            {
+                CurrentPlayback?.Dispose();
+                CurrentPlayback = null;
+
+                return GetPlaybackObject(midiFile, Path.GetFileNameWithoutExtension(path));
+            });
+            Ui.RefreshPlotData();
+            PlaylistManager.CurrentPlaying = -1;
+            BardPlayDevice.Instance.ResetChannelStates();
+            return true;
+        }
+    }
+
+
     internal static async Task<bool> LoadPlayback(int index, bool startPlaying = false, bool switchInstrument = true)
     {
         var wasPlaying = IsPlaying;
@@ -187,8 +215,7 @@ public static class FilePlayback
                 {
                     CurrentPlayback?.Dispose();
                     CurrentPlayback = null;
-
-                    return GetPlaybackObject(midiFile, PlaylistManager.FilePathList[index].fileName);
+                    return GetPlaybackObject(midiFile, PlaylistManager.FilePathList[index].path);
                 });
             Ui.RefreshPlotData();
             PlaylistManager.CurrentPlaying = index;

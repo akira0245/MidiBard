@@ -45,58 +45,40 @@ public class MidiBard : IDalamudPlugin
     internal static AgentMetronome AgentMetronome { get; set; }
     internal static AgentPerformance AgentPerformance { get; set; }
     internal static AgentConfigSystem AgentConfigSystem { get; set; }
+    internal static EnsembleManager EnsembleManager { get; set; }
 
-    private static int configSaverTick;
-
-    private static bool wasEnsembleModeRunning = false;
+    private int configSaverTick;
+    private bool wasEnsembleModeRunning = false;
 
     internal static ExcelSheet<Perform> InstrumentSheet;
-
-    public static Instrument[] Instruments;
-    public static Instrument[] Guitars;
-
+    internal static Instrument[] Instruments;
+    internal static Instrument[] Guitars;
     internal static string[] InstrumentStrings;
-
+    internal static readonly byte[] guitarGroup = { 24, 25, 26, 27, 28 };
     internal static IDictionary<SevenBitNumber, uint> ProgramInstruments;
+    internal static PartyWatcher PartyWatcher;
+
+    internal static bool SlaveMode { get; set; } = false;
 
     internal static byte CurrentInstrument => Marshal.ReadByte(Offsets.PerformanceStructPtr + 3 + Offsets.InstrumentOffset);
     internal static byte CurrentTone => Marshal.ReadByte(Offsets.PerformanceStructPtr + 3 + Offsets.InstrumentOffset + 1);
-    internal static readonly byte[] guitarGroup = { 24, 25, 26, 27, 28 };
     internal static bool PlayingGuitar => guitarGroup.Contains(CurrentInstrument);
-
     internal static bool IsPlaying => CurrentPlayback?.IsRunning == true;
-
     public string Name => nameof(MidiBard);
 
     public unsafe MidiBard(DalamudPluginInterface pi)
     {
-        DalamudApi.api.Initialize(this, pi);
+        Initialize(this, pi);
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
         InstrumentSheet = DataManager.Excel.GetSheet<Perform>();
-
         Instruments = InstrumentSheet!
             .Where(i => !string.IsNullOrWhiteSpace(i.Instrument) || i.RowId == 0)
             .Select(i => new Instrument(i))
             .ToArray();
 
         Guitars = Instruments.Where(i => i.IsGuitar).ToArray();
-
-
         InstrumentStrings = Instruments.Select(i => i.InstrumentString).ToArray();
-
-        var a = 1;
-        void* values = &a;
-        var value = ((uint*)values)[0];
-
-#if DEBUG
-
-        PluginLog.Information("<InstrumentStrings>");
-        foreach (string s in InstrumentStrings)
-        {
-            PluginLog.Information(s);
-        }
-        PluginLog.Information("<InstrumentStrings \\>");
-#endif
 
         ProgramInstruments = new Dictionary<SevenBitNumber, uint>();
         foreach (var (programNumber, instrument) in Instruments.Select((i, index) => (i.ProgramNumber, index)))
@@ -104,29 +86,18 @@ public class MidiBard : IDalamudPlugin
             ProgramInstruments[programNumber] = (uint)instrument;
         }
 
-#if DEBUG
-
-        PluginLog.Information("<ProgramInstruments>");
-        foreach (var programNumber in ProgramInstruments.Keys)
-        {
-            PluginLog.Information($"[{programNumber}] {ProgramNames.GetGMProgramName(programNumber)} {ProgramInstruments[programNumber]}");
-        }
-        PluginLog.Information("<ProgramInstruments \\>");
-#endif
-
-        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
-        LoadConfig();
+        config = (Configuration)PluginInterface.GetPluginConfig() ?? new Configuration();
         Localizer = new Localizer((UILang)config.uiLang);
+        PartyWatcher = new PartyWatcher();
 
         playlib.init(this);
-        OffsetManager.Setup(api.SigScanner);
+        OffsetManager.Setup(SigScanner);
         GuitarTonePatch.InitAndApply();
 
         AgentMetronome = new AgentMetronome(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.MetronomeAgent));
         AgentPerformance = new AgentPerformance(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.PerformanceAgent));
         AgentConfigSystem = new AgentConfigSystem(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.AgentConfigSystem));
-        _ = EnsembleManager.Instance;
+        EnsembleManager = new EnsembleManager();
 
 #if DEBUG
 			_ = NetworkManager.Instance;
@@ -140,13 +111,13 @@ public class MidiBard : IDalamudPlugin
 
         Ui = new PluginUI();
         PluginInterface.UiBuilder.Draw += Ui.Draw;
-        Framework.Update += Tick;
         PluginInterface.UiBuilder.OpenConfigUi += () => Ui.Toggle();
+        Framework.Update += OnFrameworkUpdate;
 
         //if (PluginInterface.IsDev) Ui.Open();
     }
 
-    private void Tick(Dalamud.Game.Framework framework)
+    private void OnFrameworkUpdate(Dalamud.Game.Framework framework)
     {
         PerformanceEvents.Instance.InPerformanceMode = AgentPerformance.InPerformanceMode;
 
@@ -290,11 +261,11 @@ public class MidiBard : IDalamudPlugin
                         {
                             if (argStrings[1] == "set")
                             {
-                                MidiBard.config.TransposeGlobal = int.Parse(argStrings[2]);
+                                config.TransposeGlobal = int.Parse(argStrings[2]);
                             }
                             else
                             {
-                                MidiBard.config.TransposeGlobal += int.Parse(argStrings[1]);
+                                config.TransposeGlobal += int.Parse(argStrings[1]);
                             }
                         }
                         catch (Exception e)
@@ -329,11 +300,6 @@ public class MidiBard : IDalamudPlugin
         });
     }
 
-    internal static void LoadConfig()
-    {
-        config = (Configuration)PluginInterface.GetPluginConfig() ?? new Configuration();
-    }
-
 
     #region IDisposable Support
 
@@ -342,11 +308,10 @@ public class MidiBard : IDalamudPlugin
         try
         {
 #if DEBUG
-				Testhooks.Instance?.Dispose();
+            Testhooks.Instance?.Dispose();
 #endif
-            GuitarTonePatch.Dispose();
             InputDeviceManager.ShouldScanMidiDeviceThread = false;
-            Framework.Update -= Tick;
+            Framework.Update -= OnFrameworkUpdate;
             PluginInterface.UiBuilder.Draw -= Ui.Draw;
 
             foreach (var instrument in Instruments)
@@ -361,9 +326,10 @@ public class MidiBard : IDalamudPlugin
                 }
             }
 
-            EnsembleManager.Instance.Dispose();
+            EnsembleManager.Dispose();
+            PartyWatcher.Dispose();
 #if DEBUG
-				NetworkManager.Instance.Dispose();
+			NetworkManager.Instance.Dispose();
 #endif
             InputDeviceManager.DisposeCurrentInputDevice();
             try
@@ -374,8 +340,10 @@ public class MidiBard : IDalamudPlugin
             }
             catch (Exception e)
             {
-                PluginLog.Error($"{e}");
+                PluginLog.Error(e, "error when disposing playback");
             }
+
+            GuitarTonePatch.Dispose();
             DalamudApi.api.Dispose();
         }
         catch (Exception e2)

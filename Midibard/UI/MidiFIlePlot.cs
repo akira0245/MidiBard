@@ -297,7 +297,9 @@ public partial class PluginUI
             .ToDictionary(tuple => (byte)tuple.channelNumber, tuple => ImGui.ColorConvertFloat4ToU32(tuple.color));
     }
 
-    private (TrackInfo trackInfo, (double start, double end, int noteNumber, byte channel)[] notes, (double time, byte programNumber, byte channel)[] programs)[] _plotData;
+    private (TrackInfo trackInfo, 
+        (double start, double end, int noteNumber, byte channel)[] notes, 
+        (double time, byte programNumber, byte channel)[] programs)[] _plotData;
 
     private string[] noteNames = Enumerable.Range(0, 128)
         .Select(i => i % 12 == 0 ? new Note(new SevenBitNumber((byte)i)).ToString() : string.Empty)

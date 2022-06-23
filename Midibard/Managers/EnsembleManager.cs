@@ -25,7 +25,7 @@ internal class EnsembleManager : IDisposable
 
     private Hook<sub_140C87B40> UpdateMetronomeHook;
 
-    private EnsembleManager()
+    internal EnsembleManager()
     {
         UpdateMetronomeHook = new Hook<sub_140C87B40>(Offsets.UpdateMetronome, HandleUpdateMetronome);
         UpdateMetronomeHook.Enable();
@@ -156,8 +156,6 @@ internal class EnsembleManager : IDisposable
     public event Action EnsembleStart;
 
     public event Action EnsemblePrepare;
-
-    public static EnsembleManager Instance { get; } = new EnsembleManager();
 
     public void Dispose()
     {
