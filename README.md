@@ -25,7 +25,7 @@ MidiBard是基于[卫月框架](https://bbs.tggfl.com/topic/32/dalamud-%E5%8D%AB
 
 正确安装卫月框架并注入后在游戏聊天框中输入`/xlsettings`打开Dalamud设置窗口，复制该源  
 `https://raw.githubusercontent.com/akira0245/DalamudPlugins/api4/pluginmaster.json` 并将其添加到插件仓库。  
-> 如在大陆境内插件安装器提示无法连接，推荐使用源`https://raw.fastgit.org/akira0245/DalamudPlugins/api4/pluginmaster.json`。
+> 如在大陆境内插件安装器提示无法连接，推荐使用源`https://raw.fastgit.org/akira0245/DalamudPlugins/api4/pluginmaster.json`
 
 [![gw7vxx.png](https://z3.ax1x.com/2021/05/12/gw7vxx.png)](https://imgtu.com/i/gw7vxx)
 
