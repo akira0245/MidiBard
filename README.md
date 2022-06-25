@@ -23,8 +23,9 @@ MidiBard是基于[卫月框架](https://bbs.tggfl.com/topic/32/dalamud-%E5%8D%AB
 # 安装方法
 > MidiBard需要[卫月框架](https://bbs.tggfl.com/topic/32/dalamud-%E5%8D%AB%E6%9C%88%E6%A1%86%E6%9E%B6)，如未安装请参考[原帖](https://bbs.tggfl.com/topic/32/dalamud-%E5%8D%AB%E6%9C%88%E6%A1%86%E6%9E%B6)安装后继续。
 
-正确安装卫月框架并注入后在游戏聊天框中输入`/xlsettings`打开Dalamud 设置窗口，复制该源  
-`https://raw.githubusercontent.com/akira0245/DalamudPlugins/api4/pluginmaster.json` 并将其添加到插件仓库  
+正确安装卫月框架并注入后在游戏聊天框中输入`/xlsettings`打开Dalamud设置窗口，复制该源  
+`https://raw.githubusercontent.com/akira0245/DalamudPlugins/api4/pluginmaster.json` 并将其添加到插件仓库。  
+> 如在大陆境内插件安装器提示无法连接，推荐使用源`https://raw.fastgit.org/akira0245/DalamudPlugins/api4/pluginmaster.json`。
 
 [![gw7vxx.png](https://z3.ax1x.com/2021/05/12/gw7vxx.png)](https://imgtu.com/i/gw7vxx)
 
@@ -54,6 +55,13 @@ MIDIBARD使用游戏中的合奏助手来完成合奏，请在合奏时打开游
 * **后台演奏时有轻微卡顿不流畅怎么办？**  
 在游戏内 *系统设置→显示设置→帧数限制* 中取消勾选 *“程序在游戏窗口处于非激活状态时限制帧数”* 并应用设置。
 
+* **安装插件时候提示插件安装失败怎么办？**  
+插件安装器中有红字提示无法连接到`raw.githubusercontent.com`：  
+将Dalamud设置中的源替换为`https://raw.fastgit.org/akira0245/DalamudPlugins/api4/pluginmaster.json`并保存后再次打开插件安装器。  
+点击插件安装按钮后提示插件安装失败：  
+请打开`/xlsettings`测试版标签，翻到最下面FuckGFW部分，点击添加默认，保存并关闭之后再次尝试下载。
+![QQ图片20220625195512](https://user-images.githubusercontent.com/33274390/175773221-3e5375b6-37c8-469c-a9b9-0e30fa9b75a2.jpg)
+
 ---
 > 本项目遵循 GNU Affero General Public License v3.0 协议开源。  
 > 项目源码可在 https://github.com/akira0245/MidiBard 查看（写的很烂被迫开源  
@@ -62,4 +70,4 @@ MIDIBARD使用游戏中的合奏助手来完成合奏，请在合奏时打开游
 
 # 其他问题
 
-> 有bug或功能建议或讨论可以加qq群：260985966
+> 有bug或功能建议或讨论可以加qq群：[260985966](https://jq.qq.com/?_wv=1027&k=7pOgqqZK)
