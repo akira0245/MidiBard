@@ -57,9 +57,9 @@ MIDIBARD使用游戏中的合奏助手来完成合奏，请在合奏时打开游
 
 * **安装插件时候提示插件安装失败怎么办？**  
 插件安装器中有红字提示无法连接到`raw.githubusercontent.com`：  
-将Dalamud设置中的源替换为`https://raw.fastgit.org/akira0245/DalamudPlugins/api4/pluginmaster.json`并保存后再次打开插件安装器。  
+将Dalamud设置中的源替换为`https://raw.fastgit.org/akira0245/DalamudPlugins/api4/pluginmaster.json`保存后再次打开插件安装器。  
 点击插件安装按钮后提示插件安装失败：  
-请打开`/xlsettings`测试版标签，翻到最下面FuckGFW部分，点击添加默认，保存并关闭之后再次尝试下载。
+打开`/xlsettings`测试版标签，翻到最下面FuckGFW部分，点击添加默认，保存并关闭之后再次尝试下载。
 ![QQ图片20220625195512](https://user-images.githubusercontent.com/33274390/175773221-3e5375b6-37c8-469c-a9b9-0e30fa9b75a2.jpg)
 
 ---
