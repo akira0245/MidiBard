@@ -12,13 +12,16 @@ using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 using ImPlotNET;
+using Melanchall.DryWetMidi.Common;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
+using MidiBard.Control;
 using MidiBard.DalamudApi;
 using MidiBard.IPC;
 using MidiBard.Managers;
 using MidiBard.Managers.Ipc;
 using MidiBard.UI;
+using MidiBard.Util;
 using static MidiBard.MidiBard;
 using static MidiBard.ImGuiUtil;
 
@@ -72,42 +75,115 @@ public partial class PluginUI
             }
         }
 
-        if (api.ClientState.IsLoggedIn && ImGui.Begin("partyIPC"))
+        if (api.ClientState.IsLoggedIn)
         {
-            try
+            if (ImGui.Begin("partyIPC"))
             {
-                ImGui.LabelText($"Length", $"{api.PartyList.Length}");
-                ImGui.LabelText($"PartyId", $"{api.PartyList.PartyId:X}");
-                ImGui.LabelText($"PartyLeaderIndex", $"{api.PartyList.PartyLeaderIndex}");
-                ImGui.LabelText($"IsInParty", $"{api.PartyList.IsInParty()}");
-                ImGui.LabelText($"IsPartyLeader", $"{api.PartyList.IsPartyLeader()}");
-                ImGui.LabelText($"GetPartyLeader", $"{api.PartyList.GetPartyLeader()?.Name}");
-                ImGui.LabelText($"PartyList", $"{api.PartyList.Select(i => $"{i?.Name}@{i.World.GameData?.Name} {(i.IsPartyLeader() ? "[Leader]" : "")}\n[{i?.ObjectId:X}] [{i.ContentId:X}]").JoinString("\n")}");
-            }
-            catch (Exception e)
-            {
-                ImGui.TextUnformatted(e.ToString());
-            }
-            ImGui.LabelText($"Self buffer", $"Disposed {MidiBard.IpcManager.SelfBuffer.DisposeFinished}, Sent {MidiBard.IpcManager.SelfBuffer.Statistics.MessagesSent}, Received {MidiBard.IpcManager.SelfBuffer.Statistics.MessagesReceived}");
-            foreach (var pair in MidiBard.IpcManager.LeaderBuffers)
-            {
-                ImGui.LabelText($"{pair.Key:X}", $"Disposed {pair.Value?.DisposeFinished}, Sent {pair.Value?.Statistics.MessagesSent}, Received {pair.Value?.Statistics.MessagesReceived}");
-            }
+                try
+                {
+                    ImGui.LabelText($"Length", $"{api.PartyList.Length}");
+                    ImGui.LabelText($"PartyId", $"{api.PartyList.PartyId:X}");
+                    ImGui.LabelText($"PartyLeaderIndex", $"{api.PartyList.PartyLeaderIndex}");
+                    ImGui.LabelText($"IsInParty", $"{api.PartyList.IsInParty()}");
+                    ImGui.LabelText($"IsPartyLeader", $"{api.PartyList.IsPartyLeader()}");
+                    ImGui.LabelText($"GetPartyLeader", $"{api.PartyList.GetPartyLeader()?.Name}");
+                    ImGui.LabelText($"PartyList", $"{api.PartyList.Select(i => $"{i?.Name}@{i.World.GameData?.Name} {(i.IsPartyLeader() ? "[Leader]" : "")}\n[{i?.ObjectId:X}] [{i.ContentId:X}]").JoinString("\n")}");
+                }
+                catch (Exception e)
+                {
+                    ImGui.TextUnformatted(e.ToString());
+                }
 
-            if (ImGui.Button("testBroadcast"))
-            {
-                MidiBard.IpcManager.RPCBroadCast(RpcMessage.CreateSerializedIPC(RpcMessage.MessageTypeCode.Hello, null), true);
+                if (ImGui.Button("BroadcastHello"))
+                {
+                    MidiBard.IpcManager.BroadCast(MessageTypeCode.Hello, 0);
+                }
+                if (ImGui.Button("BroadcastUpdateTrackStatus"))
+                {
+                    MidiBard.IpcManager.BroadCast(MessageTypeCode.UpdateTrackStatus, new IpcUpdateTrackStatus() { TrackStatus = config.TrackStatus });
+                }
+                if (ImGui.Checkbox("SyncPlaylist", ref MidiBard.config.SyncClients))
+                {
+
+                }
+
+                if (ImGui.Button("IPCCall.Instance.SyncPlaylist();"))
+                {
+                    Operations.Instance.SyncPlaylist();
+                    //MidiBard.IpcManager.IPCBroadCast(MessageTypeCode.SyncPlaylist, new IpcSyncPlaylist() {  });
+                }
             }
-            ImGui.SameLine();
-            if (ImGui.Button("CONNECT"))
+            ImGui.End();
+
+            if (ImGui.Begin($"PartyControl"))
             {
-                MidiBard.IpcManager.Connect();
+                try
+                {
+                    if (api.PartyList.IsInParty())
+                    {
+                        var index = 0;
+                        foreach (var partyMember in api.PartyList)
+                        {
+                            if (partyMember.IsPartyLeader())
+                                ImGui.PushStyleColor(ImGuiCol.Text, config.themeColor);
+                            ImGui.TextUnformatted($"[{index++:00}]");
+                            ImGui.SameLine(50);
+                            ImGui.TextUnformatted($"{partyMember.WorldName()}");
+                            if (partyMember.IsPartyLeader())
+                                ImGui.PopStyleColor();
+                        }
+                    }
+
+                    if (CurrentPlayback != null)
+                    {
+                        foreach (var trackInfo in CurrentPlayback.TrackInfos)
+                        {
+                            ImGui.TextUnformatted(trackInfo.ToString());
+                            {
+                                //UIcurrentInstrument = MidiBard.CurrentInstrument;
+                                //if (MidiBard.PlayingGuitar)
+                                //{
+                                //    UIcurrentInstrument = MidiBard.AgentPerformance.CurrentGroupTone + MidiBard.guitarGroup[0]; ;
+                                //}
+
+                                //if (ImGui.BeginCombo("Instrument".Localize(),
+                                //        MidiBard.InstrumentStrings[UIcurrentInstrument], ImGuiComboFlags.HeightLarge))
+                                //{
+                                //    ImGui.GetWindowDrawList().ChannelsSplit(2);
+                                //    for (int i = 0; i < MidiBard.Instruments.Length; i++)
+                                //    {
+                                //        var instrument = MidiBard.Instruments[i];
+                                //        ImGui.GetWindowDrawList().ChannelsSetCurrent(1);
+                                //        ImGui.Image(instrument.IconTextureWrap.ImGuiHandle,
+                                //            new Vector2(ImGui.GetTextLineHeightWithSpacing()));
+                                //        ImGui.SameLine();
+                                //        ImGui.GetWindowDrawList().ChannelsSetCurrent(0);
+                                //        ImGui.AlignTextToFramePadding();
+                                //        if (ImGui.Selectable($"{instrument.InstrumentString}##{i}",
+                                //                UIcurrentInstrument == i, ImGuiSelectableFlags.SpanAllColumns))
+                                //        {
+                                //            UIcurrentInstrument = i;
+                                //            SwitchInstrument.SwitchToContinue((uint)i);
+                                //        }
+                                //    }
+
+                                //    ImGui.GetWindowDrawList().ChannelsMerge();
+                                //    ImGui.EndCombo();
+                                //}
+                            }
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    PluginLog.Error(e.ToString());
+                }
             }
+            ImGui.End();
         }
-        ImGui.End();
+
+
     }
-
-
 
     private void DrawMainPluginWindow()
     {

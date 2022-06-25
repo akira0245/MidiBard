@@ -7,6 +7,7 @@ using Dalamud.Interface;
 using ImGuiNET;
 using MidiBard.Control.MidiControl;
 using MidiBard.Managers.Ipc;
+using MidiBard.Util;
 using static MidiBard.ImGuiUtil;
 
 namespace MidiBard;
@@ -230,7 +231,7 @@ public partial class PluginUI
         if (ImGui.Button($"{((FontAwesomeIcon)0xF2ED).ToIconString()}##{i}",
                 new Vector2(ImGui.GetTextLineHeight(), ImGui.GetTextLineHeight())))
         {
-            PlaylistManager.Remove(i);
+            PlaylistManager.RemoveSync(i);
         }
 
         ImGui.PopStyleVar();

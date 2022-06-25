@@ -1,12 +1,14 @@
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Windows.Documents;
 using Dalamud.Logging;
 using Melanchall.DryWetMidi.Common;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Multimedia;
 using Melanchall.DryWetMidi.Standards;
 using MidiBard.Control.CharacterControl;
+using MidiBard.IPC;
 using MidiBard.Managers;
 using MidiBard.Util;
 using playlibnamespace;
@@ -17,16 +19,8 @@ internal class BardPlayDevice : IOutputDevice
 {
     public abstract record MidiEventMetaData;
     public record MidiDeviceMetaData : MidiEventMetaData;
-    public record MidiPlaybackMetaData : MidiEventMetaData
-    {
-
-        public int TrackIndex { get; init; }
-
-        public override string ToString()
-        {
-            return $"<MidiPlaybackMetaData> TrackIndex: {TrackIndex}";
-        }
-    }
+    public record RemoteMetadata(bool overrideTone, int tone) : MidiEventMetaData;
+    public record MidiPlaybackMetaData(int TrackIndex) : MidiEventMetaData;
 
     public static BardPlayDevice Instance { get; } = new();
     private BardPlayDevice()
@@ -69,8 +63,41 @@ internal class BardPlayDevice : IOutputDevice
 
     public unsafe bool SendEventWithMetadata(MidiEvent midiEvent, object metadata)
     {
-        if (!MidiBard.AgentPerformance.InPerformanceMode) return false;
+        if (MidiBard.BroadcastNotes)
+        {
+            if (metadata is MidiPlaybackMetaData playbackMetaData)
+            {
+                //switch (midiEvent)
+                //{
+                //    case NoteOnEvent noteOn:
+                //    {
+                //        MidiBard.IpcManager.IPCBroadCast(MessageTypeCode.MidiEvent,
+                //            new IpcMidiEvent()
+                //            {
+                //                MidiEventType = noteOn.EventType,
+                //                SevenBitNumber = new SevenBitNumber((SevenBitNumber)GetNoteNumberTranslatedPerTrack(noteOn.NoteNumber, playbackMetaData.TrackIndex, out _)),
+                //                UseTone = MidiBard.config.GuitarToneMode == GuitarToneMode.OverrideByTrack,
+                //                Tone = MidiBard.config.TrackStatus[playbackMetaData.TrackIndex].Tone
+                //            });
+                //        break;
+                //    };
 
+                //    case NoteOffEvent noteOff:
+                //    {
+                //        MidiBard.IpcManager.IPCBroadCast(MessageTypeCode.MidiEvent,
+                //            new IpcMidiEvent()
+                //            {
+                //                MidiEventType = noteOff.EventType,
+                //                SevenBitNumber = new SevenBitNumber((SevenBitNumber)GetNoteNumberTranslatedPerTrack(noteOff.NoteNumber, playbackMetaData.TrackIndex, out _)),
+                //            });
+                //        break;
+                //    };
+                //}
+            }
+        }
+
+
+        if (!MidiBard.AgentPerformance.InPerformanceMode) return false;
         {
             if (metadata is MidiPlaybackMetaData midiPlaybackMetaData)
             {
@@ -131,6 +158,9 @@ internal class BardPlayDevice : IOutputDevice
                                 noteNum = GetNoteNumberTranslated(noteEvent.NoteNumber, out _);
                                 break;
                             }
+                        case RemoteMetadata:
+                            noteNum = noteEvent.NoteNumber;
+                            break;
                         default:
                             throw new ArgumentOutOfRangeException();
                     }
@@ -168,6 +198,11 @@ internal class BardPlayDevice : IOutputDevice
                                             }
                                         default:
                                             break;
+                                    }
+
+                                    if (metadata is RemoteMetadata remoteMetadata && remoteMetadata.overrideTone)
+                                    {
+                                        playlib.GuitarSwitchTone(remoteMetadata.tone);
                                     }
                                 }
 

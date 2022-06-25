@@ -146,7 +146,6 @@ public partial class PluginUI
                     Task.Run(async () =>
                     {
                         await PlaylistManager.AddAsync(filePath);
-                        MidiBard.SaveConfig();
                     });
                 }
 
@@ -170,7 +169,6 @@ public partial class PluginUI
                 if (b) Task.Run(async () =>
                 {
                     await PlaylistManager.AddAsync(strings);
-                    MidiBard.SaveConfig();
                 });
                 _isImportRunning = false;
             });

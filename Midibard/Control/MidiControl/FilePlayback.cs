@@ -16,6 +16,8 @@ using Melanchall.DryWetMidi.Standards;
 using Melanchall.DryWetMidi.Tools;
 using MidiBard.Control.CharacterControl;
 using MidiBard.Control.MidiControl.PlaybackInstance;
+using MidiBard.DalamudApi;
+using MidiBard.IPC;
 using MidiBard.Managers.Ipc;
 using MidiBard.Util;
 using static MidiBard.MidiBard;
@@ -28,7 +30,7 @@ public static class FilePlayback
 
     private static BardPlayback GetPlaybackObject(MidiFile midifile, string path)
     {
-        PluginLog.Information($"[LoadPlayback] -> {path} START");
+        PluginLog.Debug($"[LoadPlayback] -> {path} START");
         var stopwatch = Stopwatch.StartNew();
         var playback = new BardPlayback(midifile, path)
         {
@@ -39,7 +41,7 @@ public static class FilePlayback
         };
 
         playback.Finished += Playback_Finished;
-        PluginLog.Information($"[LoadPlayback] -> {path} OK! in {stopwatch.Elapsed.TotalMilliseconds} ms");
+        PluginLog.Debug($"[LoadPlayback] -> {path} OK! in {stopwatch.Elapsed.TotalMilliseconds} ms");
         return playback;
     }
 
@@ -172,33 +174,35 @@ public static class FilePlayback
         });
     }
 
-    internal static async Task<bool> LoadPlayback(string path, bool startPlaying = false, bool switchInstrument = true)
-    {
-        MidiFile midiFile = await PlaylistManager.LoadMidiFile(path);
-        if (midiFile == null)
-        {
-            ImGuiUtil.AddNotification(NotificationType.Error, "Error when reading Midi file");
-            return false;
-        }
-        else
-        {
-            CurrentPlayback = await Task.Run(() =>
-            {
-                CurrentPlayback?.Dispose();
-                CurrentPlayback = null;
+    //internal static async Task<bool> LoadPlayback(string path, bool startPlaying = false, bool switchInstrument = true)
+    //{
+    //    MidiFile midiFile = await PlaylistManager.LoadMidiFile(path);
+    //    if (midiFile == null)
+    //    {
+    //        ImGuiUtil.AddNotification(NotificationType.Error, "Error when reading Midi file");
+    //        return false;
+    //    }
+    //    else
+    //    {
+    //        CurrentPlayback = await Task.Run(() =>
+    //        {
+    //            CurrentPlayback?.Dispose();
+    //            CurrentPlayback = null;
 
-                return GetPlaybackObject(midiFile, Path.GetFileNameWithoutExtension(path));
-            });
-            Ui.RefreshPlotData();
-            PlaylistManager.CurrentPlaying = -1;
-            BardPlayDevice.Instance.ResetChannelStates();
-            return true;
-        }
-    }
+    //            return GetPlaybackObject(midiFile, Path.GetFileNameWithoutExtension(path));
+    //        });
+    //        Ui.RefreshPlotData();
+    //        PlaylistManager.CurrentPlaying = -1;
+    //        BardPlayDevice.Instance.ResetChannelStates();
+    //        return true;
+    //    }
+    //}
 
 
     internal static async Task<bool> LoadPlayback(int index, bool startPlaying = false, bool switchInstrument = true)
     {
+        Operations.Instance.LoadPlayback(index);
+
         var wasPlaying = IsPlaying;
         MidiFile midiFile = await PlaylistManager.LoadMidiFile(index);
         if (midiFile == null)

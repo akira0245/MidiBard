@@ -13,23 +13,7 @@ internal static class MidiPlayerControl
 {
     internal static void Play()
     {
-        if (CurrentPlayback != null)
-        {
-            try
-            {
-                if (CurrentPlayback.GetCurrentTime<MidiTimeSpan>() == CurrentPlayback.GetDuration<MidiTimeSpan>())
-                {
-                    CurrentPlayback.MoveToStart();
-                }
-
-                CurrentPlayback.Start();
-            }
-            catch (Exception e)
-            {
-                PluginLog.Error(e, "error when try to start playing, maybe the playback has been disposed?");
-            }
-        }
-        else
+        if (CurrentPlayback == null)
         {
             if (!PlaylistManager.FilePathList.Any())
             {
@@ -44,6 +28,22 @@ internal static class MidiPlayerControl
             else
             {
                 SwitchSong(PlaylistManager.CurrentPlaying, true);
+            }
+        }
+        else
+        {
+            try
+            {
+                if (CurrentPlayback.GetCurrentTime<MidiTimeSpan>() == CurrentPlayback.GetDuration<MidiTimeSpan>())
+                {
+                    CurrentPlayback.MoveToStart();
+                }
+
+                CurrentPlayback.Start();
+            }
+            catch (Exception e)
+            {
+                PluginLog.Error(e, "error when try to start playing, maybe the playback has been disposed?");
             }
         }
     }
@@ -62,13 +62,13 @@ internal static class MidiPlayerControl
         }
         else
         {
-            if (MidiBard.IsPlaying)
+            if (IsPlaying)
             {
-                MidiPlayerControl.Pause();
+                Pause();
             }
             else
             {
-                MidiPlayerControl.Play();
+                Play();
             }
         }
     }

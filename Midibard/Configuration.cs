@@ -35,21 +35,28 @@ public enum UILang
     CN
 }
 
-public abstract class TrackChannelStatus
+public struct TrackStatus
 {
     public bool Enabled = true;
-    public int Tone;
-    public int Transpose;
+    public int Tone = 0;
+    public int Transpose = 0;
+
+    public int EnsembleInstrumentId = 0;
+    public int EnsemblePlayerCid = 0;
 }
 
-public sealed class TrackStatus : TrackChannelStatus
+public struct ChannelStatus
 {
+    public ChannelStatus(bool enabled = true, int tone = 0, int transpose = 0)
+    {
+        Enabled = enabled;
+        Tone = tone;
+        Transpose = transpose;
+    }
 
-}
-
-public sealed class ChannelStatus : TrackChannelStatus
-{
-
+    public bool Enabled = true;
+    public int Tone = 0;
+    public int Transpose = 0;
 }
 
 public class Configuration : IPluginConfiguration
@@ -63,9 +70,9 @@ public class Configuration : IPluginConfiguration
     public bool DebugMisc;
     public bool DebugEnsemble;
 
-    public TrackStatus[] TrackStatus = new TrackStatus[100];
-    public ChannelStatus[] ChannelStatus = new ChannelStatus[16];
-
+    public Dictionary<long, HashSet<int>> CidToTrack = new ();
+    public TrackStatus[] TrackStatus = Enumerable.Repeat(new TrackStatus(), 100).ToArray();
+    public ChannelStatus[] ChannelStatus = Enumerable.Repeat(new ChannelStatus(), 16).ToArray();
 
     public List<string> Playlist = new List<string>();
 
@@ -133,21 +140,16 @@ public class Configuration : IPluginConfiguration
     public bool PlotChannelView = false;
     public bool PlotShowAllPrograms = false;
 
-    //public List<EnsembleTrack> EnsembleTracks = new List<EnsembleTrack>();
     public bool StopPlayingWhenEnsembleEnds = true;
     public bool AutoSetBackgroundFrameLimit = true;
-    //public bool SyncPlaylist = false;
-    //public bool SyncSongSelection = false;
-    //public bool SyncMuteUnMute = false;
+
+    
+    public bool SyncClients = false;
+    //public bool SyncPlaybackLoading = false;
+    //public bool SyncTrackStatus = false;
+
     public GuitarToneMode GuitarToneMode = GuitarToneMode.Off;
     //[JsonIgnore] public bool OverrideGuitarTones => GuitarToneMode == GuitarToneMode.Override;
-
-    public void Save()
-    {
-        var startNew = Stopwatch.StartNew();
-        DalamudApi.api.PluginInterface.SavePluginConfig(this);
-        PluginLog.Verbose($"config saved in {startNew.Elapsed.TotalMilliseconds}.");
-    }
 }
 
 class MidiFileUserData

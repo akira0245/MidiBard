@@ -16,13 +16,14 @@ using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.Tools;
 using MidiBard.Control.CharacterControl;
 using MidiBard.DalamudApi;
+using MidiBard.IPC;
 using MidiBard.Managers.Ipc;
 
 namespace MidiBard;
 
 static class PlaylistManager
 {
-    public static List<(string path, string fileName, string displayName)> FilePathList { get; set; } = new List<(string, string, string)>();
+    public static List<(string path, string fileName, string displayName)> FilePathList { get; set; } = new();
 
     public static int CurrentPlaying
     {
@@ -50,10 +51,19 @@ static class PlaylistManager
         MidiBard.config.Playlist.Clear();
         FilePathList.Clear();
         CurrentPlaying = -1;
-        MidiBard.SaveConfig();
+
+        IPC.Operations.Instance.SyncPlaylist();
     }
 
-    public static void Remove(int index)
+
+    public static void RemoveSync(int index)
+    {
+        RemoveLocal(index);
+
+        Operations.Instance.RemoveTrackIndex(index);
+    }
+
+    public static void RemoveLocal(int index)
     {
         try
         {
@@ -90,56 +100,43 @@ static class PlaylistManager
         InvalidSystemCommonEventParameterValuePolicy = InvalidSystemCommonEventParameterValuePolicy.SnapToLimits
     };
 
-    internal static async Task AddAsync(string[] filePaths, bool reload = false)
+    internal static async Task AddAsync(string[] filePaths, bool reload = false, bool remote = false)
     {
         if (reload)
         {
-            FilePathList.Clear();
             MidiBard.config.Playlist.Clear();
+            FilePathList.Clear();
         }
 
         var count = filePaths.Length;
         var success = 0;
         var sw = Stopwatch.StartNew();
 
-        await foreach (var path in GetPathsAvailable(filePaths))
+        if (remote)
         {
-            MidiBard.config.Playlist.Add(path);
-            string fileName = Path.GetFileNameWithoutExtension(path);
-            FilePathList.Add((path, fileName, SwitchInstrument.ParseSongName(fileName, out _, out _)));
-            success++;
+            foreach (var path in filePaths)
+            {
+                Add(path);
+            }
+        }
+        else
+        {
+            await foreach (var path in GetPathsAvailable(filePaths))
+            {
+                Add(path);
+                success++;
+            }
+
+            IPC.Operations.Instance.SyncPlaylist();
         }
 
-        //await Task.Run(NewFunction2);
 
-        //void NewFunction2()
-        //{
-        //    Parallel.ForEach(filePaths, filePath =>
-        //    {
-        //        try
-        //        {
-        //            if (!File.Exists(filePath))
-        //            {
-        //                PluginLog.Warning($"File not exist! path: {filePath}");
-        //                return;
-        //            }
-
-        //            using (var f = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-        //            {
-        //                _ = MidiFile.Read(f, readingSettings);
-        //            }
-
-        //            MidiBard.config.Playlist.Add(filePath);
-        //            string fileName = Path.GetFileNameWithoutExtension(filePath);
-        //            FilePathList.Add((filePath, fileName, SwitchInstrument.ParseSongName(fileName, out _, out _)));
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            PluginLog.Warning($"error when reading midi file. {e.Message} ");
-        //        }
-        //        success++;
-        //    });
-        //}
+        void Add(string s)
+        {
+            string fileName = Path.GetFileNameWithoutExtension(s);
+            MidiBard.config.Playlist.Add(s);
+            FilePathList.Add((path: s, fileName, SwitchInstrument.ParseSongName(fileName, out _, out _)));
+        }
 
         PluginLog.Information($"File import all complete in {sw.Elapsed.TotalMilliseconds} ms! success: {success} total: {count}");
     }

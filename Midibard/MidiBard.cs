@@ -60,7 +60,8 @@ public class MidiBard : IDalamudPlugin
     internal static IDictionary<SevenBitNumber, uint> ProgramInstruments;
     internal static PartyWatcher PartyWatcher;
 
-    internal static bool SlaveMode { get; set; } = false;
+    internal static bool SlaveMode = false;
+    internal static bool BroadcastNotes = false;
 
     internal static byte CurrentInstrument => Marshal.ReadByte(Offsets.PerformanceStructPtr + 3 + Offsets.InstrumentOffset);
     internal static byte CurrentTone => Marshal.ReadByte(Offsets.PerformanceStructPtr + 3 + Offsets.InstrumentOffset + 1);
@@ -117,7 +118,7 @@ public class MidiBard : IDalamudPlugin
         PluginInterface.UiBuilder.OpenConfigUi += () => Ui.Toggle();
         Framework.Update += OnFrameworkUpdate;
 
-        //if (PluginInterface.IsDev) Ui.Open();
+        if (PluginInterface.IsDev) Ui.Open();
     }
 
     private void OnFrameworkUpdate(Dalamud.Game.Framework framework)

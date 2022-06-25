@@ -165,7 +165,7 @@ internal sealed class BardPlayback : Playback
                         //keep other unimportant events order
                         _ => -1
                     };
-                    return (compareValue, timedEvent: new TimedEventWithMetadata(e.Event, e.Time, new BardPlayDevice.MidiPlaybackMetaData(){TrackIndex = index }));
+                    return (compareValue, timedEvent: new TimedEventWithMetadata(e.Event, e.Time, new BardPlayDevice.MidiPlaybackMetaData(index)));
                 }))
             .OrderBy(e => e.timedEvent.Time)
             .ThenBy(i => i.compareValue)

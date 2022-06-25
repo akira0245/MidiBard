@@ -57,9 +57,9 @@ public partial class PluginUI
         ImGui.Checkbox("Transpose per track".Localize(), ref MidiBard.config.EnableTransposePerTrack);
         if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
         {
-            foreach (var t in MidiBard.config.TrackStatus)
+            for (var i = 0; i < MidiBard.config.TrackStatus.Length; i++)
             {
-                t.Transpose = 0;
+                MidiBard.config.TrackStatus[i].Transpose = 0;
             }
         }
         ToolTip("Transpose per track, right click to reset all tracks' transpose offset back to zero.".Localize());

@@ -1,382 +1,207 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Dalamud.Logging;
+using Melanchall.DryWetMidi.Common;
 using Melanchall.DryWetMidi.Core;
+using MidiBard;
 using MidiBard.Control;
 using MidiBard.Control.CharacterControl;
 using MidiBard.Control.MidiControl;
-using MidiBard.Control.MidiControl.PlaybackInstance;
 using MidiBard.DalamudApi;
-using MidiBard.Managers;
+using MidiBard.IPC;
 using MidiBard.Managers.Ipc;
 using MidiBard.Util;
-using Newtonsoft.Json;
-using SharedMemory;
+using TinyIpc.Messaging;
 
 namespace MidiBard.IPC;
 
-class RpcMessage
+class Operations
 {
-    public static readonly JsonSerializerSettings JsonSerializerSettings = new()
-    {
-        //TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Full,
-        //TypeNameHandling = TypeNameHandling.All,
-    };
-
-    public byte[] GetSerializedObject()
-    {
-        var json = JsonConvert.SerializeObject(this, JsonSerializerSettings);
-        return Dalamud.Utility.Util.CompressString(json);
-    }
-
-    public static byte[] CreateSerializedIPC(MessageTypeCode messageTypeCode, IIpcData data) => new RpcMessage { MessageType = messageTypeCode, Data = data, ContentId = (long)api.ClientState.LocalContentId }.GetSerializedObject();
-    public static RpcMessage GetDeserializedIPC(byte[] bytes) => JsonConvert.DeserializeObject<RpcMessage>(Dalamud.Utility.Util.DecompressString(bytes), JsonSerializerSettings);
-
-    public enum MessageTypeCode
-    {
-        Hello = 1,
-        Bye = 2,
-        Acknowledge = 3,
-        SongPath = 10,
-        UpdateTrackStatus,
-        MidiEvent,
-        SetInstrument,
-        DoEmote,
-    }
-
-    public MessageTypeCode MessageType { get; set; }
-    public long ContentId { get; set; }
-    public IIpcData Data { get; set; }
-
-    public override string ToString()
-    {
-        return $"<{nameof(RpcMessage)}> {MessageType}, {ContentId:X}";
-    }
-
-    public interface IIpcData
+    private Operations()
     {
 
     }
 
-    public class MidiBardIpcUpdateTrackStatus : IIpcData
+    public static Operations Instance { get; } = new Operations();
+
+    public void SyncPlaylist()
     {
-        public TrackStatus[] TrackStatus;
+        if (!MidiBard.config.SyncClients) return;
+        MidiBard.IpcManager.BroadCast(IPCEnvelope.CreateSerializedIPC(MessageTypeCode.SyncPlaylist, 0, MidiBard.config.Playlist.ToArray()));
+    }
+    public void HandleSyncPlaylist(IPCEnvelope message)
+    {
+        var paths = message.StringData;
+        Task.Run(() => PlaylistManager.AddAsync(paths, true, true));
     }
 
-    public class MidiBardIpcSongPath : IIpcData
+    public void RemoveTrackIndex(int index)
     {
-        public string path;
+        if (!MidiBard.config.SyncClients) return;
+        MidiBard.IpcManager.BroadCast(IPCEnvelope.CreateSerializedIPC(MessageTypeCode.RemoveTrackIndex, index));
+    }
+    public void HandleRemoveTrackIndex(IPCEnvelope message)
+    {
+        PlaylistManager.RemoveLocal(message.DataStruct<int>());
     }
 
-    public class MidiBardIpcSetInstrument : IIpcData
+    public void UpdateTrackStatus()
     {
-        public uint InstrumentId;
+        MidiBard.IpcManager.BroadCast(MessageTypeCode.UpdateTrackStatus, new IpcUpdateTrackStatus
+        {
+            TrackStatus = MidiBard.config.TrackStatus
+        });
     }
-    public class MidiBardIpcMidiEvent : IIpcData
+    public void HandleUpdateTrackStatus(IPCEnvelope message)
     {
-        public MidiEvent midiEvent;
-        public BardPlayDevice.MidiEventMetaData metadata;
+        var UpdateTrackStatus = message.DataStruct<IpcUpdateTrackStatus>();
+        for (var i = 0; i < MidiBard.config.TrackStatus.Length; i++)
+        {
+            MidiBard.config.TrackStatus[i] = UpdateTrackStatus.TrackStatus[i];
+        }
+    }
+
+    public void LoadPlayback(int index)
+    {
+        if (!MidiBard.config.SyncClients || !api.PartyList.IsPartyLeader()) return;
+        MidiBard.IpcManager.BroadCast(MessageTypeCode.LoadPlaybackIndex, index);
+    }
+    public void HandleLoadPlayback(IPCEnvelope message)
+    {
+        FilePlayback.LoadPlayback(message.DataStruct<int>(), false, false);
+    }
+
+    public void SetInstrument(uint instrumentID)
+    {
+        MidiBard.IpcManager.BroadCast(MessageTypeCode.SetInstrument, instrumentID);
+    }
+    public void HandleSetInstrument(IPCEnvelope message)
+    {
+        SwitchInstrument.SwitchToContinue(message.DataStruct<uint>());
     }
 }
 
+
+
 internal class IPCManager : IDisposable
 {
-    internal Dictionary<long, RpcBuffer> LeaderBuffers { get; private set; } = new();
-    internal RpcBuffer SelfBuffer { get; private set; }
+    private TinyMessageBus MessageBus { get; }
+
     internal IPCManager()
     {
-        if (api.ClientState.IsLoggedIn)
-        {
-            CreateRpcSelf();
-        }
-
-        api.ClientState.Login += ClientState_Login;
-        api.ClientState.Logout += ClientState_Logout;
-        //PartyWatcher.PartyMemberJoin += Instance_PartyMemberJoin;
+        MessageBus = new TinyMessageBus("Midibard.IPC");
+        MessageBus.MessageReceived += MessageBus_MessageReceived;
+        BroadCast(MessageTypeCode.Hello, 0);
     }
 
-
-
-    public void Connect()
+    private void NoteMessageBus_MessageReceived(object sender, TinyMessageReceivedEventArgs e)
     {
-        foreach (var cid in PartyWatcher.GetMemberCIDs)
+        var message = IPCEnvelope.Deserialize(e.Message);
+        var ipcMidiEvent = message.Data.ToStruct<IpcMidiEvent>();
+
+        MidiEvent midiEvent = ipcMidiEvent.MidiEventType switch
         {
-            if (api.PartyList.IsPartyLeader())
-                Task.Run(async () =>
-                {
-                    try
-                    {
-                        var openRpcBuffer = OpenRpcBuffer(cid);
-                        PluginLog.Warning($"openRpcBuffer disposed: {openRpcBuffer.DisposeFinished}");
-                        //await Coroutine.WaitUntil(() => !openRpcBuffer.DisposeFinished, 3000);
+            MidiEventType.NoteOn => new NoteOnEvent(ipcMidiEvent.SevenBitNumber, SevenBitNumber.MinValue),
+            MidiEventType.NoteOff => new NoteOffEvent(ipcMidiEvent.SevenBitNumber, SevenBitNumber.MinValue),
+            _ => throw new ArgumentException()
+        };
 
-                        if (LeaderBuffers.ContainsKey(cid))
-                        {
-                            LeaderBuffers[cid] = openRpcBuffer;
-                        }
-                        else
-                        {
-                            LeaderBuffers.Add(cid, openRpcBuffer);
-                        }
-
-                        PluginLog.Warning($"added leader buffer for {cid:X} {api.PartyList.GetPartyMemberFromCID(cid)?.Name}");
-                        RPCSend(cid, RpcMessage.CreateSerializedIPC(RpcMessage.MessageTypeCode.Hello, null));
-                    }
-                    catch (Exception exception)
-                    {
-                        PluginLog.Error(exception, $"error when adding leader buffer: {cid:X}");
-                    }
-                });
-        }
+        BardPlayDevice.Instance.SendEventWithMetadata(midiEvent, new BardPlayDevice.RemoteMetadata(ipcMidiEvent.Tone >= 0, ipcMidiEvent.Tone));
     }
 
-    private void Instance_PartyMemberJoin(object sender, long cid)
-    {
-        if (api.PartyList.IsPartyLeader())
-        {
-            Task.Run(async () =>
-            {
-                try
-                {
-                    var openRpcBuffer = OpenRpcBuffer(cid);
-                    PluginLog.Warning($"openRpcBuffer disposed: {openRpcBuffer.DisposeFinished}");
-                    //await Coroutine.WaitUntil(() => !openRpcBuffer.DisposeFinished, 3000);
-
-                    if (LeaderBuffers.ContainsKey(cid))
-                    {
-                        LeaderBuffers[cid] = openRpcBuffer;
-                    }
-                    else
-                    {
-                        LeaderBuffers.Add(cid, openRpcBuffer);
-                    }
-
-                    PluginLog.Warning($"added leader buffer for {cid:X} {api.PartyList.GetPartyMemberFromCID(cid)?.Name}");
-                    RPCSend(cid, RpcMessage.CreateSerializedIPC(RpcMessage.MessageTypeCode.Hello, null));
-                }
-                catch (Exception exception)
-                {
-                    PluginLog.Error(exception, $"error when adding leader buffer: {cid:X}");
-                }
-            });
-        }
-    }
-
-    private void ClientState_Logout(object sender, EventArgs e)
-    {
-        DestructRpcSelf();
-        DestructRpcMaster();
-    }
-
-    private void ClientState_Login(object sender, EventArgs e)
-    {
-        CreateRpcSelf();
-    }
-
-
-    private Task<byte[]> RpcRecv(ulong messageid, byte[] bytes)
-    {
-        PluginLog.Information($"messageid: {messageid}, Length: {bytes.Length}");
-        var message = new RpcMessage();
-        try
-        {
-            var decompressString = Dalamud.Utility.Util.DecompressString(bytes);
-            PluginLog.Information(decompressString);
-            var deserializeObject = JsonConvert.DeserializeObject<RpcMessage>(decompressString);
-            PluginLog.Information(deserializeObject?.ToString());
-            message = RpcMessage.GetDeserializedIPC(bytes);
-        }
-        catch (Exception e)
-        {
-            PluginLog.Error(e, $"error when deserializing message");
-        }
-
-        switch (message.MessageType)
-        {
-            case RpcMessage.MessageTypeCode.Hello:
-                PluginLog.Warning($"{message.ContentId:X} {api.PartyList.GetPartyMemberFromCID(message.ContentId)?.Name} say Hello!");
-                //MidiBard.SlaveMode = true;
-                break;
-            case RpcMessage.MessageTypeCode.Bye:
-                PluginLog.Warning($"{message.ContentId:X} {api.PartyList.GetPartyMemberFromCID(message.ContentId)?.Name} say Bye!");
-                //MidiBard.SlaveMode = false;
-                break;
-            case RpcMessage.MessageTypeCode.Acknowledge:
-                break;
-            case RpcMessage.MessageTypeCode.SongPath:
-                var SongPath = (RpcMessage.MidiBardIpcSongPath)message.Data;
-                FilePlayback.LoadPlayback(SongPath.path);
-                break;
-            case RpcMessage.MessageTypeCode.UpdateTrackStatus:
-                var UpdateTrackStatus = (RpcMessage.MidiBardIpcUpdateTrackStatus)message.Data;
-                for (var i = 0; i < MidiBard.config.TrackStatus.Length; i++)
-                {
-                    MidiBard.config.TrackStatus[i] = UpdateTrackStatus.TrackStatus[i];
-                }
-                break;
-            case RpcMessage.MessageTypeCode.MidiEvent:
-                var MidiEvent = (RpcMessage.MidiBardIpcMidiEvent)message.Data;
-                BardPlayDevice.Instance.SendEventWithMetadata(MidiEvent.midiEvent, MidiEvent.metadata);
-                break;
-            case RpcMessage.MessageTypeCode.SetInstrument:
-                var SetInstrument = (RpcMessage.MidiBardIpcSetInstrument)message.Data;
-                SwitchInstrument.SwitchToContinue(SetInstrument.InstrumentId);
-                break;
-            case RpcMessage.MessageTypeCode.DoEmote:
-                break;
-            default:
-                break;
-        }
-
-        return Task.FromResult(new byte[] { });
-    }
-
-    public void RPCBroadCast(byte[] message, bool includSelf = false)
-    {
-        foreach (var cid in LeaderBuffers.Select(i => i.Key).ToArray())
-        {
-            if (!includSelf && cid == (long)api.ClientState.LocalContentId)
-            {
-                continue;
-            }
-
-            RPCSend(cid, message);
-        }
-    }
-
-    public void RPCSend(long cid, byte[] message)
+    private void MessageBus_MessageReceived(object sender, TinyMessageReceivedEventArgs e)
     {
         try
         {
-            if (LeaderBuffers.TryGetValue(cid, out var buffer))
+            var message = IPCEnvelope.Deserialize(e.Message);
+            PluginLog.Debug(message.ToString());
+
+            switch (message.MessageType)
             {
-                buffer.RemoteRequestAsync(message, 5000).ContinueWith(task =>
-                {
-                    var response = task.Result;
-                    if (response?.Success == true)
-                    {
-                        RPCResponse?.Invoke(task, (cid, response.Data));
-                    }
+                case MessageTypeCode.Hello:
+                    PluginLog.Warning($"{message.BroadcasterId:X} {api.PartyList.GetPartyMemberFromCID(message.BroadcasterId)?.Name} say Hello!");
+                    //MidiBard.SlaveMode = true;
+                    break;
+                case MessageTypeCode.Bye:
+                    PluginLog.Warning($"{message.BroadcasterId:X} {api.PartyList.GetPartyMemberFromCID(message.BroadcasterId)?.Name} say Bye!");
+                    //MidiBard.SlaveMode = false;
+                    break;
+                case MessageTypeCode.Acknowledge:
+                    break;
 
-                    PluginLog.Information($"[RpcResponse] Success: {response?.Success}, source: {cid:X}, Length: {response?.Data?.Length ?? -1}");
-                });
-            }
-            else
-            {
-                PluginLog.Warning($"{cid} is not connected.");
-            }
-        }
-        catch (Exception e)
-        {
-            PluginLog.Error(e, $"error when sending rpc to {cid}, disposing");
-            LeaderBuffers[cid]?.Dispose();
-        }
+                case MessageTypeCode.UpdateTrackStatus:
+                    Operations.Instance.HandleUpdateTrackStatus(message);
+                    break;
+                case MessageTypeCode.SetInstrument:
+                    Operations.Instance.HandleSetInstrument(message);
+                    break;
 
-        //var remoteRequest = LeaderBuffers[cid].RemoteRequest(message, 5000);
-        //if (remoteRequest?.Success == true)
-        //{
-        //    RPCResponse?.Invoke(task, (cid, response.Data));
-        //}
+                case MessageTypeCode.MidiEvent:
+                    break;
+                case MessageTypeCode.DoEmote:
+                    break;
+                case MessageTypeCode.EnsembleStartTime:
+                    break;
 
-        //PluginLog.Information($"[RpcResponse] Success: {remoteRequest?.Success}, source: {cid:X}, Length: {remoteRequest?.Data?.Length ?? -1}");
-    }
+                case MessageTypeCode.SyncPlaylist:
+                    Operations.Instance.HandleSyncPlaylist(message);
+                    break;
+                case MessageTypeCode.RemoveTrackIndex:
+                    Operations.Instance.HandleRemoveTrackIndex(message);
+                    break;
+                case MessageTypeCode.LoadPlaybackIndex:
+                    Operations.Instance.HandleLoadPlayback(message);
+                    break;
 
-    public event EventHandler<(long cid, byte[] response)> RPCResponse;
-
-    private void CreateRpcSelf()
-    {
-        SelfBuffer = new RpcBuffer("MidiBard.Rpc." + api.ClientState.LocalContentId.ToString(CultureInfo.InvariantCulture), RpcRecv);
-        PluginLog.Warning($"get self rpc buffer {api.ClientState.LocalPlayer?.Name} {api.ClientState.LocalContentId}");
-    }
-    //private RpcBuffer ConstructRpcBuffer(ulong cid) => ConstructRpcBuffer((long)cid);
-    private RpcBuffer OpenRpcBuffer(long cid)
-    {
-        if (cid == 0)
-        {
-            throw new ArgumentException("content id should not be 0", nameof(cid));
-        }
-
-        try
-        {
-            return new RpcBuffer("MidiBard.Rpc." + cid.ToString(CultureInfo.InvariantCulture));
-        }
-        catch (Exception e1)
-        {
-            PluginLog.Error(e1, $"error when opening buffer {cid}");
-            //try
-            //{
-            //    return new RpcBuffer("MidiBard.Rpc." + cid.ToString(CultureInfo.InvariantCulture));
-            //}
-            //catch (Exception e2)
-            //{
-            //    PluginLog.Error(e2, "failed to open existing");
-            //    return null;
-            //}
-
-            //try
-            //{
-            //    //var constructRpcBuffer = new RpcBuffer("MidiBard.Rpc." + cid.ToString(CultureInfo.InvariantCulture));
-            //    //PluginLog.Warning("exist buffer found, disposing");
-            //    //constructRpcBuffer?.Dispose();
-            //    //await Coroutine.WaitUntil(() => constructRpcBuffer.DisposeFinished, 3000);
-            //    //PluginLog.Warning("successful disposed");
-            //    return new RpcBuffer("MidiBard.Rpc." + cid.ToString(CultureInfo.InvariantCulture), RpcRecv);
-            //}
-            //catch (Exception exception)
-            //{
-            //    PluginLog.Error(exception, "error");
-            //    return null;
-            //}
-            return null;
-        }
-    }
-
-    private void DestructRpcSelf()
-    {
-        try
-        {
-            SelfBuffer?.Dispose();
-            SelfBuffer = null;
-        }
-        catch (Exception e)
-        {
-            PluginLog.Error(e, "error when disposing rpcSlave");
-        }
-    }
-
-    private void DestructRpcMaster()
-    {
-        foreach (var valueTuple in LeaderBuffers)
-        {
-            try
-            {
-                valueTuple.Value?.Dispose();
-            }
-            catch (Exception exception)
-            {
-                PluginLog.Error(exception, $"error when disposing a rpcMaster. cid:{valueTuple.Key}");
+                default:
+                    break;
             }
         }
+        catch (Exception exception)
+        {
+            PluginLog.Error(exception, "error when DeserializeObject");
+        }
     }
+
+    public void BroadCast<T>(MessageTypeCode opcode, T data, bool includeSelf = false) where T : struct
+    {
+        var bytes = IPCEnvelope.CreateSerializedIPC(opcode, data);
+        PluginLog.Information($"message published. length: {bytes.Length}");
+        MessageBus.PublishAsync(bytes);
+        if (includeSelf) MessageBus_MessageReceived(null, new TinyMessageReceivedEventArgs(bytes));
+    }
+    public void BroadCast(byte[] serialized)
+    {
+        PluginLog.Information($"message published. length: {serialized.Length}");
+        MessageBus.PublishAsync(serialized);
+    }
+
+    public void SendNoteRemote(NoteEvent noteEvent, long[] target, int tone = -1)
+    {
+        MessageBus.PublishAsync(IPCEnvelope.CreateSerializedIPC(MessageTypeCode.MidiEvent,
+            new IpcMidiEvent
+            {
+                MidiEventType = noteEvent.EventType,
+                SevenBitNumber = noteEvent.NoteNumber,
+                TargetCid = target,
+                Tone = tone
+            }));
+    }
+
+    //public event EventHandler<(long cid, byte[] response)> RPCResponse;
+
 
     private void ReleaseUnmanagedResources(bool disposing)
     {
         try
         {
-            api.ClientState.Login -= ClientState_Login;
-            api.ClientState.Logout -= ClientState_Logout;
-            PartyWatcher.PartyMemberJoin -= Instance_PartyMemberJoin;
+            BroadCast(MessageTypeCode.Bye, 0);
+            MessageBus.MessageReceived -= MessageBus_MessageReceived;
         }
         finally
         {
-            DestructRpcSelf();
-            DestructRpcMaster();
-            RPCResponse = delegate { };
+            //RPCResponse = delegate { };
         }
 
         if (disposing)
