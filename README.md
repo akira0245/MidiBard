@@ -70,4 +70,6 @@ MIDIBARD使用游戏中的合奏助手来完成合奏，请在合奏时打开游
 
 # 其他问题
 
-> 有bug或功能建议或讨论可以加qq群：[260985966](https://jq.qq.com/?_wv=1027&k=7pOgqqZK)
+> 有bug或功能建议或讨论可以加qq群：[260985966](https://jq.qq.com/?_wv=1027&k=7pOgqqZK)  
+
+[![Sponsor me!](https://img.shields.io/badge/Sponsor%20me!-brightgreen?logo=wechat&logoColor=white&style=flat-square)](https://akira0245.github.io/pay/)
