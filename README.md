@@ -2,6 +2,26 @@
 
 MidiBard是基于[卫月框架](https://bbs.tggfl.com/topic/32/dalamud-%E5%8D%AB%E6%9C%88%E6%A1%86%E6%9E%B6)的强大且易用的诗人midi演奏插件。目前版本兼容国服及国际服。
 
+*对于大型乐队，或不同玩家在多台电脑上进行合奏的需求，我们开发了**MidiBard 2**，目前支持国际服和国服。*
+
+*如果您对此感兴趣，请查阅 [MidiBard 2网站](https://midibard.crd.co/) 和 [Github](https://github.com/reckhou/MidiBard2) 主页。*
+
+如果您身处海外或不方便使用QQ，请加入我们的 ✅[Discord服务器](https://discord.gg/sMUACqqKzF) !
+___
+
+MidiBard is an FF14 Bard plugin based on the [Dalamud](https://github.com/goatcorp/Dalamud) framework, which supports bard performance by MIDI files or keyboards.
+
+*For those having larger bands or wish to play with friends across different devices, please check **MidiBard 2**.*
+
+*If you're interested to get more infomation of **MidiBard 2**, please check [MidiBard 2 Website](https://midibard.crd.co/) and [Github](https://github.com/reckhou/MidiBard2) page.*
+
+Please join our ✅ [Discord Server](https://discord.gg/xvNhquhnVT) for the support!
+___
+**海外用户捐助渠道/Buy me a coffee if you wish:**
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/P5P6DAAKQ)
+
+
 # 主要特性
 * 无需繁琐的键位配置，打开即用
 * 使用合奏助手进行一键高精度合奏
