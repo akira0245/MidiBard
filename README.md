@@ -4,7 +4,7 @@ MidiBard是基于[卫月框架](https://bbs.tggfl.com/topic/32/dalamud-%E5%8D%AB
 
 *对于大型乐队，或不同玩家在多台电脑上进行合奏的需求，我们开发了**MidiBard 2**，目前支持国际服和国服。*
 
-*如果您对此感兴趣，请查阅 [MidiBard 2网站](https://midibard.crd.co/) 和 [Github](https://github.com/reckhou/MidiBard2) 主页。*
+*如果您对此感兴趣，请查阅 [MidiBard 2网站](https://midibard.org/) 和 [Github](https://github.com/reckhou/MidiBard2) 主页。*
 
 如果您身处海外或不方便使用QQ，请加入我们的 ✅[Discord服务器](https://discord.gg/sMUACqqKzF) !
 ___
@@ -13,9 +13,9 @@ MidiBard is an FF14 Bard plugin based on the [Dalamud](https://github.com/goatco
 
 *For those having larger bands or wish to play with friends across different devices, please check **MidiBard 2**.*
 
-*If you're interested to get more infomation of **MidiBard 2**, please check [MidiBard 2 Website](https://midibard.crd.co/) and [Github](https://github.com/reckhou/MidiBard2) page.*
+*If you're interested to get more infomation of **MidiBard 2**, please check [MidiBard 2 Website](https://midibard.org/) and [Github](https://github.com/reckhou/MidiBard2) page.*
 
-Please join our ✅ [Discord Server](https://discord.gg/xvNhquhnVT) for the support!
+Please join our ✅[Discord Server](https://discord.gg/xvNhquhnVT) for the support!
 ___
 **海外用户捐助渠道/Buy me a coffee if you wish:**
 
