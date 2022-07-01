@@ -17,6 +17,7 @@ MidiBard is an FF14 Bard plugin based on the [Dalamud](https://github.com/goatco
 
 Please join our ✅[Discord Server](https://discord.gg/xvNhquhnVT) for the support!
 ___
+
 **海外用户捐助渠道/Buy me a coffee if you wish:**
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/L3L6CQMMD)
