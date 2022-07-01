@@ -19,7 +19,7 @@ Please join our ✅[Discord Server](https://discord.gg/xvNhquhnVT) for the suppo
 ___
 **海外用户捐助渠道/Buy me a coffee if you wish:**
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/P5P6DAAKQ)
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/L3L6CQMMD)
 
 
 # 主要特性
