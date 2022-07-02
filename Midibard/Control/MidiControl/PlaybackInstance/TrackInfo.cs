@@ -23,16 +23,13 @@ public record TrackInfo
     public long DurationMidi { get; init; }
     public bool IsProgramControlled { get; init; }
     public string TrackName { get; init; }
-
     public int Index { get; init; }
 
-    //public FourBitNumber[] Channels { get; init; }
-
-    public bool IsEnabled => MidiBard.config.TrackStatus[Index].Enabled;
+    public ref bool IsEnabled => ref MidiBard.config.TrackStatus[Index].Enabled;
     public bool IsPlaying => MidiBard.config.SoloedTrack is int t ? t == Index : IsEnabled;
     public int TransposeFromTrackName => GetTransposeByName(TrackName);
     public uint? InstrumentIDFromTrackName => GetInstrumentIDByName(TrackName);
-    public uint? GuitarToneFromTrackName => GetInstrumentIDByName(TrackName) - MidiBard.guitarGroup[0];
+    public uint? GuitarToneFromTrackName => GetInstrumentIDByName(TrackName) - 24;
 
     public override string ToString()
     {

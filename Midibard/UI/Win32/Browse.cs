@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 
-namespace MidiBard;
+namespace MidiBard.UI.Win32;
 
 class Browse
 {
@@ -23,11 +18,12 @@ class Browse
         var ofd = new OpenFileDialog
         {
             Filter = "midi file (*.mid)|*.mid",
-            Title = "Select a midi file",
+            //Title = "Select a midi file",
             RestoreDirectory = true,
             CheckFileExists = true,
             Multiselect = true,
         };
         callback(ofd.ShowDialog(), ofd.FileNames);
     }
+
 }

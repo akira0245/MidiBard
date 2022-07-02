@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Dalamud.Interface;
 using Dalamud.Interface.Internal.Notifications;
@@ -33,7 +34,6 @@ using MidiBard.Managers.Agents;
 using MidiBard.Managers.Ipc;
 using MidiBard.Util;
 using playlibnamespace;
-using static MidiBard.DalamudApi.api;
 
 namespace MidiBard;
 
@@ -59,22 +59,24 @@ public class MidiBard : IDalamudPlugin
     internal static readonly byte[] guitarGroup = { 24, 25, 26, 27, 28 };
     internal static IDictionary<SevenBitNumber, uint> ProgramInstruments;
     internal static PartyWatcher PartyWatcher;
+    internal static PlayNoteHook PlayNoteHook;
+
 
     internal static bool SlaveMode = false;
     internal static bool BroadcastNotes = false;
 
     internal static byte CurrentInstrument => Marshal.ReadByte(Offsets.PerformanceStructPtr + 3 + Offsets.InstrumentOffset);
     internal static byte CurrentTone => Marshal.ReadByte(Offsets.PerformanceStructPtr + 3 + Offsets.InstrumentOffset + 1);
-    internal static bool PlayingGuitar => guitarGroup.Contains(CurrentInstrument);
+    internal static bool PlayingGuitar => InstrumentHelper.IsGuitar(CurrentInstrument);
     internal static bool IsPlaying => CurrentPlayback?.IsRunning == true;
     public string Name => nameof(MidiBard);
 
     public unsafe MidiBard(DalamudPluginInterface pi)
     {
-        Initialize(this, pi);
+        api.Initialize(this, pi);
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-        InstrumentSheet = DataManager.Excel.GetSheet<Perform>();
+        InstrumentSheet = api.DataManager.Excel.GetSheet<Perform>();
         Instruments = InstrumentSheet!
             .Where(i => !string.IsNullOrWhiteSpace(i.Instrument) || i.RowId == 0)
             .Select(i => new Instrument(i))
@@ -89,14 +91,16 @@ public class MidiBard : IDalamudPlugin
             ProgramInstruments[programNumber] = (uint)instrument;
         }
 
-        config = (Configuration)PluginInterface.GetPluginConfig() ?? new Configuration();
+        config = (Configuration)api.PluginInterface.GetPluginConfig() ?? new Configuration();
+
         Localizer = new Localizer((UILang)config.uiLang);
         IpcManager = new IPCManager();
         PartyWatcher = new PartyWatcher();
 
-        playlib.init(this);
-        OffsetManager.Setup(SigScanner);
+        playlib.init();
+        OffsetManager.Setup(api.SigScanner);
         GuitarTonePatch.InitAndApply();
+        PlayNoteHook = new PlayNoteHook();
 
         AgentMetronome = new AgentMetronome(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.MetronomeAgent));
         AgentPerformance = new AgentPerformance(AgentManager.Instance.FindAgentInterfaceByVtable(Offsets.PerformanceAgent));
@@ -108,17 +112,17 @@ public class MidiBard : IDalamudPlugin
 			_ = Testhooks.Instance;
 #endif
 
-        Task.Run(() => PlaylistManager.AddAsync(config.Playlist.ToArray(), true));
+        Task.Run(() => PlaylistManager.AddAsync(config.Playlist.ToArray(), true, true));
 
         _ = BardPlayDevice.Instance;
         InputDeviceManager.ScanMidiDeviceThread.Start();
 
         Ui = new PluginUI();
-        PluginInterface.UiBuilder.Draw += Ui.Draw;
-        PluginInterface.UiBuilder.OpenConfigUi += () => Ui.Toggle();
-        Framework.Update += OnFrameworkUpdate;
+        api.PluginInterface.UiBuilder.Draw += Ui.Draw;
+        api.PluginInterface.UiBuilder.OpenConfigUi += () => Ui.Toggle();
+        api.Framework.Update += OnFrameworkUpdate;
 
-        if (PluginInterface.IsDev) Ui.Open();
+        if (api.PluginInterface.IsDev) Ui.Open();
     }
 
     private void OnFrameworkUpdate(Dalamud.Game.Framework framework)
@@ -144,7 +148,7 @@ public class MidiBard : IDalamudPlugin
             {
                 if (config.StopPlayingWhenEnsembleEnds)
                 {
-                    MidiPlayerControl.Stop();
+                    MidiPlayerControl.Pause();
                 }
             }
 
@@ -194,7 +198,7 @@ public class MidiBard : IDalamudPlugin
                     catch (Exception e)
                     {
                         PluginLog.Warning(e, "error when parsing or finding instrument strings");
-                        ChatGui.PrintError($"failed parsing command argument \"{args}\"");
+                        api.ChatGui.PrintError($"failed parsing command argument \"{args}\"");
                     }
 
                     break;
@@ -288,20 +292,17 @@ public class MidiBard : IDalamudPlugin
 
     internal static void SaveConfig()
     {
-        Task.Run(() =>
+        try
         {
-            try
-            {
-                var startNew = Stopwatch.StartNew();
-                PluginInterface.SavePluginConfig(config);
-                PluginLog.Verbose($"config saved in {startNew.Elapsed.TotalMilliseconds}ms");
-            }
-            catch (Exception e)
-            {
-                PluginLog.Error(e, "Error when saving config");
-                ImGuiUtil.AddNotification(NotificationType.Error, "Error when saving config");
-            }
-        });
+            var startNew = Stopwatch.StartNew();
+            api.PluginInterface.SavePluginConfig(config);
+            PluginLog.Verbose($"config saved in {startNew.Elapsed.TotalMilliseconds}ms");
+        }
+        catch (Exception e)
+        {
+            PluginLog.Error(e, "Error when saving config");
+            ImGuiUtil.AddNotification(NotificationType.Error, "Error when saving config");
+        }
     }
 
 
@@ -315,24 +316,13 @@ public class MidiBard : IDalamudPlugin
             Testhooks.Instance?.Dispose();
 #endif
             InputDeviceManager.ShouldScanMidiDeviceThread = false;
-            Framework.Update -= OnFrameworkUpdate;
-            PluginInterface.UiBuilder.Draw -= Ui.Draw;
-
-            foreach (var instrument in Instruments)
-            {
-                try
-                {
-                    instrument.IconTextureWrap.Dispose();
-                }
-                catch (Exception e)
-                {
-                    //
-                }
-            }
+            api.Framework.Update -= OnFrameworkUpdate;
+            api.PluginInterface.UiBuilder.Draw -= Ui.Draw;
 
             EnsembleManager.Dispose();
             PartyWatcher.Dispose();
             IpcManager.Dispose();
+            PlayNoteHook?.Dispose();
 #if DEBUG
 			NetworkManager.Instance.Dispose();
 #endif
@@ -348,6 +338,7 @@ public class MidiBard : IDalamudPlugin
                 PluginLog.Error(e, "error when disposing playback");
             }
 
+            TextureManager.Dispose();
             GuitarTonePatch.Dispose();
             DalamudApi.api.Dispose();
         }

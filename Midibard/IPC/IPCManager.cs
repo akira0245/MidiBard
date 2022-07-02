@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Dalamud.Logging;
@@ -10,75 +11,128 @@ using MidiBard.Control.CharacterControl;
 using MidiBard.Control.MidiControl;
 using MidiBard.DalamudApi;
 using MidiBard.IPC;
+using MidiBard.Managers;
 using MidiBard.Managers.Ipc;
 using MidiBard.Util;
+using Newtonsoft.Json;
 using TinyIpc.Messaging;
 
 namespace MidiBard.IPC;
 
-class Operations
+static class RPC
 {
-    private Operations()
-    {
-
-    }
-
-    public static Operations Instance { get; } = new Operations();
-
-    public void SyncPlaylist()
+    public static void SyncPlaylist()
     {
         if (!MidiBard.config.SyncClients) return;
-        MidiBard.IpcManager.BroadCast(IPCEnvelope.CreateSerializedIPC(MessageTypeCode.SyncPlaylist, 0, MidiBard.config.Playlist.ToArray()));
+        MidiBard.IpcManager.BroadCast(IPCEnvelope.Create(MessageTypeCode.SyncPlaylist, 0, MidiBard.config.Playlist.ToArray()).Serialize());
     }
-    public void HandleSyncPlaylist(IPCEnvelope message)
+    public static void HandleSyncPlaylist(IPCEnvelope message)
     {
         var paths = message.StringData;
         Task.Run(() => PlaylistManager.AddAsync(paths, true, true));
     }
 
-    public void RemoveTrackIndex(int index)
+    public static void RemoveTrackIndex(int index)
     {
         if (!MidiBard.config.SyncClients) return;
-        MidiBard.IpcManager.BroadCast(IPCEnvelope.CreateSerializedIPC(MessageTypeCode.RemoveTrackIndex, index));
+        MidiBard.IpcManager.BroadCast(IPCEnvelope.Create(MessageTypeCode.RemoveTrackIndex, index).Serialize());
     }
-    public void HandleRemoveTrackIndex(IPCEnvelope message)
+    public static void HandleRemoveTrackIndex(IPCEnvelope message)
     {
         PlaylistManager.RemoveLocal(message.DataStruct<int>());
     }
 
-    public void UpdateTrackStatus()
+    public static void UpdateMidiFileConfig(MidiFileConfig config)
     {
-        MidiBard.IpcManager.BroadCast(MessageTypeCode.UpdateTrackStatus, new IpcUpdateTrackStatus
-        {
-            TrackStatus = MidiBard.config.TrackStatus
-        });
+        MidiBard.IpcManager.BroadCast(IPCEnvelope.Create(MessageTypeCode.UpdateMidiFileConfig, 0, config.JsonSerialize()).Serialize(), true);
     }
-    public void HandleUpdateTrackStatus(IPCEnvelope message)
+    public static void HandleUpdateMidiFileConfig(IPCEnvelope message)
     {
-        var UpdateTrackStatus = message.DataStruct<IpcUpdateTrackStatus>();
-        for (var i = 0; i < MidiBard.config.TrackStatus.Length; i++)
+        var midiFileConfig = message.StringData[0].JsonDeserialize<MidiFileConfig>();
+        MidiBard.CurrentPlayback.MidiFileConfig = midiFileConfig;
+        var dbTracks = midiFileConfig.Tracks;
+        var trackStatus = MidiBard.config.TrackStatus;
+        for (var i = 0; i < dbTracks.Count; i++)
         {
-            MidiBard.config.TrackStatus[i] = UpdateTrackStatus.TrackStatus[i];
+            try
+            {
+                trackStatus[i].Enabled = dbTracks[i].Enabled && dbTracks[i].PlayerCid == (long)api.ClientState.LocalContentId;
+                trackStatus[i].Transpose = dbTracks[i].Transpose;
+                trackStatus[i].Tone = InstrumentHelper.GetGuitarTone(dbTracks[i].Instrument);
+            }
+            catch (Exception e)
+            {
+                PluginLog.Error(e,$"error when updating track {i}");
+            }
         }
-    }
 
-    public void LoadPlayback(int index)
+        //var UpdateTrackStatus = message.DataStruct<IpcUpdateTrackStatus>();
+        //for (var i = 0; i < MidiBard.config.TrackStatus.Length; i++)
+        //{
+        //    MidiBard.config.TrackStatus[i] = UpdateTrackStatus.TrackStatus[i];
+        //}
+    }
+    //public static void UpdateEnsembleMember()
+    //{
+    //    MidiBard.IpcManager.BroadCast(IPCEnvelope.Create(MessageTypeCode.UpdateEnsembleMember, 0, new string[] { JsonConvert.SerializeObject(BardsManager.BardsProfile) }).Serialize());
+    //}
+    //public static void HandleUpdateEnsembleMember(IPCEnvelope message)
+    //{
+    //    var UpdateTrackStatus = message.StringData[0].JsonDeserialize<Dictionary<long, BardsManager.EnsembleMemberProfile>>();
+    //    foreach (var (key, value) in UpdateTrackStatus)
+    //    {
+    //        BardsManager.BardsProfile[key] = value;
+    //    }
+    //}
+
+    public static void LoadPlayback(int index)
     {
-        if (!MidiBard.config.SyncClients || !api.PartyList.IsPartyLeader()) return;
+        if (!MidiBard.config.SyncClients) return;
+        if (!api.PartyList.IsPartyLeader()) return;
         MidiBard.IpcManager.BroadCast(MessageTypeCode.LoadPlaybackIndex, index);
     }
-    public void HandleLoadPlayback(IPCEnvelope message)
+    public static void HandleLoadPlayback(IPCEnvelope message)
     {
         FilePlayback.LoadPlayback(message.DataStruct<int>(), false, false);
     }
 
-    public void SetInstrument(uint instrumentID)
+    public static void UpdateInstrument(bool takeout)
     {
-        MidiBard.IpcManager.BroadCast(MessageTypeCode.SetInstrument, instrumentID);
+        MidiBard.IpcManager.BroadCast(MessageTypeCode.SetInstrument, takeout, true);
     }
-    public void HandleSetInstrument(IPCEnvelope message)
+    public static void HandleSetInstrument(IPCEnvelope message)
     {
-        SwitchInstrument.SwitchToContinue(message.DataStruct<uint>());
+        var takeout = message.DataStruct<bool>();
+        if (!takeout)
+        {
+            SwitchInstrument.SwitchToContinue(0);
+            return;
+        }
+        var instrument = MidiBard.CurrentPlayback.MidiFileConfig.Tracks
+            .FirstOrDefault(i =>i.Enabled && i.PlayerCid == (long)api.ClientState.LocalContentId)?.Instrument;
+        if (instrument != null)
+            SwitchInstrument.SwitchToContinue((uint)instrument);
+    }
+
+    public static void DoMacro(string[] lines)
+    {
+        MidiBard.IpcManager.BroadCast(IPCEnvelope.Create(MessageTypeCode.Macro, 0, lines).Serialize());
+    }
+    public static void HandleDoMacro(IPCEnvelope message)
+    {
+        ChatCommands.DoMacro(message.StringData);
+    }
+
+    public static void SendNoteRemote(NoteEvent noteEvent, long[] target, int tone = -1)
+    {
+        MidiBard.IpcManager.BroadCast(MessageTypeCode.MidiEvent,
+            new IpcMidiEvent
+            {
+                MidiEventType = noteEvent.EventType,
+                SevenBitNumber = noteEvent.NoteNumber,
+                TargetCid = target,
+                Tone = tone
+            });
     }
 }
 
@@ -92,7 +146,6 @@ internal class IPCManager : IDisposable
     {
         MessageBus = new TinyMessageBus("Midibard.IPC");
         MessageBus.MessageReceived += MessageBus_MessageReceived;
-        BroadCast(MessageTypeCode.Hello, 0);
     }
 
     private void NoteMessageBus_MessageReceived(object sender, TinyMessageReceivedEventArgs e)
@@ -116,47 +169,7 @@ internal class IPCManager : IDisposable
         {
             var message = IPCEnvelope.Deserialize(e.Message);
             PluginLog.Debug(message.ToString());
-
-            switch (message.MessageType)
-            {
-                case MessageTypeCode.Hello:
-                    PluginLog.Warning($"{message.BroadcasterId:X} {api.PartyList.GetPartyMemberFromCID(message.BroadcasterId)?.Name} say Hello!");
-                    //MidiBard.SlaveMode = true;
-                    break;
-                case MessageTypeCode.Bye:
-                    PluginLog.Warning($"{message.BroadcasterId:X} {api.PartyList.GetPartyMemberFromCID(message.BroadcasterId)?.Name} say Bye!");
-                    //MidiBard.SlaveMode = false;
-                    break;
-                case MessageTypeCode.Acknowledge:
-                    break;
-
-                case MessageTypeCode.UpdateTrackStatus:
-                    Operations.Instance.HandleUpdateTrackStatus(message);
-                    break;
-                case MessageTypeCode.SetInstrument:
-                    Operations.Instance.HandleSetInstrument(message);
-                    break;
-
-                case MessageTypeCode.MidiEvent:
-                    break;
-                case MessageTypeCode.DoEmote:
-                    break;
-                case MessageTypeCode.EnsembleStartTime:
-                    break;
-
-                case MessageTypeCode.SyncPlaylist:
-                    Operations.Instance.HandleSyncPlaylist(message);
-                    break;
-                case MessageTypeCode.RemoveTrackIndex:
-                    Operations.Instance.HandleRemoveTrackIndex(message);
-                    break;
-                case MessageTypeCode.LoadPlaybackIndex:
-                    Operations.Instance.HandleLoadPlayback(message);
-                    break;
-
-                default:
-                    break;
-            }
+            ProcessMessage(message);
         }
         catch (Exception exception)
         {
@@ -164,30 +177,68 @@ internal class IPCManager : IDisposable
         }
     }
 
-    public void BroadCast<T>(MessageTypeCode opcode, T data, bool includeSelf = false) where T : struct
+    private static void ProcessMessage(IPCEnvelope message)
     {
-        var bytes = IPCEnvelope.CreateSerializedIPC(opcode, data);
-        PluginLog.Information($"message published. length: {bytes.Length}");
-        MessageBus.PublishAsync(bytes);
-        if (includeSelf) MessageBus_MessageReceived(null, new TinyMessageReceivedEventArgs(bytes));
-    }
-    public void BroadCast(byte[] serialized)
-    {
-        PluginLog.Information($"message published. length: {serialized.Length}");
-        MessageBus.PublishAsync(serialized);
+        switch (message.MessageType)
+        {
+            case MessageTypeCode.Hello:
+                PluginLog.Warning($"{message.BroadcasterId:X} {api.PartyList.GetPartyMemberFromCID(message.BroadcasterId)?.Name} say Hello!");
+                break;
+            case MessageTypeCode.Bye:
+                PluginLog.Warning($"{message.BroadcasterId:X} {api.PartyList.GetPartyMemberFromCID(message.BroadcasterId)?.Name} say GoodBye!");
+                break;
+            case MessageTypeCode.Acknowledge:
+                break;
+            case MessageTypeCode.UpdateMidiFileConfig:
+                RPC.HandleUpdateMidiFileConfig(message);
+                break;
+            case MessageTypeCode.SetInstrument:
+                RPC.HandleSetInstrument(message);
+                break;
+            case MessageTypeCode.MidiEvent:
+                break;
+            case MessageTypeCode.Chat:
+                break;
+            case MessageTypeCode.EnsembleStartTime:
+                break;
+            case MessageTypeCode.SyncPlaylist:
+                RPC.HandleSyncPlaylist(message);
+                break;
+            case MessageTypeCode.RemoveTrackIndex:
+                RPC.HandleRemoveTrackIndex(message);
+                break;
+            case MessageTypeCode.LoadPlaybackIndex:
+                RPC.HandleLoadPlayback(message);
+                break;
+
+            case MessageTypeCode.Macro:
+                RPC.HandleDoMacro(message);
+                break;
+
+
+        }
     }
 
-    public void SendNoteRemote(NoteEvent noteEvent, long[] target, int tone = -1)
+    public void BroadCast<T>(MessageTypeCode opcode, T data, bool includeSelf = false) where T : struct
     {
-        MessageBus.PublishAsync(IPCEnvelope.CreateSerializedIPC(MessageTypeCode.MidiEvent,
-            new IpcMidiEvent
-            {
-                MidiEventType = noteEvent.EventType,
-                SevenBitNumber = noteEvent.NoteNumber,
-                TargetCid = target,
-                Tone = tone
-            }));
+        var bytes = IPCEnvelope.Create(opcode, data).Serialize();
+        BroadCast(bytes, includeSelf);
     }
+    public void BroadCast(byte[] serialized, bool includeSelf = false)
+    {
+        PluginLog.Debug($"message published. length: {Dalamud.Utility.Util.FormatBytes(serialized.Length)}");
+        try
+        {
+            MessageBus.PublishAsync(serialized);
+            if (includeSelf) MessageBus_MessageReceived(null, new TinyMessageReceivedEventArgs(serialized));
+        }
+        catch (Exception e)
+        {
+            PluginLog.Error(e, "error when public message, tiny ipc internal exception.");
+        }
+    }
+
+
 
     //public event EventHandler<(long cid, byte[] response)> RPCResponse;
 
@@ -196,7 +247,6 @@ internal class IPCManager : IDisposable
     {
         try
         {
-            BroadCast(MessageTypeCode.Bye, 0);
             MessageBus.MessageReceived -= MessageBus_MessageReceived;
         }
         finally

@@ -17,12 +17,14 @@ public enum MessageTypeCode
     RemoveTrackIndex,
     LoadPlaybackIndex,
 
-    UpdateTrackStatus = 20,
+    UpdateMidiFileConfig = 20,
+    UpdateEnsembleMember,
     MidiEvent,
     SetInstrument,
     EnsembleStartTime,
 
-    DoEmote = 50,
+    Macro = 50,
+    Chat,
 }
 
 internal sealed class IPCEnvelope
@@ -30,27 +32,25 @@ internal sealed class IPCEnvelope
     private static readonly JsonSerializerSettings JsonSerializerSettings =
         new() { TypeNameHandling = TypeNameHandling.None };
 
-    private static byte[] SerializedObject<T>(T obj) =>
-        Dalamud.Utility.Util.CompressString(JsonConvert.SerializeObject(obj, JsonSerializerSettings));
 
-    private static T DeserializeObject<T>(byte[] bytes) =>
-        JsonConvert.DeserializeObject<T>(Dalamud.Utility.Util.DecompressString(bytes), JsonSerializerSettings);
+    public byte[] Serialize() => Dalamud.Utility.Util.CompressString(JsonConvert.SerializeObject(this, JsonSerializerSettings));
+    public static IPCEnvelope Deserialize(byte[] bytes) => JsonConvert.DeserializeObject<IPCEnvelope>(Dalamud.Utility.Util.DecompressString(bytes), JsonSerializerSettings);
 
-    public static byte[] CreateSerializedIPC<T>(MessageTypeCode messageTypeCode, T data, string[] stringData = null) where T : struct =>
-        SerializedObject(Create(messageTypeCode, data, stringData));
+    public static IPCEnvelope Create<T>(MessageTypeCode messageType, T data, params string[] stringData) where T : struct =>
+        Create(messageType, data.ToBytes(), stringData);
 
-    public static IPCEnvelope Create<T>(MessageTypeCode messageType, T data, string[] stringData = null) where T : struct =>
+    public static IPCEnvelope Create(MessageTypeCode messageType, byte[] data, params string[] stringData) =>
         new()
         {
             MessageType = messageType,
-            Data = data.ToBytes(),
+            Data = data,
             BroadcasterId = (long)api.ClientState.LocalContentId,
             PartyId = (long)api.PartyList.PartyId,
             TimeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
             StringData = stringData
         };
-    
-    public static IPCEnvelope Deserialize(byte[] bytes) => DeserializeObject<IPCEnvelope>(bytes);
+
+    //public static IPCEnvelope Deserialize(byte[] bytes) => DeserializeObject<IPCEnvelope>(bytes);
 
     public MessageTypeCode MessageType { get; init; }
     public long BroadcasterId { get; init; }
@@ -64,7 +64,7 @@ internal sealed class IPCEnvelope
         return Data.ToStruct<T>();
     }
 
-    public override string ToString() => $"{nameof(IPCEnvelope)}:{DateTimeOffset.FromUnixTimeMilliseconds(TimeStamp).DateTime:O}:{MessageType}:{BroadcasterId:X}:{Data.Length}";
+    public override string ToString() => $"{nameof(IPCEnvelope)}:{DateTimeOffset.FromUnixTimeMilliseconds(TimeStamp).DateTime:O}:{MessageType}:{BroadcasterId:X}:{PartyId:X}:{Data?.Length}:{StringData?.Length}";
 }
 
 internal struct IpcUpdateTrackStatus

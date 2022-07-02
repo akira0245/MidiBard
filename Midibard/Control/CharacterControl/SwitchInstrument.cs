@@ -17,7 +17,7 @@ namespace MidiBard.Control.CharacterControl;
 
 internal static class SwitchInstrument
 {
-    public static bool SwitchingInstrument { get; set; }
+    public static bool SwitchingInstrument { get; private set; }
 
     public static void SwitchToContinue(uint instrumentId, int timeOut = 3000)
     {
@@ -68,7 +68,7 @@ internal static class SwitchInstrument
             await Util.Coroutine.WaitUntil(() => MidiBard.CurrentInstrument == instrumentId, timeOut);
             await Task.Delay(200);
             PluginLog.Debug($"instrument switching succeed in {sw.Elapsed.TotalMilliseconds} ms");
-            ImGuiUtil.AddNotification(NotificationType.Success, $"Switched to {MidiBard.InstrumentStrings[instrumentId]}");
+            //ImGuiUtil.AddNotification(NotificationType.Success, $"Switched to {MidiBard.InstrumentStrings[instrumentId]}");
         }
         catch (Exception e)
         {
@@ -80,7 +80,7 @@ internal static class SwitchInstrument
         }
     }
 
-    private static Regex regex = new Regex(@"^#(?<ins>.*?)(?<trans>[-|+][0-9]+)?#(?<name>.*)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    private static readonly Regex regex = new Regex(@"^#(?<ins>.*?)(?<trans>[-|+][0-9]+)?#(?<name>.*)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     public static string ParseSongName(string inputString, out uint? instrumentId, out int? transpose)
     {
@@ -191,7 +191,7 @@ internal static class SwitchInstrument
         }
     }
 
-    internal static void UpdateGuitarToneByConfig()
+    private static void UpdateGuitarToneByConfig()
     {
         if (MidiBard.CurrentPlayback.TrackInfos == null)
         {

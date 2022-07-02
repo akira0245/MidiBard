@@ -8,11 +8,14 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Melanchall.DryWetMidi.Interaction;
+using Newtonsoft.Json;
 
 namespace MidiBard.Util;
 
 static class Extensions
 {
+    private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.None, TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple};
+
     internal static bool ContainsIgnoreCase(this string haystack, string needle)
     {
         return CultureInfo.InvariantCulture.CompareInfo.IndexOf(haystack, needle, CompareOptions.IgnoreCase) >= 0;
@@ -53,21 +56,6 @@ static class Extensions
         return destination.ToArray();
     }
 
-    public static byte[] Serialize<T>(T request)
-    {
-        using MemoryStream memoryStream = new MemoryStream();
-        serializer.Serialize(memoryStream, request);
-        return memoryStream.ToArray();
-    }
-
-    public static T Deserialize<T>(byte[] bytes)
-    {
-        using MemoryStream memStream = new MemoryStream(bytes);
-        memStream.Position = 0;
-        var deserialize = serializer.Deserialize(memStream);
-        return (T)deserialize;
-    }
-
     public static unsafe byte[] ToBytes<T>(this T stru) where T : struct
     {
         var size = Marshal.SizeOf<T>();
@@ -88,5 +76,38 @@ static class Extensions
         }
     }
 
-    private static readonly System.Runtime.Serialization.Formatters.Binary.BinaryFormatter serializer = new();
+    public static string BytesToString(long byteCount, int round = 2)
+    {
+        string[] suf = { "B", "KB", "MB", "GB", "TB", "PB", "EB" }; //Longs run out around EB
+        if (byteCount == 0)
+            return "0" + suf[0];
+        long bytes = Math.Abs(byteCount);
+        int place = Convert.ToInt32(Math.Floor(Math.Log(bytes, 1024)));
+        double num = Math.Round(bytes / Math.Pow(1024, place), round);
+        return (Math.Sign(byteCount) * num).ToString() + suf[place];
+    }
+
+    //public static TValue GetOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key) where TValue : new()
+    //{
+    //    if (!dict.TryGetValue(key, out TValue val))
+    //    {
+    //        val = new TValue();
+    //        dict.Add(key, val);
+    //    }
+
+    //    return val;
+    //}
+    public static string JsonSerialize<T>(this T obj) where T : class => JsonConvert.SerializeObject(obj, Formatting.None, JsonSerializerSettings);
+    public static T JsonDeserialize<T>(this string str) where T : class => JsonConvert.DeserializeObject<T>(str);
+
+    public static TValue GetOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, Func<TKey, TValue> valueCreator)
+    {
+        if (!dict.TryGetValue(key, out TValue val))
+        {
+            val = valueCreator(key);
+            dict.Add(key, val);
+        }
+
+        return val;
+    }
 }

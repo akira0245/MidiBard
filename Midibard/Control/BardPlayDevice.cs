@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Documents;
+using Dalamud.Hooking;
 using Dalamud.Logging;
 using Melanchall.DryWetMidi.Common;
 using Melanchall.DryWetMidi.Core;
@@ -199,21 +200,16 @@ internal class BardPlayDevice : IOutputDevice
                                         default:
                                             break;
                                     }
-
-                                    if (metadata is RemoteMetadata remoteMetadata && remoteMetadata.overrideTone)
-                                    {
-                                        playlib.GuitarSwitchTone(remoteMetadata.tone);
-                                    }
                                 }
 
                                 if (MidiBard.config.LowLatencyMode)
                                 {
                                     if (MidiBard.AgentPerformance.noteNumber - 39 == noteNum)
                                     {
-                                        noteOff();
+                                        MidiBard.PlayNoteHook.NoteOff();
                                     }
 
-                                    return noteOn(noteNum + 39);
+                                    return MidiBard.PlayNoteHook.NoteOn(noteNum + 39);
                                 }
                                 else
                                 {
@@ -242,12 +238,13 @@ internal class BardPlayDevice : IOutputDevice
                             {
                                 if (MidiBard.AgentPerformance.Struct->CurrentPressingNote - 39 != noteNum)
                                 {
+                                    PluginLog.Debug($"[noteoff]{MidiBard.AgentPerformance.Struct->CurrentPressingNote - 39} != {noteNum}");
                                     return false;
                                 }
 
                                 if (MidiBard.config.LowLatencyMode)
                                 {
-                                    return noteOff();
+                                    MidiBard.PlayNoteHook.NoteOff();
                                 }
                                 else
                                 {
@@ -279,17 +276,13 @@ internal class BardPlayDevice : IOutputDevice
         CurrentChannel = channel;
         // }
         SevenBitNumber program = Channels[CurrentChannel].Program;
-        if (MidiBard.ProgramInstruments.TryGetValue(program, out var instrumentId))
-        {
-            var instrument = MidiBard.Instruments[instrumentId];
-            if (instrument.IsGuitar)
-            {
-                int tone = instrument.GuitarTone;
-                playlib.GuitarSwitchTone(tone);
-                // var (id, name) = MidiBard.InstrumentPrograms[MidiBard.ProgramInstruments[prog]];
-                // PluginLog.Verbose($"[N][NoteOn][{trackIndex}:{noteOnEvent.Channel}] Changing guitar program to [{id} t:({tone})] {name} ({(GeneralMidiProgram)(byte)prog})");
-            }
-        }
+        if (!MidiBard.ProgramInstruments.TryGetValue(program, out var instrumentId)) return;
+        var instrument = MidiBard.Instruments[instrumentId];
+        if (!instrument.IsGuitar) return;
+        int tone = instrument.GuitarTone;
+        playlib.GuitarSwitchTone(tone);
+        // var (id, name) = MidiBard.InstrumentPrograms[MidiBard.ProgramInstruments[prog]];
+        // PluginLog.Verbose($"[N][NoteOn][{trackIndex}:{noteOnEvent.Channel}] Changing guitar program to [{id} t:({tone})] {name} ({(GeneralMidiProgram)(byte)prog})");
     }
 
     static string GetNoteName(NoteEvent note) => $"{note.GetNoteName().ToString().Replace("Sharp", "#")}{note.GetNoteOctave()}";
@@ -326,48 +319,4 @@ internal class BardPlayDevice : IOutputDevice
 
 
 
-    public const int min = 39;
-    public const int max = 75;
-    public const int off = -100;
-
-    public delegate void sub_140C7ED20(IntPtr agentPerformance, int note, byte isPressing);
-    public sub_140C7ED20 PlayNoteDirect = Offsets.PressNote == IntPtr.Zero ? null : Marshal.GetDelegateForFunctionPointer<sub_140C7ED20>(Offsets.PressNote);
-
-    public bool noteOn(int note)
-    {
-        unsafe
-        {
-            if (!MidiBard.AgentPerformance.InPerformanceMode)
-            {
-                return false;
-            }
-            if (note is < min or > max)
-            {
-                PluginLog.Error("note must in range of 39-75 (c3-c6)");
-                return false;
-            }
-
-            PlayNoteDirect(MidiBard.AgentPerformance.Pointer, note, 1);
-            PluginLog.Debug($"noteon {note} {MidiBard.AgentPerformance.Struct->CurrentPressingNote}");
-            //MidiBard.AgentPerformance.Struct->CurrentPressingNote = note;
-            return true;
-        }
-    }
-
-    public bool noteOff()
-    {
-        unsafe
-        {
-            if (!MidiBard.AgentPerformance.InPerformanceMode)
-            {
-                return false;
-            }
-
-            PlayNoteDirect(MidiBard.AgentPerformance.Pointer, off, 0);
-            PluginLog.Debug($"noteoff  {MidiBard.AgentPerformance.Struct->CurrentPressingNote}");
-            //MidiBard.AgentPerformance.Struct->CurrentPressingNote = off;
-
-            return true;
-        }
-    }
 }

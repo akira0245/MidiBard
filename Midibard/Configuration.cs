@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -9,6 +10,7 @@ using Dalamud.Configuration;
 using Dalamud.Logging;
 using Dalamud.Plugin;
 using ImGuiNET;
+using MidiBard.Managers;
 
 namespace MidiBard;
 
@@ -40,9 +42,6 @@ public struct TrackStatus
     public bool Enabled = true;
     public int Tone = 0;
     public int Transpose = 0;
-
-    public int EnsembleInstrumentId = 0;
-    public int EnsemblePlayerCid = 0;
 }
 
 public struct ChannelStatus
@@ -118,7 +117,6 @@ public class Configuration : IPluginConfiguration
     public string lastUsedMidiDeviceName = "";
     public bool autoRestoreListening = false;
     public string lastOpenedFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic);
-
     //public bool autoStartNewListening = false;
 
     //public int testLength = 40;
@@ -143,7 +141,6 @@ public class Configuration : IPluginConfiguration
     public bool StopPlayingWhenEnsembleEnds = true;
     public bool AutoSetBackgroundFrameLimit = true;
 
-    
     public bool SyncClients = false;
     //public bool SyncPlaybackLoading = false;
     //public bool SyncTrackStatus = false;

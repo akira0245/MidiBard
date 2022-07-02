@@ -8,6 +8,7 @@ using Melanchall.DryWetMidi.Common;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.Multimedia;
+using MidiBard.Managers;
 using MidiBard.Util;
 
 namespace MidiBard.Control.MidiControl.PlaybackInstance;
@@ -23,6 +24,13 @@ internal sealed class BardPlayback : Playback
         ChannelInfos = channelInfos;
 
         SongName = Path.GetFileNameWithoutExtension(FilePath);
+
+        MidiFileConfig = MidiFileConfigManager.GetConfig(SongName) ?? new MidiFileConfig
+        {
+            FileName = Path.GetFileNameWithoutExtension(filePath),
+            Tracks = trackInfos.Select(i => new DbTrack() { Index = i.Index, Instrument = (int)(i.InstrumentIDFromTrackName ?? 0), Name = i.TrackName, Transpose = i.TransposeFromTrackName }).ToList(),
+            Speed = MidiBard.config.playSpeed
+        };
     }
 
     private BardPlayback(IEnumerable<TimedEventWithMetadata> timedObjects, TempoMap tempoMap)
@@ -37,6 +45,7 @@ internal sealed class BardPlayback : Playback
         return BardPlayDevice.Instance.SendEventWithMetadata(midiEvent, metadata);
     }
 
+    internal MidiFileConfig MidiFileConfig { get; set; }
     internal MidiFile MidiFile { get; }
     internal string FilePath { get; }
     internal string SongName { get; }
@@ -172,4 +181,6 @@ internal sealed class BardPlayback : Playback
             .Select(i => i.timedEvent);
         return timedEvents;
     }
+
+
 }

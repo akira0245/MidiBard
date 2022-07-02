@@ -122,7 +122,7 @@ public static class ImGuiUtil
         {
             PushFont(UiBuilder.DefaultFont);
             BeginTooltip();
-            PushTextWrapPos(GetFontSize() * 20.0f);
+            PushTextWrapPos(GetFontSize() * 20.0f * ImGuiHelpers.GlobalScale);
             TextUnformatted(desc);
             PopTextWrapPos();
             EndTooltip();
@@ -179,6 +179,53 @@ public static class ImGuiUtil
     {
         PluginLog.Debug($"[Notification] {type}:{title}:{content}");
         DalamudApi.api.PluginInterface.UiBuilder.AddNotification(content, string.IsNullOrWhiteSpace(title) ? "Midibard" : "Midibard: " + title, type, 5000);
+    }
+
+    public static void PushStyleColors(bool pushNew, uint color, params ImGuiCol[] colors)
+    {
+        if (pushNew)
+        {
+            for (int i = 0; i < colors.Length; i++)
+            {
+                ImGui.PushStyleColor(colors[i], color);
+            }
+        }
+        else
+        {
+            for (int i = 0; i < colors.Length; i++)
+            {
+                ImGui.PushStyleColor(colors[i], ImGui.GetColorU32(colors[i]));
+            }
+        }
+    }
+    public static void PushStyleColors(bool pushNew, Vector4 color, params ImGuiCol[] colors)
+    {
+        if (pushNew)
+        {
+            for (int i = 0; i < colors.Length; i++)
+            {
+                ImGui.PushStyleColor(colors[i], color);
+            }
+        }
+        else
+        {
+            for (int i = 0; i < colors.Length; i++)
+            {
+                ImGui.PushStyleColor(colors[i], ImGui.GetColorU32(colors[i]));
+            }
+        }
+    }
+
+    public static bool InputIntWithReset(string label, ref int num, int step, Func<int> getDefaultValue)
+    {
+        var b = ImGui.InputInt(label, ref num, step);
+        if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
+        {
+            num = getDefaultValue();
+            b = true;
+        }
+
+        return b;
     }
 
     public const uint ColorRed = 0xFF0000C8;

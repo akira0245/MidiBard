@@ -89,27 +89,15 @@ public partial class PluginUI
     private static unsafe void DrawButtonPlayMode()
     {
         ImGui.SameLine();
-        FontAwesomeIcon icon;
-        switch ((PlayMode)MidiBard.config.PlayMode)
+        FontAwesomeIcon icon = (PlayMode)MidiBard.config.PlayMode switch
         {
-            case PlayMode.Single:
-                icon = (FontAwesomeIcon)0xf3e5;
-                break;
-            case PlayMode.ListOrdered:
-                icon = (FontAwesomeIcon)0xf884;
-                break;
-            case PlayMode.ListRepeat:
-                icon = (FontAwesomeIcon)0xf021;
-                break;
-            case PlayMode.SingleRepeat:
-                icon = (FontAwesomeIcon)0xf01e;
-                break;
-            case PlayMode.Random:
-                icon = (FontAwesomeIcon)0xf074;
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
+            PlayMode.Single => (FontAwesomeIcon)0xf3e5,
+            PlayMode.ListOrdered => (FontAwesomeIcon)0xf884,
+            PlayMode.ListRepeat => (FontAwesomeIcon)0xf021,
+            PlayMode.SingleRepeat => (FontAwesomeIcon)0xf01e,
+            PlayMode.Random => (FontAwesomeIcon)0xf074,
+            _ => throw new ArgumentOutOfRangeException()
+        };
 
         if (ImGui.Button(icon.ToIconString()))
         {

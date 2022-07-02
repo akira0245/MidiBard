@@ -32,7 +32,7 @@ class Localizer
     }
     private void LoadZh()
     {
-        zh.Add("Import midi file.\nRight click to select file dialog type\nPress ctrl+V to import files from clipboard", "导入MIDI文件\n右键点击选择导入文件对话框类型\n按Ctrl+V导入剪贴板中复制的文件");
+        zh.Add("Import midi file\nRight click to select file dialog type\nPress ctrl+V to import files from clipboard", "导入MIDI文件\n右键点击选择导入文件对话框类型\n按Ctrl+V导入剪贴板中复制的文件");
         zh.Add("Clear Playlist", "清空播放列表");
         zh.Add("UI Language", "界面语言");
         zh.Add("Help", "常见问题");

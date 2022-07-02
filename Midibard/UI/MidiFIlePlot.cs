@@ -133,8 +133,15 @@ public partial class PluginUI
                     Vector4 GetNoteColor()
                     {
                         var c = System.Numerics.Vector4.One;
-                        ImGui.ColorConvertHSVtoRGB(trackInfo.Index / (float)MidiBard.CurrentPlayback.TrackInfos.Length, 0.8f, 1, out c.X, out c.Y, out c.Z);
-                        if (!trackInfo.IsPlaying) c.W = 0.2f;
+                        try
+                        {
+                            ImGui.ColorConvertHSVtoRGB(trackInfo.Index / (float)MidiBard.CurrentPlayback.TrackInfos.Length, 0.8f, 1, out c.X, out c.Y, out c.Z);
+                            if (!trackInfo.IsPlaying) c.W = 0.2f;
+                        }
+                        catch (Exception e)
+                        {
+                            PluginLog.Error(e, "error when getting track color");
+                        }
                         return c;
                     }
 
@@ -256,7 +263,7 @@ public partial class PluginUI
         {
             try
             {
-                if (MidiBard.CurrentPlayback.TrackInfos == null)
+                if (MidiBard.CurrentPlayback?.TrackInfos == null)
                 {
                     PluginLog.Debug("try RefreshPlotData but CurrentTracks is null");
                     return;
@@ -270,11 +277,16 @@ public partial class PluginUI
                 _plotData = MidiBard.CurrentPlayback.TrackChunks.Select((trackChunk, index) =>
                     {
                         var trackNotes = trackChunk.GetNotes()
-                            .Select(j => (j.TimeAs<MetricTimeSpan>(tmap).GetTotalSeconds(), j.EndTimeAs<MetricTimeSpan>(tmap).GetTotalSeconds(), (int)j.NoteNumber, (byte)j.Channel))
+                            .Select(j => (j.TimeAs<MetricTimeSpan>(tmap).GetTotalSeconds(),
+                                j.EndTimeAs<MetricTimeSpan>(tmap).GetTotalSeconds(), (int)j.NoteNumber,
+                                (byte)j.Channel))
                             .ToArray();
 
-                        var trackPrograms = trackChunk.GetTimedEvents().Where(timedEvent => timedEvent.Event.EventType == MidiEventType.ProgramChange)
-                            .Select(j => (time: j.TimeAs<MetricTimeSpan>(tmap).GetTotalSeconds(), programNumber: (byte)((ProgramChangeEvent)j.Event).ProgramNumber, channel: (byte)((ProgramChangeEvent)j.Event).Channel))
+                        var trackPrograms = trackChunk.GetTimedEvents().Where(timedEvent =>
+                                timedEvent.Event.EventType == MidiEventType.ProgramChange)
+                            .Select(j => (time: j.TimeAs<MetricTimeSpan>(tmap).GetTotalSeconds(),
+                                programNumber: (byte)((ProgramChangeEvent)j.Event).ProgramNumber,
+                                channel: (byte)((ProgramChangeEvent)j.Event).Channel))
                             .ToArray();
 
                         return (MidiBard.CurrentPlayback.TrackInfos[index], notes: trackNotes, programs: trackPrograms);

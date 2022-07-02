@@ -22,7 +22,7 @@ public partial class PluginUI
         if (MidiBard.config.UseStandalonePlaylistWindow)
         {
             ImGui.SetNextWindowSize(new(ImGui.GetWindowSize().Y), ImGuiCond.FirstUseEver);
-            ImGui.SetNextWindowPos(ImGui.GetWindowPos() - new Vector2(2, 0), ImGuiCond.Appearing, new Vector2(1, 0));
+            ImGui.SetNextWindowPos(ImGui.GetWindowPos() - new Vector2(2, 0), ImGuiCond.FirstUseEver, new Vector2(1, 0));
             if (ImGui.Begin($"MidiBard Playlist ({PlaylistManager.FilePathList.Count})###MidibardPlaylist", ref MidiBard.config.UseStandalonePlaylistWindow, ImGuiWindowFlags.NoDecoration & ~ImGuiWindowFlags.NoResize))
             {
                 DrawContent();
@@ -44,7 +44,7 @@ public partial class PluginUI
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(4, 4));
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(15, 4));
 
-            if (!_isImportRunning)
+            if (!IsImportRunning)
                 ButtonImport();
             else
                 ButtonImportInProgress();
@@ -83,14 +83,7 @@ public partial class PluginUI
                 if (ImGui.Button("Import midi files to start performing!".Localize(),
                         new Vector2(-1, ImGui.GetFrameHeight())))
                 {
-                    if (MidiBard.config.useLegacyFileDialog)
-                    {
-                        RunImportTaskLegacy();
-                    }
-                    else
-                    {
-                        RunImportTask();
-                    }
+                    RunImportFileTask();
                 }
             }
             else
@@ -263,7 +256,7 @@ public partial class PluginUI
         if (ImGui.IsItemHovered())
         {
             ImGui.BeginTooltip();
-            ImGui.TextUnformatted("Standalone Playlist".Localize());
+            ImGui.TextUnformatted("Standalone playlist window".Localize());
             ImGui.EndTooltip();
         }
     }

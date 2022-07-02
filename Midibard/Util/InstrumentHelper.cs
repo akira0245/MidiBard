@@ -4,7 +4,7 @@ using Melanchall.DryWetMidi.Common;
 
 namespace MidiBard.Util;
 
-internal static class PerformExtensions
+internal static class InstrumentHelper
 {
     private static readonly Regex MidiProgramRegex = new(@"^([0-9]{3})(.+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
@@ -41,6 +41,17 @@ internal static class PerformExtensions
         name = "";
         return false;
     }
+
+    internal static bool IsGuitar(int instrumentId) => instrumentId is 24 or 25 or 26 or 27 or 28;
+    internal static int GetGuitarTone(int instrumentId) => instrumentId switch
+    {
+        24 => 0,
+        25 => 1,
+        26 => 2,
+        27 => 3,
+        28 => 4,
+        _ => -1
+    };
 
     public static SevenBitNumber GetMidiProgramId(this Perform perform)
     {

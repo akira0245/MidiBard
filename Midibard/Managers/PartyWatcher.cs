@@ -15,8 +15,6 @@ public class PartyWatcher : IDisposable
         api.Framework.Update += Framework_Update;
     }
 
-    private readonly Dictionary<long, (string name, string worldname, uint worldId)> PartyMemberLookUp = new();
-
     public long[] PartyMemberCIDs { get; private set; } = { };
 
     public static long[] GetMemberCIDs => api.PartyList
@@ -36,16 +34,6 @@ public class PartyWatcher : IDisposable
 
             foreach (var cid in newMemberCIDs)
             {
-                var partyMember = api.PartyList.GetPartyMemberFromCID(cid);
-                if (partyMember != null)
-                {
-                    var tuple = (partyMember.Name.ToString(), partyMember.World.GameData?.Name.ToString(), partyMember.World.Id);
-                    if (!PartyMemberLookUp.TryAdd(cid, tuple))
-                    {
-                        PartyMemberLookUp[cid] = tuple;
-                    }
-                }
-
                 if (!PartyMemberCIDs.Any(i => i == cid))
                 {
                     PluginLog.Debug($"JOIN {cid}");

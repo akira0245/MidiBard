@@ -201,7 +201,7 @@ public static class FilePlayback
 
     internal static async Task<bool> LoadPlayback(int index, bool startPlaying = false, bool switchInstrument = true)
     {
-        Operations.Instance.LoadPlayback(index);
+        RPC.LoadPlayback(index);
 
         var wasPlaying = IsPlaying;
         MidiFile midiFile = await PlaylistManager.LoadMidiFile(index);
