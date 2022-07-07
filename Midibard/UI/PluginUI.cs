@@ -184,14 +184,10 @@ public partial class PluginUI
                             EndTable();
                         }
 
-                        var speed = fileConfig.Speed;
-                        changed |= SliderFloat("speed", ref speed, 0.1f, 10f, $"{speed:f3}",
-                            ImGuiSliderFlags.Logarithmic);
-
                         if (changed)
                         {
                             RPC.UpdateMidiFileConfig(fileConfig);
-                            fileConfig.Save();
+                            fileConfig.Save(CurrentPlayback.FilePath);
                         }
 
                     }
@@ -316,8 +312,19 @@ public partial class PluginUI
 
                 if (Button("Open Midi file config directory"))
                 {
-                    var configDirectoryFullName = MidiFileConfigManager.ConfigDirectory.FullName;
-                    Process.Start(new ProcessStartInfo(configDirectoryFullName) { UseShellExecute = true });
+	                try
+	                {
+		                var fileInfo = MidiFileConfigManager.GetConfigFileInfo(CurrentPlayback.FilePath);
+		                var configDirectoryFullName = fileInfo.Directory.FullName;
+                        PluginLog.Warning(fileInfo.FullName);
+                        PluginLog.Warning(CurrentPlayback.FilePath);
+                        PluginLog.Warning(configDirectoryFullName);
+                        Process.Start(new ProcessStartInfo(configDirectoryFullName) { UseShellExecute = true });
+	                }
+	                catch (Exception e)
+	                {
+		                PluginLog.Error(e,"error when opening config directory");
+	                }
                 }
             }
             PopStyleColor(2);
@@ -420,8 +427,7 @@ public partial class PluginUI
 				if (ImGui.Begin($"MidiBard - {api.ClientState.LocalPlayer?.Name.TextValue} PID{Process.GetCurrentProcess().Id}###MIDIBARD",
 					ref MainWindowVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | flag))
 #else
-            var nameTextValue = api.ClientState.LocalPlayer?.Name.TextValue;
-            var name = nameTextValue != null ? $"MidiBard - {nameTextValue} PID{Process.GetCurrentProcess().Id}###MIDIBARD" : $"MidiBard PID{Process.GetCurrentProcess().Id}";
+            var name = "MidiBard###MIDIBARD";
             if (Begin(name, ref MainWindowVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | flag))
 #endif
             {

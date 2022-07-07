@@ -42,6 +42,10 @@ public struct TrackStatus
     public bool Enabled = true;
     public int Tone = 0;
     public int Transpose = 0;
+
+    public TrackStatus()
+    {
+    }
 }
 
 public struct ChannelStatus

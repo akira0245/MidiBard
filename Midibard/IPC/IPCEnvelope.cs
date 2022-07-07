@@ -80,4 +80,11 @@ internal struct IpcMidiEvent
     public MidiEventType MidiEventType;
     public SevenBitNumber SevenBitNumber;
     public int Tone = -1;
+
+    public IpcMidiEvent()
+    {
+	    TargetCid = new long[] { };
+	    MidiEventType = MidiEventType.NormalSysEx;
+	    SevenBitNumber = default;
+    }
 }

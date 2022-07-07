@@ -91,7 +91,7 @@ public class MidiBard : IDalamudPlugin
             ProgramInstruments[programNumber] = (uint)instrument;
         }
 
-        config = (Configuration)api.PluginInterface.GetPluginConfig() ?? new Configuration();
+        TryLoadConfig();
 
         Localizer = new Localizer((UILang)config.uiLang);
         IpcManager = new IPCManager();
@@ -123,6 +123,24 @@ public class MidiBard : IDalamudPlugin
         api.Framework.Update += OnFrameworkUpdate;
 
         if (api.PluginInterface.IsDev) Ui.Open();
+
+        void TryLoadConfig(int trycount = 10)
+        {
+	        for (int i = 0; ; i++)
+	        {
+		        try
+		        {
+			        config = (Configuration)api.PluginInterface.GetPluginConfig() ?? new Configuration();
+                    return;
+		        }
+		        catch (Exception e)
+		        {
+			        if (i == trycount) throw;
+                    Thread.Sleep(50);
+			        PluginLog.Warning(e, $"error when loading config, trying again... {i}");
+		        }
+	        }
+        }
     }
 
     private void OnFrameworkUpdate(Dalamud.Game.Framework framework)

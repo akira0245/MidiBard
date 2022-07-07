@@ -25,18 +25,7 @@
 		<PackageReference Include="DalamudPackager" Version="2.1.7" />
 		<!--<PackageReference Include="ILRepack" Version="2.0.18" />-->
 		<PackageReference Include="Melanchall.DryWetMidi" Version="6.1.1" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.17" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.17">
-		  <PrivateAssets>all</PrivateAssets>
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.17" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.17">
-		  <PrivateAssets>all</PrivateAssets>
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
 		<PackageReference Include="morelinq" Version="3.3.2" />
-		<PackageReference Include="SharedMemory" Version="2.3.2" />
 		<PackageReference Include="TinyIpc" Version="3.1.1" />
 	</ItemGroup>
 	<ItemGroup>

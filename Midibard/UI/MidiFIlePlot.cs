@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -154,7 +154,7 @@ public partial class PluginUI
                     {
                         foreach (var (start, end, noteNumber, channel) in notes.Where(i => i.end > xMin && i.start < xMax))
                         {
-                            var translatedNoteNum = BardPlayDevice.GetNoteNumberTranslatedPerTrack(noteNumber, trackInfo.Index, out _) + 48;
+                            var translatedNoteNum = BardPlayDevice.GetNoteNumberTranslatedPerTrack(noteNumber, trackInfo.Index) + 48;
                             try
                             {
                                 drawList.AddRectFilled(
@@ -173,7 +173,7 @@ public partial class PluginUI
                     {
                         foreach (var (start, end, noteNumber, _) in notes.Where(i => i.end > xMin && i.start < xMax))
                         {
-                            var translatedNoteNum = BardPlayDevice.GetNoteNumberTranslatedPerTrack(noteNumber, trackInfo.Index, out _) + 48;
+                            var translatedNoteNum = BardPlayDevice.GetNoteNumberTranslatedPerTrack(noteNumber, trackInfo.Index) + 48;
                             drawList.AddRectFilled(
                                 ImPlot.PlotToPixels(start, translatedNoteNum + 1),
                                 ImPlot.PlotToPixels(end, translatedNoteNum),

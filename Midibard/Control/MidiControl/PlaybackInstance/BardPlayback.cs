@@ -25,9 +25,8 @@ internal sealed class BardPlayback : Playback
 
         SongName = Path.GetFileNameWithoutExtension(FilePath);
 
-        MidiFileConfig = MidiFileConfigManager.GetConfig(SongName) ?? new MidiFileConfig
+        MidiFileConfig = MidiFileConfigManager.GetConfig(FilePath) ?? new MidiFileConfig
         {
-            FileName = Path.GetFileNameWithoutExtension(filePath),
             Tracks = trackInfos.Select(i => new DbTrack() { Index = i.Index, Instrument = (int)(i.InstrumentIDFromTrackName ?? 0), Name = i.TrackName, Transpose = i.TransposeFromTrackName }).ToList(),
             Speed = MidiBard.config.playSpeed
         };
