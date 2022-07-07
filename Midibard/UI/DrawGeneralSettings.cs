@@ -15,6 +15,8 @@ public partial class PluginUI
         "Override by track: Assign guitar tone manually for each track and ignore ProgramChange events.",
     };
 
+    private bool _resetPlotWindowPosition = false;
+
     private void DrawPanelGeneralSettings()
     {
         //ImGui.SliderInt("Playlist size".Localize(), ref config.playlistSizeY, 2, 50,
@@ -87,7 +89,11 @@ public partial class PluginUI
 
 
         ImGui.Checkbox("Tracks visualization".Localize(), ref MidiBard.config.PlotTracks);
-        ImGuiUtil.ToolTip("Draw midi tracks in a new window\nshowing the on/off and actual transposition of each track".Localize());
+        if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
+        {
+	        _resetPlotWindowPosition = true;
+        }
+        ImGuiUtil.ToolTip("Draw midi tracks in a new window\nshowing the on/off and actual transposition of each track\nRight click to reset visualizer window position.".Localize());
         ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
 
         ImGui.Checkbox("Follow playback".Localize() + $" ({timeWindow:F2}s)###followPlayBack", ref MidiBard.config.LockPlot);

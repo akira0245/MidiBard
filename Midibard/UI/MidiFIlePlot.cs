@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -35,9 +35,16 @@ public partial class PluginUI
     private double timeWindow = 10;
     private void DrawPlotWindow()
     {
+
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
         ImGui.SetNextWindowBgAlpha(0);
         ImGui.SetNextWindowSize(ImGuiHelpers.ScaledVector2(640, 480), ImGuiCond.FirstUseEver);
+        if (_resetPlotWindowPosition && MidiBard.config.PlotTracks)
+        {
+	        ImGui.SetNextWindowPos(new Vector2(100), ImGuiCond.Always);
+	        ImGui.SetNextWindowSize(ImGuiHelpers.ScaledVector2(640, 480), ImGuiCond.Always);
+	        _resetPlotWindowPosition = false;
+        }
         if (ImGui.Begin("Midi tracks##MIDIBARD", ref MidiBard.config.PlotTracks,
                 MidiBard.config.LockPlot
                     ? ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoFocusOnAppearing
