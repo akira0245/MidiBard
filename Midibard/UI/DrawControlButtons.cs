@@ -15,7 +15,7 @@ public partial class PluginUI
         //mini player
 
         ImGui.SameLine();
-        if (ImGui.Button(((FontAwesomeIcon)(MidiBard.config.miniPlayer ? 0xF424 : 0xF422)).ToIconString()))
+        if (IconButton(((FontAwesomeIcon)(MidiBard.config.miniPlayer ? 0xF424 : 0xF422)),"miniplayer"))
             MidiBard.config.miniPlayer ^= true;
 
         ToolTip("Mini player".Localize());
@@ -29,7 +29,7 @@ public partial class PluginUI
                 ? MidiBard.config.themeColor
                 : *ImGui.GetStyleColorVec4(ImGuiCol.Text));
 
-        if (ImGui.Button((FontAwesomeIcon.Music).ToIconString())) MidiBard.config.showMusicControlPanel ^= true;
+        if (IconButton((FontAwesomeIcon.Music),"btnmusicctrl")) MidiBard.config.showMusicControlPanel ^= true;
 
         ImGui.PopStyleColor();
         ToolTip("Music control panel".Localize());
@@ -40,7 +40,7 @@ public partial class PluginUI
         ImGui.SameLine();
         ImGui.PushStyleColor(ImGuiCol.Text, MidiBard.config.showSettingsPanel ? MidiBard.config.themeColor : *ImGui.GetStyleColorVec4(ImGuiCol.Text));
 
-        if (ImGui.Button(FontAwesomeIcon.Cog.ToIconString())) MidiBard.config.showSettingsPanel ^= true;
+        if (IconButton(FontAwesomeIcon.Cog, "btnsettingp")) MidiBard.config.showSettingsPanel ^= true;
 
         ImGui.PopStyleColor();
         ToolTip("Settings panel".Localize());
@@ -48,8 +48,8 @@ public partial class PluginUI
 
     private static unsafe void DrawButtonPlayPause()
     {
-        var PlayPauseIcon = MidiBard.IsPlaying ? FontAwesomeIcon.Pause.ToIconString() : FontAwesomeIcon.Play.ToIconString();
-        if (ImGui.Button(PlayPauseIcon))
+        var PlayPauseIcon = MidiBard.IsPlaying ? FontAwesomeIcon.Pause : FontAwesomeIcon.Play;
+        if (ImGuiUtil.IconButton(PlayPauseIcon,"playpause"))
         {
             PluginLog.Debug($"PlayPause pressed. wasplaying: {MidiBard.IsPlaying}");
             MidiPlayerControl.PlayPause();
@@ -59,7 +59,7 @@ public partial class PluginUI
     private static unsafe void DrawButtonStop()
     {
         ImGui.SameLine();
-        if (ImGui.Button(FontAwesomeIcon.Stop.ToIconString()))
+        if (IconButton(FontAwesomeIcon.Stop, "btnstop"))
         {
             if (FilePlayback.isWaiting)
             {
@@ -75,7 +75,7 @@ public partial class PluginUI
     private static unsafe void DrawButtonFastForward()
     {
         ImGui.SameLine();
-        if (ImGui.Button(((FontAwesomeIcon)0xf050).ToIconString()))
+        if (IconButton(((FontAwesomeIcon)0xf050), "btnff"))
         {
             MidiPlayerControl.Next();
         }
@@ -99,7 +99,7 @@ public partial class PluginUI
             _ => throw new ArgumentOutOfRangeException()
         };
 
-        if (ImGui.Button(icon.ToIconString()))
+        if (IconButton(icon,"btnpmode"))
         {
             MidiBard.config.PlayMode += 1;
             MidiBard.config.PlayMode %= 5;

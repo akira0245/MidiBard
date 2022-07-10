@@ -115,20 +115,19 @@ public partial class PluginUI
                 {
 
                 }
-
             }
             End();
+
+
             PushStyleColor(ImGuiCol.TitleBgActive, *GetStyleColorVec4(ImGuiCol.WindowBg));
             PushStyleColor(ImGuiCol.TitleBg, *GetStyleColorVec4(ImGuiCol.WindowBg));
             //ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 2f);
             //ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(ImGui.GetStyle().ItemSpacing.X, ImGui.GetStyle().ItemSpacing.Y));
-
-            if (Begin($"PartyControl", ImGuiWindowFlags.NoCollapse))
+            PushStyleVar(ImGuiStyleVar.FramePadding, GetStyle().FramePadding * 2.5f);
+            PushStyleVar(ImGuiStyleVar.CellPadding, new Vector2(GetStyle().CellPadding.Y));
+            if (Begin($"PartyControl"))
             {
-                PushStyleVar(ImGuiStyleVar.FramePadding, GetStyle().FramePadding * 2.5f);
-                PushStyleVar(ImGuiStyleVar.CellPadding, new Vector2(GetStyle().CellPadding.Y));
-
-                if (CurrentPlayback != null)
+	            if (CurrentPlayback != null)
                 {
 
                     try
@@ -327,10 +326,12 @@ public partial class PluginUI
 	                }
                 }
             }
+
+            End();
+            
             PopStyleColor(2);
             PopStyleVar(2);
 
-            End();
         }
     }
 
@@ -459,7 +460,6 @@ public partial class PluginUI
 
                 Spacing();
 
-                PushFont(UiBuilder.IconFont);
                 PushStyleVar(ImGuiStyleVar.ItemSpacing, ImGuiHelpers.ScaledVector2(4, 4));
                 PushStyleVar(ImGuiStyleVar.FramePadding, ImGuiHelpers.ScaledVector2(15, 4));
                 {
@@ -471,9 +471,8 @@ public partial class PluginUI
                     DrawButtonShowSettingsPanel();
                     DrawButtonMiniPlayer();
                 }
-                PopFont();
                 PopStyleVar(2);
-
+                
                 if (config.showMusicControlPanel)
                 {
                     DrawTrackTrunkSelectionWindow();

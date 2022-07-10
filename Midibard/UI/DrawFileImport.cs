@@ -86,14 +86,14 @@ public partial class PluginUI
         }
         ImGui.BeginGroup();
 
-        if (ImGuiUtil.IconButton((FontAwesomeIcon)FontAwesomeIcon.Plus, (string)"buttonimport"))
+        if (ImGuiUtil.IconButton(FontAwesomeIcon.Plus, "buttonimport"))
         {
             RunImportFileTask();
         }
 
         ImGuiUtil.ToolTip("Import midi file\nRight click to select file dialog type\nPress ctrl+V to import files from clipboard".Localize());
         ImGui.SameLine();
-        if (ImGuiUtil.IconButton((FontAwesomeIcon)FontAwesomeIcon.Folder, (string)"buttonimportFolder"))
+        if (ImGuiUtil.IconButton(FontAwesomeIcon.Folder, "buttonimportFolder"))
         {
             RunImportFolderTask();
         }
