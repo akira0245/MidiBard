@@ -29,7 +29,7 @@ public enum GuitarToneMode
     Standard,
     Simple,
     OverrideByTrack,
-    OverrideByChannel,
+    //OverrideByChannel,
 }
 public enum UILang
 {
@@ -37,30 +37,26 @@ public enum UILang
     CN
 }
 
-public struct TrackStatus
+public class TrackStatus
 {
     public bool Enabled = true;
     public int Tone = 0;
     public int Transpose = 0;
-
-    public TrackStatus()
-    {
-    }
 }
 
-public struct ChannelStatus
-{
-    public ChannelStatus(bool enabled = true, int tone = 0, int transpose = 0)
-    {
-        Enabled = enabled;
-        Tone = tone;
-        Transpose = transpose;
-    }
+//public struct ChannelStatus
+//{
+//    public ChannelStatus(bool enabled = true, int tone = 0, int transpose = 0)
+//    {
+//        Enabled = enabled;
+//        Tone = tone;
+//        Transpose = transpose;
+//    }
 
-    public bool Enabled = true;
-    public int Tone = 0;
-    public int Transpose = 0;
-}
+//    public bool Enabled = true;
+//    public int Tone = 0;
+//    public int Transpose = 0;
+//}
 
 public class Configuration : IPluginConfiguration
 {
@@ -75,7 +71,7 @@ public class Configuration : IPluginConfiguration
 
     public Dictionary<long, HashSet<int>> CidToTrack = new ();
     public TrackStatus[] TrackStatus = Enumerable.Repeat(new TrackStatus(), 100).ToArray();
-    public ChannelStatus[] ChannelStatus = Enumerable.Repeat(new ChannelStatus(), 16).ToArray();
+    //public ChannelStatus[] ChannelStatus = Enumerable.Repeat(new ChannelStatus(), 16).ToArray();
 
     public List<string> Playlist = new List<string>();
 
@@ -151,15 +147,4 @@ public class Configuration : IPluginConfiguration
 
     public GuitarToneMode GuitarToneMode = GuitarToneMode.Off;
     //[JsonIgnore] public bool OverrideGuitarTones => GuitarToneMode == GuitarToneMode.Override;
-}
-
-class MidiFileUserData
-{
-    public double Speed;
-    public int InstrumentId;
-    public int Transpose;
-    public bool UseTrackTranspose;
-    public bool UseAdaptNotes;
-    public Dictionary<int, TrackStatus> TrackStatuses = new();
-    public Dictionary<int, ChannelStatus> ChannelStatuses = new();
 }

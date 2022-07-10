@@ -135,7 +135,7 @@ public partial class PluginUI
 
                 float ProgramNamePositionOffset = ImGui.GetTextLineHeight() * 2;
 
-                foreach (var (trackInfo, notes, programs) in _plotData.OrderBy(i => i.trackInfo.IsPlaying))
+                foreach (var (trackInfo, notes) in _plotData.OrderBy(i => i.trackInfo.IsPlaying))
                 {
                     Vector4 GetNoteColor()
                     {
@@ -157,85 +157,23 @@ public partial class PluginUI
 
                     legendInfoList.Add(($"[{trackInfo.Index + 1:00}] {trackInfo.TrackName}", noteColor, trackInfo.Index));
 
-                    if (MidiBard.config.PlotChannelView)
-                    {
-                        foreach (var (start, end, noteNumber, channel) in notes.Where(i => i.end > xMin && i.start < xMax))
-                        {
-                            var translatedNoteNum = BardPlayDevice.GetNoteNumberTranslatedPerTrack(noteNumber, trackInfo.Index) + 48;
-                            try
-                            {
-                                drawList.AddRectFilled(
-                                    ImPlot.PlotToPixels(start, translatedNoteNum + 1),
-                                    ImPlot.PlotToPixels(end, translatedNoteNum),
-                                    _channelColorPalette[channel], 4);
-                            }
-                            catch (Exception e)
-                            {
-                                //PluginLog.Error(_channelColorPalette.Select(i => $"channel:{i}").JoinString("\n"));
-                                //PluginLog.Warning($"requested: {channel} note: {noteNumber} track:{trackInfo.Index}");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        foreach (var (start, end, noteNumber, _) in notes.Where(i => i.end > xMin && i.start < xMax))
-                        {
-                            var translatedNoteNum = BardPlayDevice.GetNoteNumberTranslatedPerTrack(noteNumber, trackInfo.Index) + 48;
-                            drawList.AddRectFilled(
-                                ImPlot.PlotToPixels(start, translatedNoteNum + 1),
-                                ImPlot.PlotToPixels(end, translatedNoteNum),
-                                noteColorRgb, 4);
-                        }
-                    }
 
-
-                    #region Drawprograms
-
-                    IEnumerable<(double time, byte programNumber, byte channel)> programDatas;
-                    if (MidiBard.config.PlotShowAllPrograms)
+                    foreach (var (start, end, noteNumber, _) in notes.Where(i => i.end > xMin && i.start < xMax))
                     {
-                        programDatas = programs.Where(i => i.time >= xMin && i.time <= xMax);
+	                    var translatedNoteNum =
+		                    BardPlayDevice.GetNoteNumberTranslatedPerTrack(noteNumber, trackInfo.Index) + 48;
+	                    drawList.AddRectFilled(
+		                    ImPlot.PlotToPixels(start, translatedNoteNum + 1),
+		                    ImPlot.PlotToPixels(end, translatedNoteNum),
+		                    noteColorRgb, 4);
                     }
-                    else
-                    {
-                        programDatas = programs.Where(i => IsGuitarProgram(i.programNumber) && i.time >= xMin && i.time <= xMax);
-                    }
-
-                    foreach (var (time, programNumber, channel) in programDatas)
-                    {
-                        try
-                        {
-                            drawList.AddLine(ImPlot.PlotToPixels(time, ImPlot.GetPlotLimits().Y.Max), ImPlot.PlotToPixels(time, ImPlot.GetPlotLimits().Y.Min), _channelColorPalette[channel], ImGuiHelpers.GlobalScale);
-                            drawList.AddText(ImPlot.PlotToPixels(time, ImPlot.GetPlotLimits().Y.Min) - new Vector2(0, ProgramNamePositionOffset), _channelColorPalette[channel],
-                                $" [Channel {channel + 1}]\n {(TryGetFfxivInstrument(programNumber, out var instrument) ? instrument.FFXIVDisplayName : ProgramNames.GetGMProgramName(programNumber))}");
-                            //ProgramNamePositionOffset += ImGui.GetTextLineHeight();
-                        }
-                        catch (Exception e)
-                        {
-                            PluginLog.Error(e, "error when drawing programchange line");
-                        }
-                    }
-
-                    #endregion
                 }
 
-                if (MidiBard.config.PlotChannelView)
+                foreach (var (trackName, color, _) in legendInfoList.OrderBy(i => i.index))
                 {
-                    foreach (var (channelNumber, colorU32) in _channelColorPalette)
-                    {
-                        ImPlot.SetNextLineStyle(ImGui.ColorConvertU32ToFloat4(colorU32));
-                        var f = double.NegativeInfinity;
-                        ImPlot.PlotVLines($"Channel {channelNumber + 1}", ref f, 1);
-                    }
-                }
-                else
-                {
-                    foreach (var (trackName, color, _) in legendInfoList.OrderBy(i => i.index))
-                    {
-                        ImPlot.SetNextLineStyle(color);
-                        var f = double.NegativeInfinity;
-                        ImPlot.PlotVLines(trackName, ref f, 1);
-                    }
+	                ImPlot.SetNextLineStyle(color);
+	                var f = double.NegativeInfinity;
+	                ImPlot.PlotVLines(trackName, ref f, 1);
                 }
             }
 
@@ -277,10 +215,7 @@ public partial class PluginUI
                 }
 
                 var tmap = MidiBard.CurrentPlayback.TempoMap;
-
-                var allNoteChannels = MidiBard.CurrentPlayback.ChannelInfos.Select(i => i.ChannelNumber).ToArray();
-                _channelColorPalette = GetChannelColorPalette(allNoteChannels);
-
+                
                 _plotData = MidiBard.CurrentPlayback.TrackChunks.Select((trackChunk, index) =>
                     {
                         var trackNotes = trackChunk.GetNotes()
@@ -289,14 +224,7 @@ public partial class PluginUI
                                 (byte)j.Channel))
                             .ToArray();
 
-                        var trackPrograms = trackChunk.GetTimedEvents().Where(timedEvent =>
-                                timedEvent.Event.EventType == MidiEventType.ProgramChange)
-                            .Select(j => (time: j.TimeAs<MetricTimeSpan>(tmap).GetTotalSeconds(),
-                                programNumber: (byte)((ProgramChangeEvent)j.Event).ProgramNumber,
-                                channel: (byte)((ProgramChangeEvent)j.Event).Channel))
-                            .ToArray();
-
-                        return (MidiBard.CurrentPlayback.TrackInfos[index], notes: trackNotes, programs: trackPrograms);
+                        return (MidiBard.CurrentPlayback.TrackInfos[index], notes: trackNotes);
                     })
                     .ToArray();
 
@@ -317,14 +245,11 @@ public partial class PluginUI
     }
 
     private (TrackInfo trackInfo, 
-        (double start, double end, int noteNumber, byte channel)[] notes, 
-        (double time, byte programNumber, byte channel)[] programs)[] _plotData;
+        (double start, double end, int noteNumber, byte channel)[] notes)[] _plotData;
 
     private string[] noteNames = Enumerable.Range(0, 128)
         .Select(i => i % 12 == 0 ? new Note(new SevenBitNumber((byte)i)).ToString() : string.Empty)
         .ToArray();
-
-    private Dictionary<byte, uint> _channelColorPalette = new Dictionary<byte, uint>();
 
     private static unsafe T* Alloc<T>() where T : unmanaged
     {

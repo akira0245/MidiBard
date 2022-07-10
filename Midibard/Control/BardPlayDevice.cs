@@ -136,8 +136,6 @@ internal class BardPlayDevice : IOutputDevice
 							break;
 						case GuitarToneMode.OverrideByTrack:
 							break;
-						case GuitarToneMode.OverrideByChannel:
-							break;
 						default:
 							throw new ArgumentOutOfRangeException();
 					}
@@ -188,12 +186,6 @@ internal class BardPlayDevice : IOutputDevice
 										case GuitarToneMode.OverrideByTrack when metadata is MidiPlaybackMetaData midiPlaybackMetaData:
 											{
 												int tone = MidiBard.config.TrackStatus[midiPlaybackMetaData.TrackIndex].Tone;
-												playlib.GuitarSwitchTone(tone);
-												break;
-											}
-										case GuitarToneMode.OverrideByChannel:
-											{
-												int tone = MidiBard.config.ChannelStatus[noteOnEvent.Channel].Tone;
 												playlib.GuitarSwitchTone(tone);
 												break;
 											}

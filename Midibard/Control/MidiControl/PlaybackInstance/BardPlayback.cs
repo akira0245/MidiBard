@@ -15,13 +15,12 @@ namespace MidiBard.Control.MidiControl.PlaybackInstance;
 
 internal sealed class BardPlayback : Playback
 {
-    public BardPlayback(MidiFile file, string filePath) : this(PreparePlaybackData(file, out var tempoMap, out var trackChunks, out var trackInfos, out var channelInfos), tempoMap)
+    public BardPlayback(MidiFile file, string filePath) : this(PreparePlaybackData(file, out var tempoMap, out var trackChunks, out var trackInfos), tempoMap)
     {
         MidiFile = file;
         FilePath = filePath;
         TrackChunks = trackChunks;
         TrackInfos = trackInfos;
-        ChannelInfos = channelInfos;
 
         SongName = Path.GetFileNameWithoutExtension(FilePath);
 
@@ -50,9 +49,8 @@ internal sealed class BardPlayback : Playback
     internal string SongName { get; }
     internal TrackChunk[] TrackChunks { get; }
     internal TrackInfo[] TrackInfos { get; }
-    internal ChannelInfo[] ChannelInfos { get; }
 
-    private static IEnumerable<TimedEventWithMetadata> PreparePlaybackData(MidiFile file, out TempoMap tempoMap, out TrackChunk[] trackChunks, out TrackInfo[] trackInfos, out ChannelInfo[] channelInfos)
+    private static IEnumerable<TimedEventWithMetadata> PreparePlaybackData(MidiFile file, out TempoMap tempoMap, out TrackChunk[] trackChunks, out TrackInfo[] trackInfos)
     {
         tempoMap = TryGetTempoNap(file);
         var map = tempoMap;
@@ -61,26 +59,6 @@ internal sealed class BardPlayback : Playback
         trackInfos = trackChunks.Select((chunk, index) => GetTrackInfos(chunk, index, map)).ToArray();
 
         var timedEventWithMetadatas = GetTimedEventWithMetadata(trackChunks).ToArray();
-
-
-        channelInfos = timedEventWithMetadatas
-            .Select(i => i.Event)
-            .Where(i => i.EventType is MidiEventType.ProgramChange or MidiEventType.NoteOn)
-            .OfType<ChannelEvent>()
-            .GroupBy(i => i.Channel)
-            .OrderBy(i => i.Key)
-            .Select(i =>
-            {
-                return new ChannelInfo()
-                {
-                    ChannelNumber = i.Key,
-                    HighestNote = (SevenBitNumber?)i.Max(j => j.EventType == MidiEventType.NoteOn ? ((NoteOnEvent)j).NoteNumber : null) is { } h ? new Note(h) : null,
-                    LowestNote = (SevenBitNumber?)i.Min(j => j.EventType == MidiEventType.NoteOn ? ((NoteOnEvent)j).NoteNumber : null) is { } l ? new Note(l) : null,
-                    NoteCount = i.OfType<NoteOnEvent>().Count(),
-                    ProgramChangeEvents = i.OfType<ProgramChangeEvent>().ToArray()
-                };
-            })
-            .ToArray();
 
         return timedEventWithMetadatas;
     }
