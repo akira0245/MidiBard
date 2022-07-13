@@ -15,7 +15,7 @@ namespace MidiBard.Managers
     internal class TextureManager
     {
         private static readonly Dictionary<uint, TextureWrap> TexCache = new();
-        public static TextureWrap Get(uint id) => TexCache.GetOrCreate(id, u => api.DataManager.GetImGuiTexture(GetIconTex(u, true)));
+        public static TextureWrap Get(uint id) => TexCache.GetOrCreate(id, () => api.DataManager.GetImGuiTexture(GetIconTex(id, true)));
         public static void Dispose()
         {
             foreach (var (key, value) in TexCache)

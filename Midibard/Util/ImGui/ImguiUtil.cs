@@ -108,11 +108,11 @@ public static class ImGuiUtil
 	}
 
 
-	public static bool IconButton(FontAwesomeIcon icon, string id)
+	public static bool IconButton(FontAwesomeIcon icon, string id, float? width = null)
 	{
 		var h = ImGui.CalcTextSize("").Y;
 		PushFont(UiBuilder.IconFont);
-		var w = ImGui.CalcTextSize(icon.ToIconString()).X;
+		var w = width ?? ImGui.CalcTextSize(icon.ToIconString()).X;
 		var ret = Button($"{icon.ToIconString()}##{id}", new Vector2(w, h) + ImGui.GetStyle().FramePadding * 2f);
 		PopFont();
 		return ret;

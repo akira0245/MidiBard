@@ -23,7 +23,7 @@ public record TrackInfo
     public long DurationMidi { get; init; }
     public bool IsProgramControlled { get; init; }
     public string TrackName { get; init; }
-    public int Index { get; init; }
+    public int Index { get; set; }
 
     public ref bool IsEnabled => ref MidiBard.config.TrackStatus[Index].Enabled;
     public bool IsPlaying => MidiBard.config.SoloedTrack is int t ? t == Index : IsEnabled;
@@ -62,41 +62,91 @@ public record TrackInfo
 
         name = name.Replace(" ", "").Replace(":", "").ToLowerInvariant();
 
-        return name switch
+
+        return InstrumentIdEquals(name) ?? InsturmentContains(name);
+
+        uint? InstrumentIdEquals(string s)
         {
-            // below are to be compatible with BMP-ready MIDI files.
-            "harp" => 1,
-            "piano" => 2,
-            "lute" => 3,
-            "fiddle" => 4,
-            "flute" => 5,
-            "oboe" => 6,
-            "clarinet" => 7,
-            "fife" => 8,
-            "panpipes" => 9,
-            "timpani" => 10,
-            "bongo" => 11,
-            "bassdrum" => 12,
-            "snaredrum" => 13,
-            "cymbal" => 14,
-            "trumpet" => 15,
-            "trombone" => 16,
-            "tuba" => 17,
-            "horn" => 18,
-            "saxophone" or "sax" => 19,
-            "violin" => 20,
-            "viola" => 21,
-            "cello" => 22,
-            "doublebass" or "contrabass" => 23,
-            "electricguitaroverdriven" => 24,
-            "electricguitarclean" => 25,
-            "electricguitarmuted" => 26,
-            "electricguitarpowerchords" => 27,
-            "electricguitarspecial" => 28,
-            "programelectricguitar" => 24,
-            _ => null
-        };
+            return s switch
+            {
+                // below are to be compatible with BMP-ready MIDI files.
+                "harp" => 1,
+                "piano" => 2,
+                "lute" => 3,
+                "fiddle" => 4,
+                "flute" => 5,
+                "oboe" => 6,
+                "clarinet" => 7,
+                "fife" => 8,
+                "panpipes" => 9,
+                "timpani" => 10,
+                "bongo" => 11,
+                "bassdrum" => 12,
+                "snaredrum" => 13,
+                "cymbal" => 14,
+                "trumpet" => 15,
+                "trombone" => 16,
+                "tuba" => 17,
+                "horn" => 18,
+                "saxophone" or "sax" => 19,
+                "violin" => 20,
+                "viola" => 21,
+                "cello" => 22,
+                "doublebass" or "contrabass" => 23,
+                "electricguitaroverdriven" => 24,
+                "electricguitarclean" => 25,
+                "electricguitarmuted" => 26,
+                "electricguitarpowerchords" => 27,
+                "electricguitarspecial" => 28,
+                "programelectricguitar" => 24,
+                _ => null
+            };
+        }
+
+
+        uint? InsturmentContains(string s)
+        {
+            var instrumetId = instrumentIdMap.Find(i => s.Contains(i.name, StringComparison.InvariantCultureIgnoreCase)).instrumetID;
+
+            return instrumetId == 0 ? null : instrumetId;
+        }
     }
+
+    private static readonly List<(string name, uint instrumetID)> instrumentIdMap = new()
+    {
+        ("harp", 1),
+        ("piano", 2),
+        ("fiddle", 4),
+        ("flute", 5),
+        ("lute", 3),
+        ("oboe", 6),
+        ("clarinet", 7),
+        ("fife", 8),
+        ("panpipes", 9),
+        ("timpani", 10),
+        ("bongo", 11),
+        ("bassdrum", 12),
+        ("snaredrum", 13),
+        ("cymbal", 14),
+        ("trumpet", 15),
+        ("trombone", 16),
+        ("tuba", 17),
+        ("horn", 18),
+        ("saxophone", 19),
+        ("sax", 19),
+        ("violin", 20),
+        ("viola", 21),
+        ("cello", 22),
+        ("doublebass", 23),
+        ("contrabass", 23),
+        ("overdriven", 24),
+        ("clean", 25),
+        ("muted", 26),
+        ("powerchords", 27),
+        ("special", 28),
+        ("program", 24),
+        ("electricguitar", 24),
+    };
 
     public static int GetTransposeByName(string name)
     {

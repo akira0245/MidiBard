@@ -158,7 +158,7 @@ public partial class PluginUI
                     legendInfoList.Add(($"[{trackInfo.Index + 1:00}] {trackInfo.TrackName}", noteColor, trackInfo.Index));
 
 
-                    foreach (var (start, end, noteNumber, _) in notes.Where(i => i.end > xMin && i.start < xMax))
+                    foreach (var (start, end, noteNumber) in notes.Where(i => i.end > xMin && i.start < xMax))
                     {
 	                    var translatedNoteNum =
 		                    BardPlayDevice.GetNoteNumberTranslatedPerTrack(noteNumber, trackInfo.Index) + 48;
@@ -220,8 +220,7 @@ public partial class PluginUI
                     {
                         var trackNotes = trackChunk.GetNotes()
                             .Select(j => (j.TimeAs<MetricTimeSpan>(tmap).GetTotalSeconds(),
-                                j.EndTimeAs<MetricTimeSpan>(tmap).GetTotalSeconds(), (int)j.NoteNumber,
-                                (byte)j.Channel))
+                                j.EndTimeAs<MetricTimeSpan>(tmap).GetTotalSeconds(), (int)j.NoteNumber))
                             .ToArray();
 
                         return (MidiBard.CurrentPlayback.TrackInfos[index], notes: trackNotes);
@@ -244,8 +243,7 @@ public partial class PluginUI
             .ToDictionary(tuple => (byte)tuple.channelNumber, tuple => ImGui.ColorConvertFloat4ToU32(tuple.color));
     }
 
-    private (TrackInfo trackInfo, 
-        (double start, double end, int noteNumber, byte channel)[] notes)[] _plotData;
+    private (TrackInfo trackInfo, (double start, double end, int noteNumber)[] notes)[] _plotData;
 
     private string[] noteNames = Enumerable.Range(0, 128)
         .Select(i => i % 12 == 0 ? new Note(new SevenBitNumber((byte)i)).ToString() : string.Empty)

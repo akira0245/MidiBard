@@ -15,7 +15,8 @@ namespace MidiBard.Managers.Agents
 {
     internal class AgentConfigSystem : AgentInterface
     {
-        public AgentConfigSystem(AgentInterface agentInterface) : base(agentInterface.Pointer, agentInterface.Id) { }
+	    private static unsafe ConfigModule* _configModule = Framework.Instance()->UIModule->GetConfigModule();
+	    public AgentConfigSystem(AgentInterface agentInterface) : base(agentInterface.Pointer, agentInterface.Id) { }
 
         public unsafe void ApplyGraphicSettings()
         {
@@ -31,11 +32,11 @@ namespace MidiBard.Managers.Agents
             api.ToastGui.Toast += OnToast;
             PluginLog.Information($"graphic config saved and refreshed. func:{(long)refreshConfigGraphicState:X} agent:{Pointer:X} result:{result:X}");
         }
-        public static unsafe void EnableBackgroundFrameLimit() => Framework.Instance()->UIModule->GetConfigModule()->SetOption(ConfigOption.FPSInActive, 1);
-        public static unsafe void DisableBackgroundFrameLimit() => Framework.Instance()->UIModule->GetConfigModule()->SetOption(ConfigOption.FPSInActive, 0);
-        public unsafe AtkValue* GetOptionValue(ConfigOption option) => Framework.Instance()->UIModule->GetConfigModule()->GetValue(option);
-        public unsafe void SetOptionValue(ConfigOption option, int value) => Framework.Instance()->UIModule->GetConfigModule()->SetOption(option, value);
-        public unsafe void ToggleBoolOptionValue(ConfigOption option) => Framework.Instance()->UIModule->GetConfigModule()->SetOption(option, GetOptionValue(option)->Byte == 0 ? 1 : 0);
+        public static unsafe void EnableBackgroundFrameLimit() => _configModule->SetOption(ConfigOption.FPSInActive, 1);
+        public static unsafe void DisableBackgroundFrameLimit() => _configModule->SetOption(ConfigOption.FPSInActive, 0);
+        public static unsafe AtkValue* GetOptionValue(ConfigOption option) => _configModule->GetValue(option);
+        public static unsafe void SetOptionValue(ConfigOption option, int value) => _configModule->SetOption(option, value);
+        public static unsafe void ToggleBoolOptionValue(ConfigOption option) => _configModule->SetOption(option, GetOptionValue(option)->Byte == 0 ? 1 : 0);
         public unsafe bool BackgroundFrameLimit
         {
             get => GetOptionValue(ConfigOption.FPSInActive)->Byte == 1;

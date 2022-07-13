@@ -9,6 +9,7 @@ using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Multimedia;
 using Melanchall.DryWetMidi.Standards;
 using MidiBard.Control.CharacterControl;
+using MidiBard.Control.MidiControl.PlaybackInstance;
 using MidiBard.IPC;
 using MidiBard.Managers;
 using MidiBard.Util;
@@ -21,7 +22,7 @@ internal class BardPlayDevice : IOutputDevice
 	public abstract record MidiEventMetaData;
 	public record MidiDeviceMetaData : MidiEventMetaData;
 	public record RemoteMetadata(bool overrideTone, int tone) : MidiEventMetaData;
-	public record MidiPlaybackMetaData(int TrackIndex) : MidiEventMetaData;
+	public record MidiPlaybackMetaData(int TrackIndex, long time, int eventValue) : MidiEventMetaData;
 
 	public static BardPlayDevice Instance { get; } = new();
 	private BardPlayDevice()
@@ -115,6 +116,23 @@ internal class BardPlayDevice : IOutputDevice
 					if (!MidiBard.config.TrackStatus[trackIndex].Enabled)
 					{
 						return false;
+					}
+				}
+
+				if (MidiBard.config.TrimChords && midiEvent.EventType is MidiEventType.NoteOn or MidiEventType.NoteOff)
+				{
+					try
+					{
+						var time = midiPlaybackMetaData.time;
+						var position = BardPlayback.TrimDict[midiPlaybackMetaData.TrackIndex][time][midiPlaybackMetaData.eventValue];
+						if (position > MidiBard.config.TrimTo)
+						{
+							return false;
+						}
+					}
+					catch (Exception e)
+					{
+						PluginLog.Warning(e,"error when get note trimming info");
 					}
 				}
 			}

@@ -94,7 +94,6 @@ public class Configuration : IPluginConfiguration
     public int? SoloedChannel = null;
     public bool EnableTransposePerTrack = false;
     public int uiLang = DalamudApi.api.PluginInterface.UiLanguage == "zh" ? 1 : 0;
-    public bool showMusicControlPanel = true;
     public bool showSettingsPanel = true;
     public int playlistSizeY = 10;
     public bool miniPlayer = false;
@@ -133,6 +132,10 @@ public class Configuration : IPluginConfiguration
     public bool PlotTracks;
     public bool LockPlot;
 
+
+    public bool TrimChords = false;
+    public int TrimTo = 1;
+
     //public float plotScale = 10f;
 
     public bool PlotChannelView = false;
@@ -141,6 +144,7 @@ public class Configuration : IPluginConfiguration
     public bool StopPlayingWhenEnsembleEnds = true;
     public bool AutoSetBackgroundFrameLimit = true;
 
+    public bool ShowEnsembleControlWindow = false;
     public bool SyncClients = false;
     //public bool SyncPlaybackLoading = false;
     //public bool SyncTrackStatus = false;

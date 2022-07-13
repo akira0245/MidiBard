@@ -21,20 +21,6 @@ public partial class PluginUI
         ToolTip("Mini player".Localize());
     }
 
-    private static unsafe void DrawButtonShowPlayerControl()
-    {
-        ImGui.SameLine();
-        ImGui.PushStyleColor(ImGuiCol.Text,
-            MidiBard.config.showMusicControlPanel
-                ? MidiBard.config.themeColor
-                : *ImGui.GetStyleColorVec4(ImGuiCol.Text));
-
-        if (IconButton((FontAwesomeIcon.Music),"btnmusicctrl")) MidiBard.config.showMusicControlPanel ^= true;
-
-        ImGui.PopStyleColor();
-        ToolTip("Music control panel".Localize());
-    }
-
     private static unsafe void DrawButtonShowSettingsPanel()
     {
         ImGui.SameLine();
@@ -44,6 +30,17 @@ public partial class PluginUI
 
         ImGui.PopStyleColor();
         ToolTip("Settings panel".Localize());
+    }
+
+    private static unsafe void DrawButtonShowEnsembleControl()
+    {
+	    ImGui.SameLine();
+	    ImGui.PushStyleColor(ImGuiCol.Text, MidiBard.config.ShowEnsembleControlWindow ? MidiBard.config.themeColor : *ImGui.GetStyleColorVec4(ImGuiCol.Text));
+
+	    if (IconButton((FontAwesomeIcon)0xF0C0, "btnensemble")) MidiBard.config.ShowEnsembleControlWindow ^= true;
+
+	    ImGui.PopStyleColor();
+	    ToolTip("Ensemble panel".Localize());
     }
 
     private static unsafe void DrawButtonPlayPause()

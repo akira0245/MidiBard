@@ -93,11 +93,11 @@ public partial class PluginUI
 
         ImGuiUtil.ToolTip("Import midi file\nRight click to select file dialog type\nPress ctrl+V to import files from clipboard".Localize());
         ImGui.SameLine();
-        if (ImGuiUtil.IconButton(FontAwesomeIcon.Folder, "buttonimportFolder"))
+        if (ImGuiUtil.IconButton(FontAwesomeIcon.FolderOpen, "buttonimportFolder"))
         {
             RunImportFolderTask();
         }
-        ImGuiUtil.ToolTip("Import folder\nImports all midi files in selected folder and it's subfolder.\nThis may take a while when you select a folder that contains multiple layers of folders.".Localize());
+        ImGuiUtil.ToolTip("Import folder\nImports all midi files in selected folder and it's all subfolders.\nThis may take a while when you select a folder that contains multiple layers of folders.".Localize());
         ImGui.EndGroup();
 
         ImGui.OpenPopupOnItemClick("OpenFileDialog_selection", ImGuiPopupFlags.MouseButtonRight);

@@ -32,14 +32,11 @@ public static class FilePlayback
     {
         PluginLog.Debug($"[LoadPlayback] -> {path} START");
         var stopwatch = Stopwatch.StartNew();
-        var playback = new BardPlayback(midifile, path)
-        {
-            InterruptNotesOnStop = true,
-            TrackNotes = true,
-            TrackProgram = true,
-            Speed = config.playSpeed,
-        };
-
+        var playback = BardPlayback.GetBardPlayback(midifile, path);
+        playback.InterruptNotesOnStop = true;
+        playback.TrackNotes = true;
+        playback.TrackProgram = true;
+        playback.Speed = config.playSpeed;
         playback.Finished += Playback_Finished;
         PluginLog.Debug($"[LoadPlayback] -> {path} OK! in {stopwatch.Elapsed.TotalMilliseconds} ms");
         return playback;

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFramework>net5.0-windows</TargetFramework>
-		<LangVersion>10.0</LangVersion>
+		<LangVersion>latest</LangVersion>
 		<AssemblyVersion>1.9.4.1</AssemblyVersion>
 		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
