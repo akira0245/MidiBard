@@ -469,17 +469,10 @@ public partial class PluginUI
 							SetNextItemWidth(-1);
 							var current = api.PartyList.ToList().FindIndex(i => i?.ContentId != 0 && i?.ContentId == dbTrack.PlayerCid);
 							var strings = api.PartyList.Select(i => i.NameAndWorld()).ToArray();
-							if (BeginCombo("##partymemberSelect", api.PartyList.IsInParty() ? strings[current] : "Not in a party", ImGuiComboFlags.HeightLarge))
+							if (Combo("##partymemberSelect", ref current, strings, strings.Length))
 							{
-								for (var i = 0; i < strings.Length; i++)
-								{
-									if (Selectable($"{strings[i]}## {i}", i == current))
-									{
-										dbTrack.PlayerCid = api.PartyList[i]?.ContentId ?? 0;
-										changed = true;
-									}
-								}
-								EndCombo();
+								dbTrack.PlayerCid = api.PartyList[current]?.ContentId ?? 0;
+								changed = true;
 							}
 
 							PopStyleColor();
