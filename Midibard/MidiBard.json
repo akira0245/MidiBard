@@ -9,6 +9,10 @@
     "perform",
     "instrument"
   ],
+  "CategoryTags": [
+    "utility",
+    "other"
+  ],
   "DalamudApiLevel": 6,
   "IconUrl": "https://i.loli.net/2021/09/09/L1fkrwElUKYMtN3.png"
 }

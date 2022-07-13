@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static MidiBard.MidiBard;
+using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+using MidiBard.Managers.Agents;
 
 namespace MidiBard.Control.CharacterControl;
 
@@ -18,27 +19,32 @@ class PerformanceEvents
 
     private void EnteringPerformance()
     {
-        if (config.AutoOpenPlayerWhenPerforming)
+        if (MidiBard.config.AutoOpenPlayerWhenPerforming)
             if (!SwitchInstrument.SwitchingInstrument)
-                Ui.Open();
+	            MidiBard.Ui.Open();
 
-        if (config.AutoSetBackgroundFrameLimit)
+        if (MidiBard.config.AutoSetBackgroundFrameLimit)
         {
-            AgentConfigSystem.BackgroundFrameLimit = false;
-            AgentConfigSystem.ApplyGraphicSettings();
+	        MidiBard.AgentConfigSystem.BackgroundFrameLimit = false;
+	        MidiBard.AgentConfigSystem.ApplyGraphicSettings();
+        }
+
+        if (MidiBard.config.AutoSetOffAFKSwitchingTime)
+        {
+	        AgentConfigSystem.SetOptionValue(ConfigOption.AutoAfkSwitchingTime, 0);
         }
     }
 
     private void ExitingPerformance()
     {
-        if (config.AutoOpenPlayerWhenPerforming)
+        if (MidiBard.config.AutoOpenPlayerWhenPerforming)
             if (!SwitchInstrument.SwitchingInstrument)
-                Ui.Close();
+	            MidiBard.Ui.Close();
 
-        if (config.AutoSetBackgroundFrameLimit)
+        if (MidiBard.config.AutoSetBackgroundFrameLimit)
         {
-            AgentConfigSystem.BackgroundFrameLimit = true;
-            AgentConfigSystem.ApplyGraphicSettings();
+	        MidiBard.AgentConfigSystem.BackgroundFrameLimit = true;
+	        MidiBard.AgentConfigSystem.ApplyGraphicSettings();
         }
     }
 

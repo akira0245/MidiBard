@@ -145,10 +145,12 @@ public class Configuration : IPluginConfiguration
     public bool AutoSetBackgroundFrameLimit = true;
 
     public bool ShowEnsembleControlWindow = false;
-    public bool SyncClients = false;
+    public bool SyncClients = true;
     //public bool SyncPlaybackLoading = false;
     //public bool SyncTrackStatus = false;
 
     public GuitarToneMode GuitarToneMode = GuitarToneMode.Off;
+
+    public bool AutoSetOffAFKSwitchingTime = true;
     //[JsonIgnore] public bool OverrideGuitarTones => GuitarToneMode == GuitarToneMode.Override;
 }

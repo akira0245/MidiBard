@@ -2,7 +2,7 @@
 	<PropertyGroup>
 		<TargetFramework>net5.0-windows</TargetFramework>
 		<LangVersion>latest</LangVersion>
-		<AssemblyVersion>1.10.0.0</AssemblyVersion>
+		<AssemblyVersion>1.10.1.0</AssemblyVersion>
 		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 		<Nullable>disable</Nullable>
