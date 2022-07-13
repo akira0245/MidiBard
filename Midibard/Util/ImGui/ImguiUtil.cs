@@ -229,6 +229,7 @@ public static class ImGuiUtil
 
 		return b;
 	}
+	public static float GetWindowContentRegionWidth() => ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X;
 
 	public const uint ColorRed = 0xFF0000C8;
 	public const uint ColorYellow = 0xFF00C8C8;

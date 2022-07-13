@@ -34,7 +34,7 @@ public partial class PluginUI
 
 
         //ImGui.SetNextItemWidth(ImGui.GetWindowWidth() * 0.5f - ImGui.CalcTextSize("Delay".Localize()).X);
-        ImGui.PushItemWidth(ImGui.GetWindowContentRegionWidth() / 3.36f);
+        ImGui.PushItemWidth(ImGuiUtil.GetWindowContentRegionWidth() / 3.36f);
         ImGui.DragFloat("Delay".Localize(), ref MidiBard.config.secondsBetweenTracks, 0.01f, 0, 60,
             $"{MidiBard.config.secondsBetweenTracks:f2} s",
             ImGuiSliderFlags.AlwaysClamp | ImGuiSliderFlags.NoRoundToFormat);
@@ -42,7 +42,7 @@ public partial class PluginUI
             MidiBard.config.secondsBetweenTracks = 0;
         ToolTip("Delay time before play next track.".Localize());
 
-        ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
+        ImGui.SameLine(ImGuiUtil.GetWindowContentRegionWidth() / 2);
         ImGui.InputInt("Transpose".Localize(), ref MidiBard.config.TransposeGlobal, 12);
         if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
             MidiBard.config.TransposeGlobal = 0;
@@ -52,7 +52,7 @@ public partial class PluginUI
         ImGui.Checkbox("Auto adapt notes".Localize(), ref MidiBard.config.AdaptNotesOOR);
         ToolTip("Adapt high/low pitch notes which are out of range\r\ninto 3 octaves we can play".Localize());
 
-        ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
+        ImGui.SameLine(ImGuiUtil.GetWindowContentRegionWidth() / 2);
 
         ImGui.Checkbox("Transpose per track".Localize(), ref MidiBard.config.EnableTransposePerTrack);
         if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))

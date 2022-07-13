@@ -93,14 +93,14 @@ public partial class PluginUI
 				DrawPlotWindow();
 			}
 
-			DrawPartyFormationEditor();
 			DrawEnsembleControl();
 		}
 
+#if DEBUG
 
-		if (ImGui.Begin("iconexp"))
+		if (Begin("iconexp"))
 		{
-			ImGui.PushFont(UiBuilder.IconFont);
+			PushFont(UiBuilder.IconFont);
 			try
 			{
 				for (int i = 0xF000; i < 0xFFFF; i++)
@@ -108,12 +108,12 @@ public partial class PluginUI
 					var reali = i - 0xEF00;
 					var x = 40;
 					var y = 40;
-					var xpos = x * reali % (ImGui.GetWindowContentRegionWidth() - 30);
-					var ypos = y * MathF.Floor(x * reali / ImGui.GetWindowContentRegionWidth());
-					ImGui.SetCursorPos(new Vector2(xpos, ypos));
+					var xpos = x * reali % (ImGuiUtil.GetWindowContentRegionWidth() - 30);
+					var ypos = y * MathF.Floor(x * reali / ImGuiUtil.GetWindowContentRegionWidth());
+					SetCursorPos(new Vector2(xpos, ypos));
 					var icon = (FontAwesomeIcon)i;
 					TextUnformatted(icon.ToIconString());
-					if (ImGui.IsItemHovered())
+					if (IsItemHovered())
 					{
 						ToolTip($"{icon} {(int)icon:X}");
 					}
@@ -123,9 +123,9 @@ public partial class PluginUI
 			{
 				//
 			}
-			ImGui.PopFont();
+			PopFont();
 		}
-		ImGui.End();
+		End();
 
 		if (api.ClientState.IsLoggedIn && false)
 		{
@@ -142,10 +142,10 @@ public partial class PluginUI
 					var a = 0;
 					foreach (var i in api.PartyList)
 					{
-						ImGui.TextUnformatted(
+						TextUnformatted(
 							$"{i?.Name}@{i.World.GameData?.Name} {(i.IsPartyLeader() ? "[Leader]" : "")}\n[{i?.ObjectId:X}] [{i.ContentId:X}]");
-						ImGui.SameLine();
-						if (ImGui.Button($"CID##cpycid{a++}"))
+						SameLine();
+						if (Button($"CID##cpycid{a++}"))
 						{
 							var s = i.ContentId.ToString("X");
 							SetClipboardText(s);
@@ -158,7 +158,7 @@ public partial class PluginUI
 				}
 
 
-				if (Checkbox("SyncPlaylist", ref MidiBard.config.SyncClients))
+				if (Checkbox("SyncPlaylist", ref config.SyncClients))
 				{
 
 				}
@@ -234,6 +234,7 @@ public partial class PluginUI
 		//	}
 		//}
 		//End();
+#endif
 	}
 
 	private static unsafe void DrawEnsembleControl()
@@ -354,63 +355,63 @@ public partial class PluginUI
 			ToolTip("Delete and reset current file config".Localize());
 
 
-			SameLine();
-			if (Button("TEST"))
-			{
-				try
-				{
-					var values = Enum.GetValues<ConfigOption>();
-					foreach (var value in values)
-					{
-						try
-						{
-							if (!value.ToString().ContainsIgnoreCase("sound"))
-							{
-								continue;
-							}
+			//SameLine();
+			//if (Button("TEST"))
+			//{
+			//	try
+			//	{
+			//		var values = Enum.GetValues<ConfigOption>();
+			//		foreach (var value in values)
+			//		{
+			//			try
+			//			{
+			//				if (!value.ToString().ContainsIgnoreCase("sound"))
+			//				{
+			//					continue;
+			//				}
 
-							var optionValue = AgentConfigSystem.GetOptionValue(value);
-							var valueType = optionValue->Type;
-							PluginLog.Information($"{value} {valueType} {(valueType == ValueType.Int ? optionValue->Int.ToString() : "")}");
-						}
-						catch (Exception e)
-						{
-							//PluginLog.Information($"{value} ---");
-						}
+			//				var optionValue = AgentConfigSystem.GetOptionValue(value);
+			//				var valueType = optionValue->Type;
+			//				PluginLog.Information($"{value} {valueType} {(valueType == ValueType.Int ? optionValue->Int.ToString() : "")}");
+			//			}
+			//			catch (Exception e)
+			//			{
+			//				//PluginLog.Information($"{value} ---");
+			//			}
 
-					}
-				}
-				catch (Exception e)
-				{
-					PluginLog.Error(e.ToString());
-				}
-			}
-			SameLine();
-			if (Button("TEST2"))
-			{
-				try
-				{
-					AgentConfigSystem.SetOptionValue(ConfigOption.GeneralQuality, 0);
-					MidiBard.AgentConfigSystem.ApplyGraphicSettings();
-				}
-				catch (Exception e)
-				{
-					PluginLog.Error(e.ToString());
-				}
-			}
-			SameLine();
-			if (Button("TEST3"))
-			{
-				try
-				{
-					AgentConfigSystem.SetOptionValue(ConfigOption.GeneralQuality, 4);
-					MidiBard.AgentConfigSystem.ApplyGraphicSettings();
-				}
-				catch (Exception e)
-				{
-					PluginLog.Error(e.ToString());
-				}
-			}
+			//		}
+			//	}
+			//	catch (Exception e)
+			//	{
+			//		PluginLog.Error(e.ToString());
+			//	}
+			//}
+			//SameLine();
+			//if (Button("TEST2"))
+			//{
+			//	try
+			//	{
+			//		AgentConfigSystem.SetOptionValue(ConfigOption.GeneralQuality, 0);
+			//		MidiBard.AgentConfigSystem.ApplyGraphicSettings();
+			//	}
+			//	catch (Exception e)
+			//	{
+			//		PluginLog.Error(e.ToString());
+			//	}
+			//}
+			//SameLine();
+			//if (Button("TEST3"))
+			//{
+			//	try
+			//	{
+			//		AgentConfigSystem.SetOptionValue(ConfigOption.GeneralQuality, 4);
+			//		MidiBard.AgentConfigSystem.ApplyGraphicSettings();
+			//	}
+			//	catch (Exception e)
+			//	{
+			//		PluginLog.Error(e.ToString());
+			//	}
+			//}
 
 
 			Separator();
@@ -566,7 +567,7 @@ public partial class PluginUI
                                     EndCombo();
                                 }
                                 TableNextColumn();
-                                //ImGui.SetNextItemWidth(ImGui.GetWindowContentRegionWidth() - ImGui.GetCursorPosX() + ImGui.GetStyle().FramePadding.X);
+                                //ImGui.SetNextItemWidth(ImGuiUtil.GetWindowContentRegionWidth() - ImGui.GetCursorPosX() + ImGui.GetStyle().FramePadding.X);
                                 SetNextItemWidth(-1);
                                 changed |= SelectInstrumentCombo($"##{profile.cid}", ref profile.instrument);
                                 TableNextColumn();

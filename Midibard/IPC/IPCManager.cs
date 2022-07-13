@@ -149,16 +149,25 @@ static class RPC
 
 internal class IPCManager : IDisposable
 {
+	private readonly bool initFailed;
 	private TinyMessageBus MessageBus { get; }
-
 	internal IPCManager()
 	{
-		MessageBus = new TinyMessageBus("Midibard.IPC");
-		MessageBus.MessageReceived += MessageBus_MessageReceived;
+		try
+		{
+			MessageBus = new TinyMessageBus("Midibard.IPC");
+			MessageBus.MessageReceived += MessageBus_MessageReceived;
+		}
+		catch (Exception e)
+		{
+			PluginLog.Error(e, $"TinyIpc init failed. Unfortunately TinyIpc is not available on Linux. local ensemble sync will not function properly.");
+			initFailed = true;
+		}
 	}
 
 	private void MessageBus_MessageReceived(object sender, TinyMessageReceivedEventArgs e)
 	{
+		if (initFailed) return;
 		try
 		{
 			var message = IPCEnvelope.Deserialize(e.Message);
@@ -214,14 +223,9 @@ internal class IPCManager : IDisposable
 		}
 	}
 
-	//public void BroadCast<T>(MessageTypeCode opcode, T data, bool includeSelf = false) where T : struct
-	//{
-	//	var bytes = IPCEnvelope.Create(opcode, data).Serialize();
-	//	BroadCast(bytes, includeSelf);
-	//}
-
 	public void BroadCast(byte[] serialized, bool includeSelf = false)
 	{
+		if (initFailed) return;
 		PluginLog.Debug($"message published. length: {Dalamud.Utility.Util.FormatBytes(serialized.Length)}");
 		try
 		{
@@ -234,15 +238,11 @@ internal class IPCManager : IDisposable
 		}
 	}
 
-
-
-	//public event EventHandler<(long cid, byte[] response)> RPCResponse;
-
-
 	private void ReleaseUnmanagedResources(bool disposing)
 	{
 		try
 		{
+			if (initFailed) return;
 			MessageBus.MessageReceived -= MessageBus_MessageReceived;
 		}
 		finally

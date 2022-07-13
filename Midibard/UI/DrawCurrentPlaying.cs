@@ -86,7 +86,7 @@ public partial class PluginUI
 
         ImGui.TextUnformatted($"{currentTime.Hours}:{currentTime.Minutes:00}:{currentTime.Seconds:00}");
         var durationText = $"{duration.Hours}:{duration.Minutes:00}:{duration.Seconds:00}";
-        ImGui.SameLine(ImGui.GetWindowContentRegionWidth() - ImGui.CalcTextSize(durationText).X);
+        ImGui.SameLine(ImGuiUtil.GetWindowContentRegionWidth() - ImGui.CalcTextSize(durationText).X);
         ImGui.TextUnformatted(durationText);
         try
         {
@@ -108,7 +108,7 @@ public partial class PluginUI
                 currentInstrumentText = string.Empty;
             }
 
-            ImGui.SameLine((ImGui.GetWindowContentRegionWidth() - ImGui.CalcTextSize(currentInstrumentText).X) / 2);
+            ImGui.SameLine((ImGuiUtil.GetWindowContentRegionWidth() - ImGui.CalcTextSize(currentInstrumentText).X) / 2);
             ImGui.TextUnformatted(currentInstrumentText);
         }
         catch (Exception e)

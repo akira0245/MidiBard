@@ -68,13 +68,13 @@ public partial class PluginUI
 
         //ImGui.Checkbox("Auto restart listening".Localize(), ref MidiBard.config.autoRestoreListening);
         //ImGuiUtil.ToolTip("Try auto restart listening last used midi device".Localize());
-        //ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
+        //ImGui.SameLine(ImGuiUtil.GetWindowContentRegionWidth() / 2);
         //ImGui.Checkbox("Auto listening new device".Localize(), ref MidiBard.config.autoStartNewListening);
         //ImGuiUtil.ToolTip("Auto start listening new midi input device when idle.".Localize());
 
-        ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
+        ImGui.SameLine(ImGuiUtil.GetWindowContentRegionWidth() / 2);
 
-        ImGui.SetNextItemWidth(ImGui.GetWindowContentRegionWidth() / 3.36f);
+        ImGui.SetNextItemWidth(ImGuiUtil.GetWindowContentRegionWidth() / 3.36f);
         ImGuiUtil.EnumCombo("Tone mode".Localize(), ref MidiBard.config.GuitarToneMode, _toolTips);
         ImGuiUtil.ToolTip("Choose how MidiBard will handle MIDI channels and ProgramChange events(current only affects guitar tone changing)".Localize());
 
@@ -82,7 +82,7 @@ public partial class PluginUI
         ImGui.Checkbox("Auto open MidiBard".Localize(), ref MidiBard.config.AutoOpenPlayerWhenPerforming);
         ImGuiUtil.ToolTip("Open MidiBard window automatically when entering performance mode".Localize());
 
-        ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
+        ImGui.SameLine(ImGuiUtil.GetWindowContentRegionWidth() / 2);
 
         ImGui.Checkbox("Monitor ensemble".Localize(), ref MidiBard.config.MonitorOnEnsemble);
         ImGuiUtil.ToolTip("Auto start ensemble when entering in-game party ensemble mode.".Localize());
@@ -94,22 +94,15 @@ public partial class PluginUI
 	        _resetPlotWindowPosition = true;
         }
         ImGuiUtil.ToolTip("Draw midi tracks in a new window\nshowing the on/off and actual transposition of each track\nRight click to reset visualizer window position.".Localize());
-        ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
+        ImGui.SameLine(ImGuiUtil.GetWindowContentRegionWidth() / 2);
 
-        ImGui.Checkbox("Follow playback".Localize() + $" ({timeWindow:F2}s)###followPlayBack", ref MidiBard.config.LockPlot);
-        if (ImGui.IsItemHovered())
-        {
-            timeWindow *= Math.Pow(Math.E, ImGui.GetIO().MouseWheel * -0.1);
-        }
-        ImGuiUtil.ToolTip(
-            MidiBard.config.LockPlot
-                ? "Lock tracks window and auto following current playback progress\nScroll mouse here to adjust view timeline scale".Localize()
-                : "Lock tracks window and auto following current playback progress".Localize());
+        ImGui.Checkbox("Follow playback".Localize(), ref MidiBard.config.LockPlot);
+        ImGuiUtil.ToolTip("Auto following current playback progress".Localize());
 
         ImGui.Checkbox("Auto switch instrument".Localize(), ref MidiBard.config.autoSwitchInstrumentBySongName);
         ImGuiUtil.ToolTip("Auto switch instrument on demand. If you need this, \nplease add #instrument name# before file name.\nE.g. #harp#demo.mid".Localize());
 
-        ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
+        ImGui.SameLine(ImGuiUtil.GetWindowContentRegionWidth() / 2);
 
         ImGui.Checkbox("Auto transpose".Localize(), ref MidiBard.config.autoTransposeBySongName);
         ImGuiUtil.ToolTip("Auto transpose notes on demand. If you need this, \nplease add #transpose number# before file name.\nE.g. #-12#demo.mid".Localize());
@@ -137,8 +130,8 @@ public partial class PluginUI
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() - ImGui.GetStyle().ItemInnerSpacing.X);
         ImGui.TextUnformatted("Theme color".Localize());
 
-        ImGui.SameLine(ImGui.GetWindowContentRegionWidth() / 2);
-        ImGui.SetNextItemWidth(ImGui.GetWindowContentRegionWidth() / 3.36f);
+        ImGui.SameLine(ImGuiUtil.GetWindowContentRegionWidth() / 2);
+        ImGui.SetNextItemWidth(ImGuiUtil.GetWindowContentRegionWidth() / 3.36f);
         if (ImGui.Combo("UI Language".Localize(), ref MidiBard.config.uiLang, uilangStrings, 2))
             MidiBard.Localizer = new Localizer((UILang)MidiBard.config.uiLang);
 

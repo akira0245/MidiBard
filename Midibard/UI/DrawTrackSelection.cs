@@ -32,9 +32,9 @@ public partial class PluginUI
         {
             if (false)
             {
-                ImGui.SetNextWindowSizeConstraints(new Vector2(ImGui.GetWindowContentRegionWidth() - 1,
+                ImGui.SetNextWindowSizeConstraints(new Vector2(ImGuiUtil.GetWindowContentRegionWidth() - 1,
                     Math.Min(MidiBard.CurrentPlayback.TrackInfos.Length, 4.7f) * ImGui.GetFrameHeightWithSpacing() -
-                    ImGui.GetStyle().ItemSpacing.Y), new Vector2(ImGui.GetWindowContentRegionWidth() - 1,
+                    ImGui.GetStyle().ItemSpacing.Y), new Vector2(ImGuiUtil.GetWindowContentRegionWidth() - 1,
                     Math.Min(MidiBard.CurrentPlayback.TrackInfos.Length, 4.7f) * ImGui.GetFrameHeightWithSpacing() -
                     ImGui.GetStyle().ItemSpacing.Y));
                 ImGui.SetNextWindowPos(ImGui.GetWindowPos() + new Vector2(2, 0), ImGuiCond.Appearing, new Vector2(-1, 0));
@@ -49,7 +49,7 @@ public partial class PluginUI
                 ImGui.Separator();
                 if (ImGui.BeginChild("TrackTrunkSelection",
                         new Vector2(
-                            ImGui.GetWindowContentRegionWidth() - 1,
+                            ImGuiUtil.GetWindowContentRegionWidth() - 1,
                             Math.Min(MidiBard.CurrentPlayback.TrackInfos.Length, 8.5f) * ImGui.GetFrameHeightWithSpacing() - ImGui.GetStyle().ItemSpacing.Y),
                         false, ImGuiWindowFlags.NoDecoration))
                 {
@@ -70,7 +70,7 @@ public partial class PluginUI
             if (MidiBard.PlayingGuitar && MidiBard.config.GuitarToneMode == GuitarToneMode.OverrideByTrack)
             {
                 ImGui.Columns(2);
-                ImGui.SetColumnWidth(0, ImGui.GetWindowContentRegionWidth() - 6 * (2 * ImGuiHelpers.GlobalScale) - 5 * (ImGui.GetFrameHeight() * 0.8f));
+                ImGui.SetColumnWidth(0, ImGuiUtil.GetWindowContentRegionWidth() - 6 * (2 * ImGuiHelpers.GlobalScale) - 5 * (ImGui.GetFrameHeight() * 0.8f));
             }
 
             bool soloing = MidiBard.config.SoloedTrack is not null;

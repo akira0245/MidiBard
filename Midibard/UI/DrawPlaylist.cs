@@ -62,7 +62,7 @@ public partial class PluginUI
 
 			if (MidiBard.Localizer.Language == UILang.CN)
 			{
-				SameLine(GetWindowContentRegionWidth() - ImGuiHelpers.GetButtonSize(FontAwesomeIcon.QuestionCircle.ToIconString()).X);
+				SameLine(ImGuiUtil.GetWindowContentRegionWidth() - ImGuiHelpers.GetButtonSize(FontAwesomeIcon.QuestionCircle.ToIconString()).X);
 
 				if (IconButton(FontAwesomeIcon.QuestionCircle, "helpbutton"))
 				{
