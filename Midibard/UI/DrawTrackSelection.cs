@@ -99,7 +99,10 @@ public partial class PluginUI
                         ImGui.PushStyleColor(ImGuiCol.Text, color);
                         ImGui.PushStyleColor(ImGuiCol.CheckMark, colorCheckmark);
 
-                        ImGui.Checkbox("##checkbox", ref MidiBard.config.TrackStatus[i].Enabled);
+                        if (ImGui.Checkbox("##checkbox", ref MidiBard.config.TrackStatus[i].Enabled))
+                        {
+                            JudgeSwitchInstrument(i);
+                        }
 
                         if (MidiBard.config.EnableTransposePerTrack)
                         {
@@ -121,18 +124,7 @@ public partial class PluginUI
                         if (ImGui.IsItemClicked())
                         {
                             MidiBard.config.TrackStatus[i].Enabled ^= true;
-                            if (MidiBard.config.bmpTrackNames && !MidiBard.IsPlaying)
-                            {
-                                var firstEnabledTrack = MidiBard.CurrentPlayback.TrackInfos.FirstOrDefault(trackInfo => trackInfo.IsEnabled);
-                                if (firstEnabledTrack?.InstrumentIDFromTrackName != null)
-                                {
-                                    SwitchInstrument.SwitchTo((uint)firstEnabledTrack.InstrumentIDFromTrackName);
-                                }
-                                else
-                                {
-                                    SwitchInstrument.SwitchTo(0);
-                                }
-                            }
+                            JudgeSwitchInstrument(i);
                         }
 
                         if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
@@ -231,5 +223,21 @@ public partial class PluginUI
         }
 
         return ret;
+    }
+
+    private void JudgeSwitchInstrument(int idx)
+    {
+        if (MidiBard.config.bmpTrackNames && !MidiBard.IsPlaying)
+        {
+            var firstEnabledTrack = MidiBard.CurrentPlayback.TrackInfos.FirstOrDefault(trackInfo => trackInfo.IsEnabled);
+            if (firstEnabledTrack?.InstrumentIDFromTrackName != null)
+            {
+                SwitchInstrument.SwitchTo((uint)firstEnabledTrack.InstrumentIDFromTrackName);
+            }
+            else
+            {
+                SwitchInstrument.SwitchTo(0);
+            }
+        }
     }
 }
