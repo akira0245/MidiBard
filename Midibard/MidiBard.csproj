@@ -26,6 +26,7 @@
 		<!--<PackageReference Include="ILRepack" Version="2.0.18" />-->
 		<PackageReference Include="Melanchall.DryWetMidi" Version="6.1.1" />
 		<PackageReference Include="morelinq" Version="3.3.2" />
+		<PackageReference Include="System.Text.Encoding.CodePages" Version="6.0.0" />
 		<PackageReference Include="TinyIpc" Version="3.1.1" />
 	</ItemGroup>
 	<ItemGroup>
@@ -62,10 +63,6 @@
 			<Private>false</Private>
 		</Reference>
 	</ItemGroup>
-
-	<Target Name="CopyFiles" AfterTargets="Build">
-		<Copy SourceFiles="..\lib\System.Text.Encoding.CodePages.dll" DestinationFolder="$(TargetDir)" />
-	</Target>
 
 	<Target Name="CleanOutDir" AfterTargets="Build">
 		<ItemGroup>
