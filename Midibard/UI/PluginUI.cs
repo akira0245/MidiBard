@@ -353,14 +353,14 @@ public partial class PluginUI
 			}
 			ToolTip("Delete and reset current file config".Localize());
 
-			//SameLine();
-			//if (IconButton(otherClientsMuted ? FontAwesomeIcon.VolumeMute : FontAwesomeIcon.VolumeUp, "Mute other clients", width))
-			//{
-			//	IPCHandles.SetOption(ConfigOption.SoundMaster, otherClientsMuted ? 100 : 0, false);
-			//	AgentConfigSystem.SetOptionValue(ConfigOption.SoundMaster, 100);
-			//	otherClientsMuted ^= true;
-			//}
-			//ToolTip(otherClientsMuted ? "Unmute other clients".Localize() : "Mute other clients".Localize());
+			SameLine();
+			if (IconButton(otherClientsMuted ? FontAwesomeIcon.VolumeMute : FontAwesomeIcon.VolumeUp, "Mute other clients", width))
+			{
+				IPCHandles.SetOption(ConfigOption.SoundMaster, otherClientsMuted ? 100 : 0, false);
+				AgentConfigSystem.SetOptionValue(ConfigOption.SoundMaster, 100);
+				otherClientsMuted ^= true;
+			}
+			ToolTip(otherClientsMuted ? "Unmute other clients".Localize() : "Mute other clients".Localize());
 
 
 			SameLine();
@@ -372,7 +372,7 @@ public partial class PluginUI
 			{
 				IPCHandles.ShowWindow(Winapi.nCmdShow.SW_RESTORE);
 			}
-			ToolTip("WindowMinimize".Localize());
+			ToolTip("Minimize other clients, right click to restore them.".Localize());
 
 			SameLine();
 			if (Button("Sync Client Settings"))
