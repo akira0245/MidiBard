@@ -86,6 +86,7 @@ static class Extensions
 
 	public static unsafe T ToStructUnmanaged<T>(this byte[] bytes) where T : unmanaged
 	{
+		if (bytes == null || bytes.Length == 0) return default;
 		var size = sizeof(T);
 		var b = new T();
 		var pb = (byte*)&b;

@@ -112,12 +112,41 @@ public static class ImGuiUtil
 	{
 		var h = ImGui.CalcTextSize("").Y;
 		PushFont(UiBuilder.IconFont);
-		var w = width ?? ImGui.CalcTextSize(icon.ToIconString()).X;
-		var ret = Button($"{icon.ToIconString()}##{id}", new Vector2(w, h) + ImGui.GetStyle().FramePadding * 2f);
-		PopFont();
-		return ret;
+		try
+		{
+			var w = width ?? CalcTextSize(icon.ToIconString()).X;
+			var ret = Button($"{icon.ToIconString()}##{id}", new Vector2(w, h) + GetStyle().FramePadding * 2f);
+			return ret;
+		}
+		finally
+		{
+			PopFont();
+		}
 	}
-
+	public static bool IconButtonColored(FontAwesomeIcon icon, string id, uint color, float? width = null)
+	{
+		ImGui.PushStyleColor(ImGuiCol.Text, color);
+		try
+		{
+			return IconButton(icon, id, width);
+		}
+		finally
+		{
+			PopStyleColor();
+		}
+	}
+	public static bool IconButtonColored(FontAwesomeIcon icon, string id, ImGuiCol color, float? width = null)
+	{
+		ImGui.PushStyleColor(ImGuiCol.Text, GetColorU32(color));
+		try
+		{
+			return IconButton(icon, id, width);
+		}
+		finally
+		{
+			PopStyleColor();
+		}
+	}
 	public static void ToolTip(string desc)
 	{
 		if (IsItemHovered())

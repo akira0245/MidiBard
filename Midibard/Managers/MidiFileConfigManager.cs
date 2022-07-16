@@ -15,28 +15,22 @@ namespace MidiBard.Managers
 			//TypeNameHandling = TypeNameHandling.Objects
 		};
 
-		//public static DirectoryInfo ConfigDirectory { get; } = Directory.CreateDirectory(Path.Combine(api.PluginInterface.GetPluginConfigDirectory(), "MidifileConfigs"));
+		public static FileInfo GetMidiConfigFileInfo(string songPath) => new FileInfo(Path.Combine(Path.GetDirectoryName(songPath), Path.GetFileNameWithoutExtension(songPath)) + ".json");
 
-		//protected override void OnConfiguring(DbContextOptionsBuilder options)
-		//    => options.UseSqlite("Data Source=MidiFileUserConfig.db");
-
-		public static FileInfo GetConfigFileInfo(string songPath) => new FileInfo(Path.Combine(Path.GetDirectoryName(songPath), Path.GetFileNameWithoutExtension(songPath)) + ".json");
-
-		public static MidiFileConfig GetConfig(string songPath)
+		public static MidiFileConfig? GetMidiConfigFromFile(string songPath)
 		{
-			var configFile = GetConfigFileInfo(songPath);
-			if (!configFile.Exists)
-				return null;
+			var configFile = GetMidiConfigFileInfo(songPath);
+			if (!configFile.Exists) return null;
 			return JsonConvert.DeserializeObject<MidiFileConfig>(File.ReadAllText(configFile.FullName), JsonSerializerSettings);
 		}
 
 		public static void Save(this MidiFileConfig config, string path)
 		{
-			var fullName = GetConfigFileInfo(path).FullName;
+			var fullName = GetMidiConfigFileInfo(path).FullName;
 			File.WriteAllText(fullName, JsonConvert.SerializeObject(config, Formatting.Indented, JsonSerializerSettings));
 		}
 
-		public static MidiFileConfig GetMidiFileConfigFromTrack(IEnumerable<TrackInfo> trackInfos)
+		public static MidiFileConfig GetMidiConfigFromTrack(IEnumerable<TrackInfo> trackInfos)
 		{
 			return new()
 			{

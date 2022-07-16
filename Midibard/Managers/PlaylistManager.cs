@@ -52,7 +52,7 @@ static class PlaylistManager
         FilePathList.Clear();
         CurrentPlaying = -1;
 
-        IPC.RPC.SyncPlaylist();
+        IPCHandles.SyncPlaylist();
     }
 
 
@@ -60,7 +60,7 @@ static class PlaylistManager
     {
         RemoveLocal(index);
 
-        RPC.RemoveTrackIndex(index);
+        IPCHandles.RemoveTrackIndex(index);
     }
 
     public static void RemoveLocal(int index)
@@ -128,7 +128,7 @@ static class PlaylistManager
                 success++;
             }
 
-            IPC.RPC.SyncPlaylist();
+            IPCHandles.SyncPlaylist();
         }
 
 

@@ -40,8 +40,6 @@ using static ImGuiNET.ImGui;
 using static MidiBard.MidiBard;
 using static MidiBard.ImGuiUtil;
 using AgentConfigSystem = MidiBard.Managers.Agents.AgentConfigSystem;
-using ii = ImGuiNET.ImGui;
-using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
 
 namespace MidiBard;
 
@@ -236,7 +234,6 @@ public partial class PluginUI
 		//End();
 #endif
 	}
-
 	private static unsafe void DrawEnsembleControl()
 	{
 		if (!config.ShowEnsembleControlWindow) return;
@@ -285,13 +282,13 @@ public partial class PluginUI
 				{
 					if (MidiBard.CurrentPlayback?.MidiFileConfig is { } config)
 					{
-						RPC.UpdateMidiFileConfig(config);
+						IPCHandles.UpdateMidiFileConfig(config);
 					}
-					RPC.UpdateInstrument(true);
+					IPCHandles.UpdateInstrument(true);
 				}
 				if (IsItemClicked(ImGuiMouseButton.Right))
 				{
-					RPC.UpdateInstrument(false);
+					IPCHandles.UpdateInstrument(false);
 				}
 			}
 
@@ -306,7 +303,7 @@ public partial class PluginUI
 			{
 				try
 				{
-					var fileInfo = MidiFileConfigManager.GetConfigFileInfo(CurrentPlayback.FilePath);
+					var fileInfo = MidiFileConfigManager.GetMidiConfigFileInfo(CurrentPlayback.FilePath);
 					var configDirectoryFullName = fileInfo.Directory.FullName;
 					PluginLog.Debug(fileInfo.FullName);
 					PluginLog.Debug(CurrentPlayback.FilePath);
@@ -319,40 +316,69 @@ public partial class PluginUI
 				}
 			}
 			ToolTip("Open current midi file directory".Localize());
+#endif
 			SameLine();
 			if (IconButton(FontAwesomeIcon.File, "Open current midi config file", width))
 			{
 				try
 				{
-					var fileInfo = MidiFileConfigManager.GetConfigFileInfo(CurrentPlayback.FilePath);
-					PluginLog.Debug(fileInfo.FullName);
-					PluginLog.Debug(CurrentPlayback.FilePath);
-					Process.Start(new ProcessStartInfo(fileInfo.FullName) { UseShellExecute = true });
+					if (CurrentPlayback != null)
+					{
+						var fileInfo = MidiFileConfigManager.GetMidiConfigFileInfo(CurrentPlayback.FilePath);
+						if (!fileInfo.Exists)
+						{
+							CurrentPlayback.MidiFileConfig?.Save(fileInfo.FullName);
+						}
+						PluginLog.Debug(fileInfo.FullName);
+						PluginLog.Debug(CurrentPlayback.FilePath);
+						Process.Start(new ProcessStartInfo(fileInfo.FullName) { UseShellExecute = true });
+					}
 				}
 				catch (Exception e)
 				{
 					PluginLog.Error(e, "error when opening config file");
 				}
 			}
+
 			ToolTip("Open current midi config file".Localize());
-
-#endif
-
-			SameLine();
-			if (IconButton(otherClientsMuted ? FontAwesomeIcon.VolumeMute : FontAwesomeIcon.VolumeUp, "Mute other clients", width))
-			{
-				RPC.SetOption(ConfigOption.SoundMaster, otherClientsMuted ? 100 : 0, false);
-				otherClientsMuted ^= true;
-			}
-			ToolTip(otherClientsMuted ? "Unmute other clients".Localize() : "Mute and minimize other clients".Localize());
 
 			SameLine();
 			if (IconButton(FontAwesomeIcon.Trash, "deleteConfig", width))
 			{
-				MidiFileConfigManager.GetConfigFileInfo(CurrentPlayback.FilePath).Delete();
-				CurrentPlayback.MidiFileConfig = MidiFileConfigManager.GetMidiFileConfigFromTrack(CurrentPlayback.TrackInfos);
+				if (CurrentPlayback != null)
+				{
+					MidiFileConfigManager.GetMidiConfigFileInfo(CurrentPlayback.FilePath).Delete();
+					CurrentPlayback.MidiFileConfig = MidiFileConfigManager.GetMidiConfigFromTrack(CurrentPlayback.TrackInfos);
+				}
 			}
 			ToolTip("Delete and reset current file config".Localize());
+
+			//SameLine();
+			//if (IconButton(otherClientsMuted ? FontAwesomeIcon.VolumeMute : FontAwesomeIcon.VolumeUp, "Mute other clients", width))
+			//{
+			//	IPCHandles.SetOption(ConfigOption.SoundMaster, otherClientsMuted ? 100 : 0, false);
+			//	AgentConfigSystem.SetOptionValue(ConfigOption.SoundMaster, 100);
+			//	otherClientsMuted ^= true;
+			//}
+			//ToolTip(otherClientsMuted ? "Unmute other clients".Localize() : "Mute other clients".Localize());
+
+
+			SameLine();
+			if (IconButton(FontAwesomeIcon.WindowMinimize, "WindowMinimize", width))
+			{
+				IPCHandles.ShowWindow(Winapi.nCmdShow.SW_MINIMIZE);
+			}
+			if (IsItemClicked(ImGuiMouseButton.Right))
+			{
+				IPCHandles.ShowWindow(Winapi.nCmdShow.SW_RESTORE);
+			}
+			ToolTip("WindowMinimize".Localize());
+
+			SameLine();
+			if (Button("Sync Client Settings"))
+			{
+				IPCHandles.SyncAllSettings();
+			}
 
 
 			//SameLine();
@@ -485,8 +511,8 @@ public partial class PluginUI
 
 					if (changed)
 					{
-						RPC.UpdateMidiFileConfig(fileConfig);
 						fileConfig.Save(CurrentPlayback.FilePath);
+						IPCHandles.UpdateMidiFileConfig(fileConfig);
 					}
 				}
 				catch (Exception e)
@@ -576,8 +602,8 @@ public partial class PluginUI
 
                         if (changed)
                         {
-                            RPC.UpdateEnsembleMember();
-                            //RPC.UpdateInstrument(true);
+                            IPCHandles.UpdateEnsembleMember();
+                            //IPCHandles.UpdateInstrument(true);
                         }
                     }
                     Separator();
