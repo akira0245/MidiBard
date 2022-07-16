@@ -4,11 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Dalamud.Hooking;
+using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Logging;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.Multimedia;
 using MidiBard.Control.MidiControl;
 using MidiBard.Managers.Agents;
+using playlibnamespace;
 using static MidiBard.MidiBard;
 
 namespace MidiBard.Managers;
@@ -114,30 +116,19 @@ internal class EnsembleManager : IDisposable
                     {
                         EnsemblePrepare?.Invoke();
 
-                        Task.Run(async () =>
+                        //if playback is null, cancel ensemble mode.
+                        if (CurrentPlayback == null)
                         {
-                            try
-                            {
-                                var playing = PlaylistManager.CurrentPlaying;
-                                if (playing == -1)
-                                {
-                                    // if using BMP track name to switch and in ensemble mode already, do nothing here since switching instrument would interrupt the ensemble mode
-                                    // the instrument should have been switched already when loading the song in this occasion.
-                                    await FilePlayback.LoadPlayback(0, false, !config.bmpTrackNames);
-                                }
-                                else
-                                {
-                                    await FilePlayback.LoadPlayback(playing, false, !config.bmpTrackNames);
-                                }
+	                        playlibnamespace.playlib.BeginReadyCheck();
+	                        playlibnamespace.playlib.SendAction("SelectYesno", 3, 0);
+	                        ImGuiUtil.AddNotification(NotificationType.Error, "Please load a song before starting ensemble!");
+                        }
+                        else
+                        {
+	                        MidiBard.CurrentPlayback.Stop();
+	                        MidiBard.CurrentPlayback.MoveToStart();
+                        }
 
-                                MidiBard.CurrentPlayback.Stop();
-                                MidiBard.CurrentPlayback.MoveToStart();
-                            }
-                            catch (Exception e)
-                            {
-                                PluginLog.Error(e, "error when loading playback for ensemble");
-                            }
-                        });
                     }
                 }
 
