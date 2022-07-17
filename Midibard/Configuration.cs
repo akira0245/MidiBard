@@ -11,6 +11,7 @@ using Dalamud.Logging;
 using Dalamud.Plugin;
 using ImGuiNET;
 using MidiBard.Managers;
+using MidiBard.Util;
 
 namespace MidiBard;
 
@@ -69,7 +70,7 @@ public class Configuration : IPluginConfiguration
     public bool DebugMisc;
     public bool DebugEnsemble;
 
-    public TrackStatus[] TrackStatus = Enumerable.Repeat(new TrackStatus(), 100).ToArray();
+    public TrackStatus[] TrackStatus = Enumerable.Repeat(new TrackStatus(), 100).ToArray().JsonSerialize().JsonDeserialize<TrackStatus[]>();
     //public ChannelStatus[] ChannelStatus = Enumerable.Repeat(new ChannelStatus(), 16).ToArray();
 
     public List<string> Playlist = new List<string>();
