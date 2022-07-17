@@ -99,11 +99,6 @@ public partial class PluginUI
         ImGui.Checkbox("Follow playback".Localize(), ref MidiBard.config.LockPlot);
         ImGuiUtil.ToolTip("Auto following current playback progress".Localize());
 
-        ImGui.Checkbox("Auto switch instrument".Localize(), ref MidiBard.config.autoSwitchInstrumentBySongName);
-        ImGuiUtil.ToolTip("Auto switch instrument on demand. If you need this, \nplease add #instrument name# before file name.\nE.g. #harp#demo.mid".Localize());
-
-        ImGui.SameLine(ImGuiUtil.GetWindowContentRegionWidth() / 2);
-
         ImGui.Checkbox("Auto transpose".Localize(), ref MidiBard.config.autoTransposeBySongName);
         ImGuiUtil.ToolTip("Auto transpose notes on demand. If you need this, \nplease add #transpose number# before file name.\nE.g. #-12#demo.mid".Localize());
 
@@ -136,7 +131,7 @@ public partial class PluginUI
             MidiBard.Localizer = new Localizer((UILang)MidiBard.config.uiLang);
 
         //#if DEBUG
-        ImGui.Checkbox("BMP track name compatible(testing)".Localize(), ref MidiBard.config.bmpTrackNames);
+        ImGui.Checkbox("Auto switch instrument by track name(BMP Rules)".Localize(), ref MidiBard.config.bmpTrackNames);
         ImGuiUtil.ToolTip("Transpose/switch instrument based on first enabled midi track name.".Localize());
         //#endif
     }
