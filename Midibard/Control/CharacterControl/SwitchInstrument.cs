@@ -193,7 +193,7 @@ internal static class SwitchInstrument
 
     private static void UpdateGuitarToneByConfig()
     {
-        if (MidiBard.CurrentPlayback.TrackInfos == null)
+        if (MidiBard.CurrentPlayback?.TrackInfos == null)
         {
             return;
         }
