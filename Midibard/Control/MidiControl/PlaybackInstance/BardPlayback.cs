@@ -174,7 +174,7 @@ internal sealed class BardPlayback : Playback
 	{
 		var timedEvents = tracks
 			.SelectMany((track, index) => track.GetTimedEvents()
-					.Where(i => i.Event.EventType is MidiEventType.ProgramChange or MidiEventType.SetTempo or MidiEventType.NoteOn or MidiEventType.NoteOff)
+					.Where(i => i.Event.EventType is not MidiEventType.ControlChange)
 					.Select(timedEvent => new TimedEventWithMetadata(timedEvent.Event, timedEvent.Time, GetMetadataForEvent(timedEvent.Event, timedEvent.Time, index))))
 			.OrderBy(e => e.Time)
 			.ThenBy(i => ((BardPlayDevice.MidiPlaybackMetaData)i.Metadata).eventValue);
