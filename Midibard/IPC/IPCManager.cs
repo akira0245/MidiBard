@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using Dalamud.Logging;
 using Melanchall.DryWetMidi.Common;
 using Melanchall.DryWetMidi.Core;
@@ -21,6 +24,10 @@ internal class IPCManager : IDisposable
 	private readonly bool initFailed;
 	private static Dictionary<MessageTypeCode, Action<IPCEnvelope>> _methodInfos;
 	private TinyMessageBus MessageBus { get; }
+
+	private ConcurrentQueue<(byte[] serialized, bool includeSelf)> messageQueue = new();
+	private bool _messagesQueueRunning = true;
+	private AutoResetEvent _autoResetEvent = new AutoResetEvent(false);
 	internal IPCManager()
 	{
 		try
@@ -34,6 +41,25 @@ internal class IPCManager : IDisposable
 				.Where(i => i.TypeCode != null)
 				.ToDictionary(i => (MessageTypeCode)i.TypeCode,
 					i => i.methodInfo.CreateDelegate<Action<IPCEnvelope>>(null));
+
+			new Thread(() =>
+			{
+				PluginLog.Information($"IPC message queue worker thread started");
+				while (_messagesQueueRunning)
+				{
+					PluginLog.Verbose($"Try dequeue: messageQueue.Count: {messageQueue.Count}");
+					while (messageQueue.TryDequeue(out var dequeue))
+					{
+						MessageBus.PublishAsync(dequeue.serialized).Wait();
+						PluginLog.Verbose($"Message published. length: {Dalamud.Utility.Util.FormatBytes(dequeue.serialized.Length)}");
+						if (dequeue.includeSelf) MessageBus_MessageReceived(null, new TinyMessageReceivedEventArgs(dequeue.serialized));
+					}
+
+					_autoResetEvent.WaitOne();
+				}
+				PluginLog.Information($"IPC message queue worker thread ended");
+			})
+			{ IsBackground = true }.Start();
 		}
 		catch (PlatformNotSupportedException e)
 		{
@@ -72,11 +98,11 @@ internal class IPCManager : IDisposable
 	public void BroadCast(byte[] serialized, bool includeSelf = false)
 	{
 		if (initFailed) return;
-		PluginLog.Debug($"message published. length: {Dalamud.Utility.Util.FormatBytes(serialized.Length)}");
 		try
 		{
-			MessageBus.PublishAsync(serialized);
-			if (includeSelf) MessageBus_MessageReceived(null, new TinyMessageReceivedEventArgs(serialized));
+			PluginLog.Verbose($"Enqueue message. length: {Dalamud.Utility.Util.FormatBytes(serialized.Length)} includeSelf: {includeSelf}");
+			messageQueue.Enqueue((serialized, includeSelf));
+			_autoResetEvent.Set();
 		}
 		catch (Exception e)
 		{
@@ -86,10 +112,12 @@ internal class IPCManager : IDisposable
 
 	private void ReleaseUnmanagedResources(bool disposing)
 	{
-		if (initFailed) return;
 		try
 		{
+			_messagesQueueRunning = false;
 			MessageBus.MessageReceived -= MessageBus_MessageReceived;
+			_autoResetEvent?.Set();
+			_autoResetEvent?.Dispose();
 		}
 		finally
 		{
