@@ -86,19 +86,17 @@ static class Extensions
 
 	public static unsafe T ToStructUnmanaged<T>(this byte[] bytes) where T : unmanaged
 	{
-		if (bytes == null || bytes.Length == 0) return default;
-		var size = sizeof(T);
-		var b = new T();
-		var pb = (byte*)&b;
+		var foo = *bytes.AsPtr<T>();
+		return foo;
+	}
+
+	public static unsafe T* AsPtr<T>(this byte[] bytes, int offset = 0) where T : unmanaged
+	{
+		if (bytes == null || bytes.Length == 0) return (T*)0;
 		fixed (byte* f = bytes)
 		{
-			for (int i = 0; i < size; i++)
-			{
-				pb[i] = f[i];
-			}
+			return (T*)(f + offset);
 		}
-
-		return b;
 	}
 
 	public static unsafe T ToStruct<T>(this byte[] bytes) where T : struct
