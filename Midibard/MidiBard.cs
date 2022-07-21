@@ -309,17 +309,21 @@ public class MidiBard : IDalamudPlugin
 
     internal static void SaveConfig()
     {
-        try
-        {
-            var startNew = Stopwatch.StartNew();
-            api.PluginInterface.SavePluginConfig(config);
-            PluginLog.Verbose($"config saved in {startNew.Elapsed.TotalMilliseconds}ms");
-        }
-        catch (Exception e)
-        {
-            PluginLog.Error(e, "Error when saving config");
-            ImGuiUtil.AddNotification(NotificationType.Error, "Error when saving config");
-        }
+	    var startNew = Stopwatch.StartNew();
+	    Task.Run(() =>
+	    {
+		    try
+		    {
+			    api.PluginInterface.SavePluginConfig(config);
+			    PluginLog.Verbose($"config saved in {startNew.Elapsed.TotalMilliseconds}ms");
+		    }
+		    catch (Exception e)
+		    {
+			    PluginLog.Warning($"error when saving config {e.Message}");
+			    //ImGuiUtil.AddNotification(NotificationType.Error, "Error when saving config");
+
+            }
+        });
     }
 
 
