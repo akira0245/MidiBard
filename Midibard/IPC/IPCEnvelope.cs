@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -12,40 +13,19 @@ using MidiBard.Util;
 using Newtonsoft.Json;
 
 namespace MidiBard.IPC;
-public enum MessageTypeCode
-{
-	Hello = 1,
-	Bye,
-	Acknowledge,
 
-	SyncPlaylist = 10,
-	RemoveTrackIndex,
-	LoadPlaybackIndex,
-
-	UpdateMidiFileConfig = 20,
-	UpdateEnsembleMember,
-	MidiEvent,
-	SetInstrument,
-	EnsembleStartTime,
-
-	Macro = 50,
-	Chat,
-
-	SetOption = 100,
-	ShowWindow,
-	SyncAllSettings
-}
 
 internal sealed class IPCEnvelope
 {
 	private static readonly JsonSerializerSettings JsonSerializerSettings = new() { TypeNameHandling = TypeNameHandling.None };
-
+	private static readonly int processId = Process.GetCurrentProcess().Id;
 	public IPCEnvelope(MessageTypeCode messageType, byte[] data, params string[] stringData)
 	{
 		MessageType = messageType;
 		BroadcasterId = (long)api.ClientState.LocalContentId;
 		PartyId = (long)api.PartyList.PartyId;
-		TimeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+		ProcessId = processId;
+		TimeStamp = DateTime.Now;
 		Data = data;
 		StringData = stringData;
 	}
@@ -70,11 +50,12 @@ internal sealed class IPCEnvelope
 	public MessageTypeCode MessageType { get; init; }
 	public long BroadcasterId { get; init; }
 	public long PartyId { get; init; }
-	public long TimeStamp { get; init; }
+	public int ProcessId { get; init; }
+	public DateTime TimeStamp { get; init; }
 	public byte[] Data { get; init; }
 	public string[] StringData { get; init; }
 
 	public T DataStruct<T>() where T : unmanaged => Data.ToStructUnmanaged<T>();
 
-	public override string ToString() => $"{nameof(IPCEnvelope)}:{DateTimeOffset.FromUnixTimeMilliseconds(TimeStamp).DateTime:O}:{MessageType}:{BroadcasterId:X}:{PartyId:X}:{Data?.Length}:{StringData?.Length}";
+	public override string ToString() => $"{nameof(IPCEnvelope)}:{TimeStamp:O}:{MessageType}:{BroadcasterId:X}:{PartyId:X}:{Data?.Length}:{StringData?.Length}";
 }

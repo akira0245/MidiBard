@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Dalamud.Logging;
@@ -12,9 +13,38 @@ using MidiBard.Managers.Ipc;
 using MidiBard.Util;
 
 namespace MidiBard.IPC;
+public enum MessageTypeCode
+{
+	Hello = 1,
+	Bye,
+	Acknowledge,
+
+	SyncPlaylist = 10,
+	RemoveTrackIndex,
+	LoadPlaybackIndex,
+
+	UpdateMidiFileConfig = 20,
+	UpdateEnsembleMember,
+	MidiEvent,
+	SetInstrument,
+	EnsembleStartTime,
+
+	Macro = 50,
+	Chat,
+
+	SetOption = 100,
+	ShowWindow,
+	SyncAllSettings
+}
 
 static class IPCHandles
 {
+	[IPCHandle(MessageTypeCode.Hello)]
+	private static void HandleHello(IPCEnvelope message)
+	{
+
+	}
+
 	public static void SyncPlaylist()
 	{
 		if (!MidiBard.config.SyncClients) return;
@@ -94,7 +124,7 @@ static class IPCHandles
 			SwitchInstrument.SwitchToContinue(0);
 			return;
 		}
-		var instrument = MidiBard.CurrentPlayback.MidiFileConfig.Tracks
+		var instrument = MidiBard.CurrentPlayback?.MidiFileConfig?.Tracks
 			.FirstOrDefault(i => i.Enabled && i.PlayerCid == (long)api.ClientState.LocalContentId)?.Instrument;
 		if (instrument != null)
 			SwitchInstrument.SwitchToContinue((uint)instrument);
@@ -132,40 +162,34 @@ static class IPCHandles
 		var hWnd = api.PluginInterface.UiBuilder.WindowHandlePtr;
 		var isIconic = Winapi.IsIconic(hWnd);
 
-		if (nCmdShow == Winapi.nCmdShow.SW_RESTORE)
+		switch (nCmdShow)
 		{
-			MidiBard.Ui.Open();
-
-			if (!isIconic)
-			{
-				return;
-			}
+			case Winapi.nCmdShow.SW_RESTORE when isIconic:
+				MidiBard.Ui.Open();
+				Winapi.ShowWindow(hWnd, nCmdShow);
+				break;
+			case Winapi.nCmdShow.SW_MINIMIZE when !isIconic:
+				MidiBard.Ui.Close();
+				Winapi.ShowWindow(hWnd, nCmdShow);
+				break;
 		}
-
-		if (nCmdShow == Winapi.nCmdShow.SW_MINIMIZE)
-		{
-			MidiBard.Ui.Close();
-
-			if (isIconic)
-			{
-				return;
-			}
-		}
-
-		Winapi.ShowWindow(hWnd, nCmdShow);
 	}
 
 	public static void SyncAllSettings()
 	{
-		IPCEnvelope.Create(MessageTypeCode.SyncAllSettings, MidiBard.config.JsonSerialize()).BroadCast();
+		var jsonSerialize = MidiBard.config.JsonSerialize().JsonDeserialize<Configuration>();
+		jsonSerialize.Playlist = null;
+		jsonSerialize.TrackStatus = null;
+		IPCEnvelope.Create(MessageTypeCode.SyncAllSettings, jsonSerialize.JsonSerialize()).BroadCast();
 	}
 
 	[IPCHandle(MessageTypeCode.SyncAllSettings)]
-	public static void HandleSyncAllSettings(IPCEnvelope message)
+	private static void HandleSyncAllSettings(IPCEnvelope message)
 	{
 		var str = message.StringData[0];
 		var jsonDeserialize = str.JsonDeserialize<Configuration>();
-		//do not overwrite track settings
+		//do not overwrite track and playlist settings
+		jsonDeserialize.Playlist = MidiBard.config.Playlist;
 		jsonDeserialize.TrackStatus = MidiBard.config.TrackStatus;
 		MidiBard.config = jsonDeserialize;
 	}

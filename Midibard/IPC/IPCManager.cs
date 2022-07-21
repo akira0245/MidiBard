@@ -84,15 +84,13 @@ internal class IPCManager : IDisposable
 		}
 		catch (Exception exception)
 		{
-			PluginLog.Error(exception, "error when DeserializeObject");
+			PluginLog.Error(exception, "error when processing received message");
 		}
 	}
 
 	private static void ProcessMessage(IPCEnvelope message)
 	{
-		var code = message.MessageType;
-
-		_methodInfos[code](message);
+		_methodInfos[message.MessageType](message);
 	}
 
 	public void BroadCast(byte[] serialized, bool includeSelf = false)
