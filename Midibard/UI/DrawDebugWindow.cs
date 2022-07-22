@@ -160,7 +160,7 @@ namespace MidiBard
 
 					Separator();
 					TextUnformatted($"currentPlaying: {PlaylistManager.CurrentPlaying}");
-					TextUnformatted($"currentSelected: {PlaylistManager.CurrentSelected}");
+					TextUnformatted($"currentSelected: {PlaylistManager.CurrentList}");
 					TextUnformatted($"FilelistCount: {PlaylistManager.FilePathList.Count}");
 					TextUnformatted($"currentUILanguage: {api.PluginInterface.UiLanguage}");
 

@@ -23,11 +23,17 @@ internal static class SwitchInstrument
     {
         Task.Run(async () =>
         {
-            var isPlaying = MidiBard.IsPlaying;
-            MidiBard.CurrentPlayback?.Stop();
-            await SwitchTo(instrumentId);
-            if (isPlaying)
-                MidiBard.CurrentPlayback?.Start();
+	        try
+	        {
+		        var isPlaying = MidiBard.IsPlaying;
+		        MidiBard.CurrentPlayback?.Stop();
+		        await SwitchTo(instrumentId);
+		        if (isPlaying) MidiBard.CurrentPlayback?.Start();
+	        }
+	        catch (Exception e)
+	        {
+		        PluginLog.Error(e, "Error when switching instrument");
+	        }
         });
     }
 

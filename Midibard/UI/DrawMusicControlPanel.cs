@@ -6,178 +6,196 @@ using ImGuiNET;
 using Melanchall.DryWetMidi.Interaction;
 using MidiBard.Control.CharacterControl;
 using MidiBard.Control.MidiControl;
+using MoreLinq;
+using static ImGuiNET.ImGui;
 using static MidiBard.ImGuiUtil;
 
 namespace MidiBard;
 
 public partial class PluginUI
 {
-    private void DrawPanelMusicControl()
-    {
-        ComboBoxSwitchInstrument();
+	private void DrawPanelMusicControl()
+	{
+		ComboBoxSwitchInstrument();
 
-        SliderProgress();
+		SliderProgress();
 
-        if (ImGui.DragFloat("Speed".Localize(), ref MidiBard.config.playSpeed, 0.003f, 0.1f, 10f, GetBpmString(),
-                ImGuiSliderFlags.Logarithmic))
-        {
-            SetSpeed();
-        }
+		if (DragFloat("Speed".Localize(), ref MidiBard.config.playSpeed, 0.003f, 0.1f, 10f, GetBpmString(),
+				ImGuiSliderFlags.Logarithmic))
+		{
+			SetSpeed();
+		}
 
-        ToolTip("Set the speed of events playing. 1 means normal speed.\nFor example, to play events twice slower this property should be set to 0.5.\nRight Click to reset back to 1.".Localize());
+		ToolTip("Set the speed of events playing. 1 means normal speed.\nFor example, to play events twice slower this property should be set to 0.5.\nRight Click to reset back to 1.".Localize());
 
-        if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
-        {
-            MidiBard.config.playSpeed = 1;
-            SetSpeed();
-        }
-
-
-        //ImGui.SetNextItemWidth(ImGui.GetWindowWidth() * 0.5f - ImGui.CalcTextSize("Delay".Localize()).X);
-        ImGui.PushItemWidth(ImGuiUtil.GetWindowContentRegionWidth() / 3.36f);
-        ImGui.DragFloat("Delay".Localize(), ref MidiBard.config.secondsBetweenTracks, 0.01f, 0, 60,
-            $"{MidiBard.config.secondsBetweenTracks:f2} s",
-            ImGuiSliderFlags.AlwaysClamp | ImGuiSliderFlags.NoRoundToFormat);
-        if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
-            MidiBard.config.secondsBetweenTracks = 0;
-        ToolTip("Delay time before play next track.".Localize());
-
-        ImGui.SameLine(ImGuiUtil.GetWindowContentRegionWidth() / 2);
-        ImGui.InputInt("Transpose".Localize(), ref MidiBard.config.TransposeGlobal, 12);
-        if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
-            MidiBard.config.TransposeGlobal = 0;
-        ToolTip("Transpose, measured by semitone. \nRight click to reset.".Localize());
-        ImGui.PopItemWidth();
-
-        ImGui.Checkbox("Auto adapt notes".Localize(), ref MidiBard.config.AdaptNotesOOR);
-        ToolTip("Adapt high/low pitch notes which are out of range\r\ninto 3 octaves we can play".Localize());
-
-        ImGui.SameLine(ImGuiUtil.GetWindowContentRegionWidth() / 2);
-
-        ImGui.Checkbox("Transpose per track".Localize(), ref MidiBard.config.EnableTransposePerTrack);
-        if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
-        {
-            for (var i = 0; i < MidiBard.config.TrackStatus.Length; i++)
-            {
-                MidiBard.config.TrackStatus[i].Transpose = 0;
-            }
-        }
-        ToolTip("Transpose per track, right click to reset all tracks' transpose offset back to zero.".Localize());
-        //ImGui.SameLine();
-
-        //ImGui.SliderFloat("secbetweensongs", ref config.timeBetweenSongs, 0, 10,
-        //	$"{config.timeBetweenSongs:F2} [{500000 * config.timeBetweenSongs:F0}]", ImGuiSliderFlags.AlwaysClamp);
+		if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right))
+		{
+			MidiBard.config.playSpeed = 1;
+			SetSpeed();
+		}
+		
+		//-------------------
+		if (InputFloat("Delay".Localize(), ref MidiBard.config.secondsBetweenTracks, 0.5f, 0.5f, $"{MidiBard.config.secondsBetweenTracks:f2} s", ImGuiInputTextFlags.AutoSelectAll))
+			MidiBard.config.secondsBetweenTracks = Math.Max(0, MidiBard.config.secondsBetweenTracks);
+		if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right))
+			MidiBard.config.secondsBetweenTracks = 3;
+		ToolTip("Delay time before play next track.".Localize());
+		//-------------------
+		var pos = ImGui.GetWindowWidth() * 0.75f;
+		InputInt("Transpose".Localize(), ref MidiBard.config.TransposeGlobal, 12);
+		if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right))
+			MidiBard.config.TransposeGlobal = 0;
+		ToolTip("Transpose, measured by semitone. \nRight click to reset.".Localize());
+		//-------------------
+		Checkbox("Auto adapt notes".Localize(), ref MidiBard.config.AdaptNotesOOR);
+		ToolTip("Adapt high/low pitch notes which are out of range\r\ninto 3 octaves we can play".Localize());
+		//-------------------
+		SameLine(ImGuiUtil.GetWindowContentRegionWidth() / 2);
+		Checkbox("Transpose per track".Localize(), ref MidiBard.config.EnableTransposePerTrack);
+		if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right))
+			MidiBard.config.TrackStatus.ForEach(i => i.Transpose = 0);
+		ToolTip("Transpose per track, right click to reset all tracks' transpose offset back to zero.".Localize());
 
 
-    }
 
-    private static void SetSpeed()
-    {
-        MidiBard.config.playSpeed = Math.Max(0.1f, MidiBard.config.playSpeed);
-        var currenttime = MidiBard.CurrentPlayback?.GetCurrentTime(TimeSpanType.Midi);
-        if (currenttime is not null)
-        {
-            MidiBard.CurrentPlayback.Speed = MidiBard.config.playSpeed;
-            MidiBard.CurrentPlayback?.MoveToTime(currenttime);
-        }
-    }
 
-    private static string GetBpmString()
-    {
-        Tempo bpm = null;
-        var currentTime = MidiBard.CurrentPlayback?.GetCurrentTime(TimeSpanType.Midi);
-        if (currentTime != null)
-        {
-            bpm = MidiBard.CurrentPlayback?.TempoMap?.GetTempoAtTime(currentTime);
-        }
 
-        var label = $"{MidiBard.config.playSpeed:F2}";
+		//-------------------
+		Separator();
+		var inputDevices = InputDeviceManager.Devices;
+		if (BeginCombo("Input Device".Localize(), InputDeviceManager.CurrentInputDevice.DeviceName()))
+		{
+			if (Selectable("None##device", InputDeviceManager.CurrentInputDevice is null))
+			{
+				InputDeviceManager.SetDevice(null);
+			}
 
-        if (bpm != null) label += $" ({bpm.BeatsPerMinute * MidiBard.config.playSpeed:F1} bpm)";
-        return label;
-    }
+			for (int i = 0; i < inputDevices.Length; i++)
+			{
+				var device = inputDevices[i];
+				if (Selectable($"{device.Name}##{i}", device.Name == InputDeviceManager.CurrentInputDevice?.Name))
+				{
+					InputDeviceManager.SetDevice(device);
+				}
+			}
 
-    private static void SliderProgress()
-    {
-        if (MidiBard.CurrentPlayback != null)
-        {
-            var currentTime = MidiBard.CurrentPlayback.GetCurrentTime<MetricTimeSpan>();
-            var duration = MidiBard.CurrentPlayback.GetDuration<MetricTimeSpan>();
-            float progress;
-            try
-            {
-                progress = (float)currentTime.Divide(duration);
-            }
-            catch (Exception e)
-            {
-                progress = 0;
-            }
+			EndCombo();
+		}
+		if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right)) InputDeviceManager.SetDevice(null);
+		ImGuiUtil.ToolTip("Choose external midi input device. right click to reset.".Localize());
+		//-------------------
 
-            if (ImGui.SliderFloat("Progress".Localize(), ref progress, 0, 1,
-                    $"{(currentTime.Hours != 0 ? currentTime.Hours + ":" : "")}{currentTime.Minutes:00}:{currentTime.Seconds:00}",
-                    ImGuiSliderFlags.AlwaysClamp | ImGuiSliderFlags.NoRoundToFormat))
-            {
-                MidiBard.CurrentPlayback.MoveToTime(duration.Multiply(progress));
-            }
+		ImGuiUtil.EnumCombo("Tone mode".Localize(), ref MidiBard.config.GuitarToneMode, _toolTips);
+		ImGuiUtil.ToolTip("Choose how MidiBard will handle MIDI channels and ProgramChange events(current only affects guitar tone changing)".Localize());
+	}
 
-            if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
-            {
-                MidiBard.CurrentPlayback.MoveToTime(duration.Multiply(0));
-            }
-        }
-        else
-        {
-            float zeroprogress = 0;
-            ImGui.SliderFloat("Progress".Localize(), ref zeroprogress, 0, 1, "0:00", ImGuiSliderFlags.NoInput);
-        }
+	private static void SetSpeed()
+	{
+		MidiBard.config.playSpeed = Math.Max(0.1f, MidiBard.config.playSpeed);
+		var currenttime = MidiBard.CurrentPlayback?.GetCurrentTime(TimeSpanType.Midi);
+		if (currenttime is not null)
+		{
+			MidiBard.CurrentPlayback.Speed = MidiBard.config.playSpeed;
+			MidiBard.CurrentPlayback?.MoveToTime(currenttime);
+		}
+	}
 
-        ToolTip("Set the playing progress. \nRight click to restart current playback.".Localize());
-    }
+	private static string GetBpmString()
+	{
+		Tempo bpm = null;
+		var currentTime = MidiBard.CurrentPlayback?.GetCurrentTime(TimeSpanType.Midi);
+		if (currentTime != null)
+		{
+			bpm = MidiBard.CurrentPlayback?.TempoMap?.GetTempoAtTime(currentTime);
+		}
 
-    private static int UIcurrentInstrument;
-    private static void ComboBoxSwitchInstrument()
-    {
-        UIcurrentInstrument = MidiBard.CurrentInstrument;
-        if (MidiBard.PlayingGuitar)
-        {
-            UIcurrentInstrument = MidiBard.AgentPerformance.CurrentGroupTone + MidiBard.guitarGroup[0]; ;
-        }
+		var label = $"{MidiBard.config.playSpeed:F2}";
 
-        if (ImGui.BeginCombo("Instrument".Localize(), MidiBard.InstrumentStrings[UIcurrentInstrument], ImGuiComboFlags.HeightLarge))
-        {
-            ImGui.GetWindowDrawList().ChannelsSplit(2);
-            for (int i = 0; i < MidiBard.Instruments.Length; i++)
-            {
-                var instrument = MidiBard.Instruments[i];
-                ImGui.GetWindowDrawList().ChannelsSetCurrent(1);
-                ImGui.Image(instrument.IconTextureWrap.ImGuiHandle, new Vector2(ImGui.GetTextLineHeightWithSpacing()));
-                ImGui.SameLine();
-                ImGui.GetWindowDrawList().ChannelsSetCurrent(0);
-                ImGui.AlignTextToFramePadding();
-                if (ImGui.Selectable($"{instrument.InstrumentString}##{i}", UIcurrentInstrument == i, ImGuiSelectableFlags.SpanAllColumns))
-                {
-                    UIcurrentInstrument = i;
-                    SwitchInstrument.SwitchToContinue((uint)i);
-                }
-            }
-            ImGui.GetWindowDrawList().ChannelsMerge();
-            ImGui.EndCombo();
-        }
+		if (bpm != null) label += $" ({bpm.BeatsPerMinute * MidiBard.config.playSpeed:F1} bpm)";
+		return label;
+	}
 
-        //if (ImGui.Combo("Instrument".Localize(), ref UIcurrentInstrument, MidiBard.InstrumentStrings,
-        //        MidiBard.InstrumentStrings.Length, 20))
-        //{
-        //    SwitchInstrument.SwitchToContinue((uint)UIcurrentInstrument);
-        //}
+	private static void SliderProgress()
+	{
+		if (MidiBard.CurrentPlayback != null)
+		{
+			var currentTime = MidiBard.CurrentPlayback.GetCurrentTime<MetricTimeSpan>();
+			var duration = MidiBard.CurrentPlayback.GetDuration<MetricTimeSpan>();
+			float progress;
+			try
+			{
+				progress = (float)currentTime.Divide(duration);
+			}
+			catch (Exception e)
+			{
+				progress = 0;
+			}
 
-        ToolTip("Select current instrument. \nRight click to quit performance mode.".Localize());
+			if (SliderFloat("Progress".Localize(), ref progress, 0, 1,
+					$"{(currentTime.Hours != 0 ? currentTime.Hours + ":" : "")}{currentTime.Minutes:00}:{currentTime.Seconds:00}",
+					ImGuiSliderFlags.AlwaysClamp | ImGuiSliderFlags.NoRoundToFormat))
+			{
+				MidiBard.CurrentPlayback.MoveToTime(duration.Multiply(progress));
+			}
 
-        if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
-        {
-            SwitchInstrument.SwitchToContinue(0);
-            MidiPlayerControl.Pause();
-        }
-    }
+			if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right))
+			{
+				MidiBard.CurrentPlayback.MoveToTime(duration.Multiply(0));
+			}
+		}
+		else
+		{
+			float zeroprogress = 0;
+			SliderFloat("Progress".Localize(), ref zeroprogress, 0, 1, "0:00", ImGuiSliderFlags.NoInput);
+		}
 
-    
+		ToolTip("Set the playing progress. \nRight click to restart current playback.".Localize());
+	}
+
+	private static int UIcurrentInstrument;
+	private static void ComboBoxSwitchInstrument()
+	{
+		UIcurrentInstrument = MidiBard.CurrentInstrument;
+		if (MidiBard.PlayingGuitar)
+		{
+			UIcurrentInstrument = MidiBard.AgentPerformance.CurrentGroupTone + MidiBard.guitarGroup[0]; ;
+		}
+
+		if (BeginCombo("Instrument".Localize(), MidiBard.InstrumentStrings[UIcurrentInstrument], ImGuiComboFlags.HeightLarge))
+		{
+			GetWindowDrawList().ChannelsSplit(2);
+			for (int i = 0; i < MidiBard.Instruments.Length; i++)
+			{
+				var instrument = MidiBard.Instruments[i];
+				GetWindowDrawList().ChannelsSetCurrent(1);
+				Image(instrument.IconTextureWrap.ImGuiHandle, new Vector2(GetTextLineHeightWithSpacing()));
+				SameLine();
+				GetWindowDrawList().ChannelsSetCurrent(0);
+				AlignTextToFramePadding();
+				if (Selectable($"{instrument.InstrumentString}##{i}", UIcurrentInstrument == i, ImGuiSelectableFlags.SpanAllColumns))
+				{
+					UIcurrentInstrument = i;
+					SwitchInstrument.SwitchToContinue((uint)i);
+				}
+			}
+			GetWindowDrawList().ChannelsMerge();
+			EndCombo();
+		}
+
+		//if (ImGui.Combo("Instrument".Localize(), ref UIcurrentInstrument, MidiBard.InstrumentStrings,
+		//        MidiBard.InstrumentStrings.Length, 20))
+		//{
+		//    SwitchInstrument.SwitchToContinue((uint)UIcurrentInstrument);
+		//}
+
+		ToolTip("Select current instrument. \nRight click to quit performance mode.".Localize());
+
+		if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right))
+		{
+			SwitchInstrument.SwitchToContinue(0);
+			MidiPlayerControl.Pause();
+		}
+	}
+
+
 }

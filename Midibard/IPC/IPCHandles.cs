@@ -178,7 +178,6 @@ static class IPCHandles
 	public static void SyncAllSettings()
 	{
 		var jsonSerialize = MidiBard.config.JsonSerialize().JsonDeserialize<Configuration>();
-		jsonSerialize.Playlist = null;
 		jsonSerialize.TrackStatus = null;
 		IPCEnvelope.Create(MessageTypeCode.SyncAllSettings, jsonSerialize.JsonSerialize()).BroadCast();
 	}
@@ -188,8 +187,7 @@ static class IPCHandles
 	{
 		var str = message.StringData[0];
 		var jsonDeserialize = str.JsonDeserialize<Configuration>();
-		//do not overwrite track and playlist settings
-		jsonDeserialize.Playlist = MidiBard.config.Playlist;
+		//do not overwrite track settings
 		jsonDeserialize.TrackStatus = MidiBard.config.TrackStatus;
 		MidiBard.config = jsonDeserialize;
 	}

@@ -185,7 +185,7 @@ public partial class PluginUI
 	{
 		try
 		{
-			var (_, fileName, displayName) = PlaylistManager.FilePathList[i];
+			var (_, fileName, displayName, played) = PlaylistManager.FilePathList[i];
 			TextUnformatted(displayName);
 
 			if (IsItemHovered())

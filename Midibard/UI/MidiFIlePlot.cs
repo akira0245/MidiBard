@@ -14,6 +14,8 @@ using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using MidiBard.Control;
 using MidiBard.Control.MidiControl.PlaybackInstance;
+using MidiBard.Managers;
+using MidiBard.Managers.Agents;
 using MidiBard.Util;
 
 namespace MidiBard;
@@ -66,6 +68,7 @@ public partial class PluginUI
 		}
 
 		double timelinePos = 0;
+		double? ensembleTimelinePos = null;
 
 		try
 		{
@@ -73,6 +76,8 @@ public partial class PluginUI
 			if (currentPlayback != null)
 			{
 				timelinePos = currentPlayback.GetCurrentTime<MetricTimeSpan>().GetTotalSeconds();
+				if (MidiBard.config.UseEnsembleIndicator && AgentMetronome.Instance.EnsembleModeRunning)
+					ensembleTimelinePos = timelinePos + MidiBard.config.EnsembleIndicatorDelay - 0.045d;
 			}
 		}
 		catch (Exception e)
@@ -114,7 +119,14 @@ public partial class PluginUI
 			{
 				var imPlotRange = ImPlot.GetPlotLimits(ImAxis.X1).X;
 				var d = (imPlotRange.Max - imPlotRange.Min) / 2;
-				ImPlot.SetupAxisLimits(ImAxis.X1, timelinePos - d, timelinePos + d, ImPlotCond.Always);
+				if (ensembleTimelinePos is not null)
+				{
+					ImPlot.SetupAxisLimits(ImAxis.X1, (double)ensembleTimelinePos - d, (double)ensembleTimelinePos + d, ImPlotCond.Always);
+				}
+				else
+				{
+					ImPlot.SetupAxisLimits(ImAxis.X1, timelinePos - d, timelinePos + d, ImPlotCond.Always);
+				}
 			}
 
 
@@ -134,8 +146,6 @@ public partial class PluginUI
 			if (_plotData?.Any() == true && MidiBard.CurrentPlayback != null)
 			{
 				var legendInfoList = new List<(string trackName, Vector4 color, int index)>();
-
-				float ProgramNamePositionOffset = ImGui.GetTextLineHeight() * 2;
 
 				foreach (var (trackInfo, notes) in _plotData.OrderBy(i => i.trackInfo.IsPlaying))
 				{
@@ -180,6 +190,10 @@ public partial class PluginUI
 			}
 
 			DrawCurrentPlayTime(drawList, timelinePos);
+			if (ensembleTimelinePos is not null)
+			{
+				DrawEnsemblePlayTime(drawList, (double)ensembleTimelinePos);
+			}
 			ImPlot.PopPlotClipRect();
 
 			ImPlot.EndPlot();
@@ -200,6 +214,15 @@ public partial class PluginUI
 			ImPlot.PlotToPixels(timelinePos, ImPlot.GetPlotLimits().Y.Min),
 			ImPlot.PlotToPixels(timelinePos, ImPlot.GetPlotLimits().Y.Max),
 			ImGui.ColorConvertFloat4ToU32(ImGuiColors.DalamudRed),
+			ImGuiHelpers.GlobalScale);
+	}
+
+	private static void DrawEnsemblePlayTime(ImDrawListPtr drawList, double timelinePos)
+	{
+		drawList.AddLine(
+			ImPlot.PlotToPixels(timelinePos, ImPlot.GetPlotLimits().Y.Min),
+			ImPlot.PlotToPixels(timelinePos, ImPlot.GetPlotLimits().Y.Max),
+			ImGui.ColorConvertFloat4ToU32(ImGuiColors.DalamudYellow),
 			ImGuiHelpers.GlobalScale);
 	}
 

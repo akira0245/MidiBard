@@ -16,7 +16,6 @@ namespace MidiBard.Control.MidiControl.PlaybackInstance;
 
 internal sealed class BardPlayback : Playback
 {
-	private static long[] Cids = new long[100];
 	public static BardPlayback GetBardPlayback(MidiFile file, string filePath)
 	{
 		PreparePlaybackData(file, out var tempoMap, out var trackChunks, out var trackInfos, out var timedEventWithMetadata);
@@ -26,30 +25,6 @@ internal sealed class BardPlayback : Playback
 		if (midiFileConfig is null || midiFileConfig.Tracks.Count != trackChunks.Length)
 		{
 			midiFileConfig = MidiFileConfigManager.GetMidiConfigFromTrack(trackInfos);
-
-			for (int i = 0; i < midiFileConfig.Tracks.Count; i++)
-			{
-				try
-				{
-					if (midiFileConfig.Tracks[i].PlayerCid == 0)
-					{
-						midiFileConfig.Tracks[i].PlayerCid = Cids[i];
-					}
-				}
-				catch (Exception e)
-				{
-					PluginLog.Warning($"{i} {e.Message}");
-				}
-			}
-		}
-
-		for (int i = 0; i < midiFileConfig.Tracks.Count; i++)
-		{
-			var cid = midiFileConfig.Tracks[i].PlayerCid;
-			if (cid != 0)
-			{
-				Cids[i] = cid;
-			}
 		}
 
 		return new BardPlayback(timedEventWithMetadata, tempoMap)
@@ -174,7 +149,7 @@ internal sealed class BardPlayback : Playback
 	{
 		var timedEvents = tracks
 			.SelectMany((track, index) => track.GetTimedEvents()
-					.Where(i => i.Event.EventType is not MidiEventType.ControlChange)
+					.Where(i => i.Event.EventType is not MidiEventType.ControlChange and not MidiEventType.PitchBend and not MidiEventType.UnknownMeta)
 					.Select(timedEvent => new TimedEventWithMetadata(timedEvent.Event, timedEvent.Time, GetMetadataForEvent(timedEvent.Event, timedEvent.Time, index))))
 			.OrderBy(e => e.Time)
 			.ThenBy(i => ((BardPlayDevice.MidiPlaybackMetaData)i.Metadata).eventValue);

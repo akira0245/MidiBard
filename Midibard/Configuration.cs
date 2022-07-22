@@ -130,6 +130,7 @@ public class Configuration : IPluginConfiguration
     public bool PlotTracks;
     public bool LockPlot;
 
+    public long[] TrackDefaultCids = new long[100];
 
     public bool TrimChords = false;
     public int TrimTo = 1;
@@ -150,5 +151,11 @@ public class Configuration : IPluginConfiguration
     public GuitarToneMode GuitarToneMode = GuitarToneMode.Off;
 
     public bool AutoSetOffAFKSwitchingTime = true;
+
+    public float EnsembleIndicatorDelay = -4;
+
+    public bool UseEnsembleIndicator = false;
+
+    public bool SetInstrumentBeforeReadyCheck;
     //[JsonIgnore] public bool OverrideGuitarTones => GuitarToneMode == GuitarToneMode.Override;
 }
