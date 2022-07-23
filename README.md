@@ -2,8 +2,23 @@
 
 MidiBard是基于[卫月框架](https://github.com/goatcorp/Dalamud)的强大且易用的诗人midi演奏插件。目前版本兼容国服及国际服。
 
+___
 MidiBard is an FF14 Bard plugin based on the [Dalamud](https://github.com/goatcorp/Dalamud) framework, which supports bard performance by MIDI files or keyboards.
 
+For global client users, please check **MidiBard 2**.
+
+If you're interested to get more infomation of **MidiBard 2**, please check [MidiBard 2 Website](https://midibard.org/) and [Github](https://github.com/reckhou/MidiBard2) page.
+
+Please join our [Discord Server](https://discord.gg/xvNhquhnVT) for the support!
+___
+
+**捐助作者**
+
+[![afdian](https://pic1.afdiancdn.com/static/img/welcome/button-sponsorme.jpg)](https://afdian.net/a/midibard)
+
+**海外用户捐助渠道/Buy me a coffee if you wish:**
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/L3L6CQMMD)
 # 主要特性
 * 无需繁琐的键位配置，打开即用
 * 使用合奏助手进行一键高精度合奏
@@ -26,8 +41,8 @@ MidiBard is an FF14 Bard plugin based on the [Dalamud](https://github.com/goatco
 > MidiBard需要[卫月框架](https://bbs.tggfl.com/topic/32/dalamud-%E5%8D%AB%E6%9C%88%E6%A1%86%E6%9E%B6)，如未安装请参考[原帖](https://bbs.tggfl.com/topic/32/dalamud-%E5%8D%AB%E6%9C%88%E6%A1%86%E6%9E%B6)安装后继续。
 
 正确安装卫月框架并注入后在游戏聊天框中输入`/xlsettings`打开Dalamud设置窗口，复制该源  
-`https://raw.githubusercontent.com/akira0245/DalamudPlugins/api4/pluginmaster.json` 并将其添加到插件仓库。  
-> 如在大陆境内插件安装器提示无法连接，推荐使用源`https://raw.fastgit.org/akira0245/DalamudPlugins/api4/pluginmaster.json`
+`https://raw.githubusercontent.com/akira0245/DalamudPlugins/master/pluginmaster.json` 并将其添加到插件仓库。  
+> 如在大陆境内插件安装器提示无法连接，推荐使用源`https://raw.fastgit.org/akira0245/DalamudPlugins/master/pluginmaster.json`
 
 [![gw7vxx.png](https://z3.ax1x.com/2021/05/12/gw7vxx.png)](https://imgtu.com/i/gw7vxx)
 
@@ -35,7 +50,7 @@ MidiBard is an FF14 Bard plugin based on the [Dalamud](https://github.com/goatco
 
 # How to install
 You need to add my custom plugin repository to install MidiBard.  
-`https://raw.githubusercontent.com/akira0245/DalamudPlugins/api4/pluginmaster.json`  
+`https://raw.githubusercontent.com/akira0245/DalamudPlugins/master/pluginmaster.json`  
 Click the link below for more detailed instructions.  
 https://github.com/akira0245/DalamudPlugins
 
@@ -72,18 +87,6 @@ MIDIBARD使用游戏中的合奏助手来完成合奏，请在合奏时打开游
 
 # 其他问题
 
-> 有bug或功能建议或讨论可以加qq群：[260985966](https://jq.qq.com/?_wv=1027&k=7pOgqqZK)  
+> 有bug或功能建议或讨论可以加入qq群：[260985966](https://jq.qq.com/?_wv=1027&k=7pOgqqZK)  
+> 如果您身处海外或不方便使用QQ，请加入我们的 [Discord服务器](https://discord.gg/sMUACqqKzF) !
 
-[![Sponsor me!](https://img.shields.io/badge/Sponsor%20me!-brightgreen?logo=wechat&logoColor=white&style=flat-square)](https://akira0245.github.io/pay/)
-
----
-
-For those having larger bands, please check **MidiBard 2**.
-
-If you're interested to get more infomation of **MidiBard 2**, please check [MidiBard 2 Website](https://midibard.org/) and [Github](https://github.com/reckhou/MidiBard2) page.
-
-Please join our [Discord Server](https://discord.gg/xvNhquhnVT) for the support!
-___
-**海外用户捐助渠道/Buy me a coffee if you wish:**
-
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/L3L6CQMMD)
