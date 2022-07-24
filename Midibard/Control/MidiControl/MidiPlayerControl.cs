@@ -6,6 +6,7 @@ using Melanchall.DryWetMidi.Interaction;
 using MidiBard.Control.CharacterControl;
 using MidiBard.Control.MidiControl.PlaybackInstance;
 using MidiBard.Managers;
+using MidiBard.Util;
 
 namespace MidiBard.Control.MidiControl;
 
@@ -21,13 +22,13 @@ internal static class MidiPlayerControl
 				return;
 			}
 
-			if (PlaylistManager.CurrentPlaying < 0)
+			if (PlaylistManager.CurrentSongIndex < 0)
 			{
-				SwitchSong(0, true);
+				PlaylistManager.LoadPlayback(0, true);
 			}
 			else
 			{
-				SwitchSong(PlaylistManager.CurrentPlaying, true);
+				PlaylistManager.LoadPlayback(null, true);
 			}
 		}
 		else
@@ -56,9 +57,9 @@ internal static class MidiPlayerControl
 
 	internal static void PlayPause()
 	{
-		if (FilePlayback.isWaiting)
+		if (FilePlayback.IsWaiting)
 		{
-			FilePlayback.StopWaiting();
+			FilePlayback.SkipWaiting();
 		}
 		else
 		{
@@ -75,130 +76,56 @@ internal static class MidiPlayerControl
 
 	internal static void Stop()
 	{
-		try
-		{
-			MidiBard.EnsembleManager.StopEnsemble();
-
-			if (MidiBard.CurrentPlayback == null)
-			{
-				//MidiBard.CurrentPlayback?.TrackInfos.Clear();
-			}
-			else
-			{
-				MidiBard.CurrentPlayback?.Stop();
-				MidiBard.CurrentPlayback?.MoveToTime(new MidiTimeSpan(0));
-			}
-		}
-		catch (Exception e)
-		{
-			PluginLog.Warning("Already stopped!");
-		}
-		finally
-		{
-			MidiBard.CurrentPlayback?.Dispose();
-			MidiBard.CurrentPlayback = null;
-		}
+		MidiBard.EnsembleManager.StopEnsemble();
+		MidiBard.CurrentPlayback?.Dispose();
+		MidiBard.CurrentPlayback = null;
 	}
 
-	internal static void Next()
+	internal static void Next(bool startPlaying = false)
 	{
-		if (MidiBard.CurrentPlayback != null)
-		{
-			try
-			{
-				var playing = MidiBard.IsPlaying;
-				MidiBard.CurrentPlayback?.Dispose();
-				MidiBard.CurrentPlayback = null;
-				int next = PlaylistManager.CurrentPlaying;
-
-				switch ((PlayMode)MidiBard.config.PlayMode)
-				{
-					case PlayMode.Single:
-					case PlayMode.SingleRepeat:
-					case PlayMode.ListOrdered:
-						next += 1;
-						break;
-					case PlayMode.ListRepeat:
-						next = (next + 1) % PlaylistManager.FilePathList.Count;
-						break;
-					case PlayMode.Random:
-						if (PlaylistManager.FilePathList.Count > 1)
-						{
-							var r = new Random();
-							do
-							{
-								next = r.Next(0, PlaylistManager.FilePathList.Count);
-							} while (next == PlaylistManager.CurrentPlaying);
-						}
-						break;
-				}
-
-				SwitchSong(next, playing);
-			}
-			catch (Exception e)
-			{
-				MidiBard.CurrentPlayback = null;
-				PlaylistManager.CurrentPlaying = -1;
-			}
-		}
-		else
-		{
-			PlaylistManager.CurrentPlaying += 1;
-		}
+		var songIndex = GetNextPrevSongIndex(PlaylistManager.CurrentSongIndex, true);
+		PlaylistManager.LoadPlayback(songIndex, MidiBard.IsPlaying || startPlaying);
 	}
 
 	internal static void Prev()
 	{
-		if (MidiBard.CurrentPlayback != null)
-		{
-			try
-			{
-				var playing = MidiBard.IsPlaying;
-				MidiBard.CurrentPlayback?.Dispose();
-				MidiBard.CurrentPlayback = null;
-				int prev = PlaylistManager.CurrentPlaying;
+		var songIndex = GetNextPrevSongIndex(PlaylistManager.CurrentSongIndex, false);
+		PlaylistManager.LoadPlayback(songIndex, MidiBard.IsPlaying);
 
-				switch ((PlayMode)MidiBard.config.PlayMode)
+	}
+
+	private static int GetNextPrevSongIndex(int songIndex, bool next)
+	{
+		var playMode = (PlayMode)MidiBard.config.PlayMode;
+		switch (playMode)
+		{
+			case PlayMode.Single:
+			case PlayMode.SingleRepeat:
+			case PlayMode.ListOrdered:
+				songIndex += next ? 1 : -1;
+				break;
+			case PlayMode.ListRepeat:
+				songIndex += next ? 1 : -1;
+				break;
+		}
+
+		if (playMode == PlayMode.ListRepeat)
+		{
+			songIndex.Cycle(0, PlaylistManager.FilePathList.Count - 1);
+		}
+		else if (playMode == PlayMode.Random)
+		{
+			if (PlaylistManager.FilePathList.Count > 1)
+			{
+				var r = new Random();
+				do
 				{
-					case PlayMode.Single:
-					case PlayMode.SingleRepeat:
-					case PlayMode.ListOrdered:
-						prev -= 1;
-						break;
-					case PlayMode.ListRepeat:
-						if (PlaylistManager.CurrentPlaying == 0)
-						{
-							prev = PlaylistManager.FilePathList.Count - 1;
-						}
-						else
-						{
-							prev -= 1;
-						}
-						break;
-					case PlayMode.Random:
-						if (PlaylistManager.FilePathList.Count > 1)
-						{
-							var r = new Random();
-							do
-							{
-								prev = r.Next(0, PlaylistManager.FilePathList.Count);
-							} while (prev == PlaylistManager.CurrentPlaying);
-						}
-						break;
-				}
+					songIndex = r.Next(0, PlaylistManager.FilePathList.Count);
+				} while (songIndex == PlaylistManager.CurrentSongIndex);
+			}
+		}
 
-				SwitchSong(prev, playing);
-			}
-			catch (Exception e)
-			{
-				MidiBard.CurrentPlayback = null;
-				PlaylistManager.CurrentPlaying = -1;
-			}
-		}
-		else
-		{
-			PlaylistManager.CurrentPlaying -= 1;
-		}
+		return songIndex;
 	}
 
 	internal static void MoveTime(double timeInSeconds)
@@ -216,20 +143,5 @@ internal static class MidiPlayerControl
 		{
 			PluginLog.Warning(e.ToString(), "error when try setting current playback time");
 		}
-	}
-
-	public static void SwitchSong(int index, bool startPlaying = false)
-	{
-		if (index < 0 || index >= PlaylistManager.FilePathList.Count)
-		{
-			PluginLog.Error($"SwitchSong: invalid playlist index {index}");
-			return;
-		}
-
-		PlaylistManager.CurrentPlaying = index;
-		Task.Run(async () =>
-		{
-			await FilePlayback.LoadPlayback(PlaylistManager.CurrentPlaying, startPlaying);
-		});
 	}
 }

@@ -6,9 +6,13 @@ using System.IO.Compression;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using Dalamud.Logging;
 using Melanchall.DryWetMidi.Interaction;
 using Newtonsoft.Json;
+using ProtoBuf;
+using ProtoBuf.Serializers;
 
 namespace MidiBard.Util;
 
@@ -38,7 +42,7 @@ static class Extensions
 	public static double GetTotalSeconds(this MetricTimeSpan t) => t.TotalMicroseconds / 1000_000d;
 	public static string JoinString(this IEnumerable<string> t, string? sep = null) => string.Join(sep, t);
 
-	public static byte[] Compress(byte[] bytes)
+	public static byte[] Compress(this byte[] bytes)
 	{
 		using MemoryStream memoryStream1 = new MemoryStream(bytes);
 		using MemoryStream memoryStream2 = new MemoryStream();
@@ -47,7 +51,7 @@ static class Extensions
 		return memoryStream2.ToArray();
 	}
 
-	public static byte[] Decompress(byte[] bytes)
+	public static byte[] Decompress(this byte[] bytes)
 	{
 		using MemoryStream memoryStream = new MemoryStream(bytes);
 		using MemoryStream destination = new MemoryStream();
@@ -117,20 +121,16 @@ static class Extensions
 		double num = Math.Round(bytes / Math.Pow(1024, place), round);
 		return (Math.Sign(byteCount) * num).ToString() + suf[place];
 	}
-
-	//public static TValue GetOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key) where TValue : new()
-	//{
-	//    if (!dict.TryGetValue(key, out TValue val))
-	//    {
-	//        val = new TValue();
-	//        dict.Add(key, val);
-	//    }
-
-	//    return val;
-	//}
-	public static string JsonSerialize<T>(this T obj) where T : class => JsonConvert.SerializeObject(obj, Formatting.None, JsonSerializerSettings);
+	public static byte[] ProtoSerialize<T>(this T obj)
+	{
+		using var memoryStream = new MemoryStream();
+		ProtoBuf.Serializer.Serialize(memoryStream, obj);
+		return memoryStream.ToArray();
+	}
+	public static T ProtoDeserialize<T>(this byte[] bytes) => ProtoBuf.Serializer.Deserialize<T>((ReadOnlySpan<byte>)bytes);
+	public static T ProtoDeepClone<T>(this T obj) => ProtoBuf.Serializer.DeepClone(obj);
+	public static string JsonSerialize<T>(this T obj) where T : class => JsonConvert.SerializeObject(obj, Formatting.Indented, JsonSerializerSettings);
 	public static T JsonDeserialize<T>(this string str) where T : class => JsonConvert.DeserializeObject<T>(str);
-
 	public static TValue GetOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, Func<TValue> valueCreator)
 	{
 		if (!dict.TryGetValue(key, out TValue val))
@@ -140,5 +140,18 @@ static class Extensions
 		}
 
 		return val;
+	}
+
+	public static T Clamp<T>(this T value, T Tmin, T Tmax) where T : IComparable<T>
+	{
+		if (value.CompareTo(Tmin) < 0) return Tmin;
+		if (value.CompareTo(Tmax) > 0) return Tmax;
+		return value;
+	}
+	public static T Cycle<T>(this T value, T Tmin, T Tmax) where T : IComparable<T>
+	{
+		if (value.CompareTo(Tmin) < 0) return Tmax;
+		if (value.CompareTo(Tmax) > 0) return Tmin;
+		return value;
 	}
 }

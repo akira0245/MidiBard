@@ -73,7 +73,7 @@ public class Configuration : IPluginConfiguration
     public TrackStatus[] TrackStatus = Enumerable.Repeat(new TrackStatus(), 100).ToArray().JsonSerialize().JsonDeserialize<TrackStatus[]>();
     //public ChannelStatus[] ChannelStatus = Enumerable.Repeat(new ChannelStatus(), 16).ToArray();
 
-    public List<string> Playlist = new List<string>();
+    //public List<string> Playlist = new List<string>();
 
     public float playSpeed = 1f;
     public float secondsBetweenTracks = 3;
@@ -157,5 +157,7 @@ public class Configuration : IPluginConfiguration
     public bool UseEnsembleIndicator = false;
 
     public bool SetInstrumentBeforeReadyCheck;
+
+    public bool DrawSelectPlaylistWindow;
     //[JsonIgnore] public bool OverrideGuitarTones => GuitarToneMode == GuitarToneMode.Override;
 }

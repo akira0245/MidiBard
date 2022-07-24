@@ -62,7 +62,6 @@ public class MidiBard : IDalamudPlugin
     internal static PlayNoteHook PlayNoteHook;
 
     internal static bool SlaveMode = false;
-    internal static bool BroadcastNotes = false;
 
     internal static byte CurrentInstrument => Marshal.ReadByte(Offsets.PerformanceStructPtr + 3 + Offsets.InstrumentOffset);
     internal static byte CurrentTone => Marshal.ReadByte(Offsets.PerformanceStructPtr + 3 + Offsets.InstrumentOffset + 1);
@@ -110,8 +109,6 @@ public class MidiBard : IDalamudPlugin
 			_ = NetworkManager.Instance;
 			_ = Testhooks.Instance;
 #endif
-
-        Task.Run(() => PlaylistManager.AddAsync(config.Playlist.ToArray(), true, true));
 
         _ = BardPlayDevice.Instance;
         InputDeviceManager.ScanMidiDeviceThread.Start();
@@ -339,6 +336,7 @@ public class MidiBard : IDalamudPlugin
             InputDeviceManager.ShouldScanMidiDeviceThread = false;
             api.Framework.Update -= OnFrameworkUpdate;
             api.PluginInterface.UiBuilder.Draw -= Ui.Draw;
+            PlaylistContainerManager.Container.Save();
 
             EnsembleManager.Dispose();
             PartyWatcher.Dispose();

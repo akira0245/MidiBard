@@ -5,7 +5,6 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Dalamud.Logging;
@@ -15,120 +14,96 @@ using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.Tools;
 using MidiBard.Control.CharacterControl;
+using MidiBard.Control.MidiControl;
 using MidiBard.DalamudApi;
 using MidiBard.IPC;
 using MidiBard.Managers;
 using MidiBard.Managers.Ipc;
 using MidiBard.Util;
 using Newtonsoft.Json;
+using ProtoBuf;
 
 namespace MidiBard;
 
-public class PlaylistsContainer
+static class PlaylistContainerManager
 {
-	public PlaylistsContainer()
+	private static FileInfo GetFileInfo() => new FileInfo(Path.Combine(api.PluginInterface.GetPluginConfigDirectory(), "MidibardPlaylists.json"));
+	private static PlaylistContainer? LoadFromFile()
 	{
-		Entries.CollectionChanged += (sender, e) =>
+		var configFile = GetFileInfo();
+		if (!configFile.Exists) return null;
+		return JsonConvert.DeserializeObject<PlaylistContainer>(File.ReadAllText(configFile.FullName));
+	}
+	private static PlaylistContainer GetDefaultPlaylistContainer() => new PlaylistContainer { Entries = new ObservableCollection<PlaylistEntry> { new PlaylistEntry { Name = "Default playlist" } } };
+	public static PlaylistContainer Container { get; set; } = LoadFromFile() ?? GetDefaultPlaylistContainer();
+	public static int CurrentPlaylistIndex
+	{
+		get => Container.CurrentListIndex;
+		set
 		{
-			if (Entries.Any())
-			{
-				Entries.Add(new PlaylistEntry());
-				CurrentList = 0;
-			}
-
-			if (CurrentList > Entries.Count - 1)
-			{
-				CurrentList = Entries.Count - 1;
-			}
-
-			if (CurrentList < 0)
-			{
-				CurrentList = 0;
-			}
-		};
+			if (value == Container.CurrentListIndex) return;
+			Container.CurrentListIndex = value;
+			MidiBard.Ui.RefreshSearchResult();
+			IPCHandles.SyncPlayStatus(false);
+		}
 	}
 
-	public ObservableCollection<PlaylistEntry> Entries = new();
-	public int CurrentList = 0;
-}
-
-public class PlaylistEntry
-{
-	public string Name = "Default playlist";
-	public List<string> PathList = new();
-}
-
-static class PlaylistFileManager
-{
-	public static readonly FileInfo PlaylistFileInfo = new FileInfo(Path.Combine(api.PluginInterface.GetPluginConfigDirectory(), "MidibardPlaylists.json"));
-	public static PlaylistsContainer PlaylistsContainer { get; set; } = FileHelpers.Load<PlaylistsContainer>(PlaylistFileInfo.FullName) ?? new PlaylistsContainer();
-	public static ref ObservableCollection<PlaylistEntry> Playlists => ref PlaylistsContainer.Entries;
-	public static ref int CurrentSelected => ref PlaylistsContainer.CurrentList;
-	public static ref List<string> CurrentPlaylist => ref Playlists[CurrentSelected].PathList;
-	public static void Save(this PlaylistsContainer playlistsContainer) => File.WriteAllText(PlaylistFileInfo.FullName, JsonConvert.SerializeObject(playlistsContainer, Formatting.Indented));
+	public static void Save(this PlaylistContainer config)
+	{
+		try
+		{
+			var fullName = GetFileInfo().FullName;
+			File.WriteAllText(fullName, JsonConvert.SerializeObject(config, Formatting.Indented));
+		}
+		catch (Exception e)
+		{
+			PluginLog.Warning(e, "error when saving playlist");
+		}
+	}
 }
 
 static class PlaylistManager
 {
-	public static List<(string path, string fileName, string displayName, bool played)> FilePathList { get; set; } = new();
-	public static int CurrentPlaying
-	{
-		get => currentPlaying;
-		set
-		{
-			if (value < -1) value = -1;
-			if (value > PlaylistManager.FilePathList.Count) value = PlaylistManager.FilePathList.Count;
-			currentPlaying = value;
-		}
-	}
+	public static List<SongEntry> FilePathList => PlaylistContainerManager.Container.Entries[PlaylistContainerManager.CurrentPlaylistIndex].PathList;
 
-	public static int CurrentSelected
+	public static int CurrentSongIndex
 	{
-		get => currentSelected;
-		set
-		{
-			if (value < -1) value = -1;
-			currentSelected = value;
-		}
+		get => PlaylistContainerManager.Container.CurrentPlaylist.CurrentSongIndex;
+		private set => PlaylistContainerManager.Container.CurrentPlaylist.CurrentSongIndex = value;
 	}
 
 	public static void Clear()
 	{
-		MidiBard.config.Playlist.Clear();
 		FilePathList.Clear();
-		CurrentPlaying = -1;
-
+		CurrentSongIndex = -1;
 		IPCHandles.SyncPlaylist();
 	}
 
 
 	public static void RemoveSync(int index)
 	{
-		RemoveLocal(index);
-
-		IPCHandles.RemoveTrackIndex(index);
+		var playlistIndex = PlaylistContainerManager.CurrentPlaylistIndex;
+		RemoveLocal(playlistIndex, index);
+		IPCHandles.RemoveTrackIndex(playlistIndex, index);
 	}
 
-	public static void RemoveLocal(int index)
+	public static void RemoveLocal(int playlistIndex, int index)
 	{
 		try
 		{
-			MidiBard.config.Playlist.RemoveAt(index);
-			FilePathList.RemoveAt(index);
-			PluginLog.Information($"removing {index}");
-			if (index < currentPlaying)
+			var playlist = PlaylistContainerManager.Container.CurrentPlaylist;
+			playlist.PathList.RemoveAt(index);
+			PluginLog.Debug($"removed [{playlistIndex}, {index}]");
+			if (index < playlist.CurrentSongIndex)
 			{
-				currentPlaying--;
+				playlist.CurrentSongIndex--;
 			}
 		}
 		catch (Exception e)
 		{
-			PluginLog.Error(e, "error while removing track {0}");
+			PluginLog.Error(e, $"error when removing song [{playlistIndex}, {index}]");
 		}
 	}
-
-	private static int currentPlaying = -1;
-	private static int currentSelected = -1;
 
 	internal static readonly ReadingSettings readingSettings = new ReadingSettings
 	{
@@ -146,97 +121,112 @@ static class PlaylistManager
 		InvalidSystemCommonEventParameterValuePolicy = InvalidSystemCommonEventParameterValuePolicy.SnapToLimits
 	};
 
-	internal static async Task AddAsync(string[] filePaths, bool reload = false, bool remote = false)
+	internal static async Task AddAsync(string[] filePaths)
 	{
-		if (reload)
-		{
-			MidiBard.config.Playlist.Clear();
-			FilePathList.Clear();
-		}
-
 		var count = filePaths.Length;
 		var success = 0;
 		var sw = Stopwatch.StartNew();
 
-		if (remote)
+		await Task.Run(() =>
 		{
-			foreach (var path in filePaths)
+			foreach (var path in CheckValidFiles(filePaths))
 			{
-				Add(path);
+				FilePathList.Add(new SongEntry { FilePath = path });
 				success++;
 			}
-		}
-		else
-		{
-			await foreach (var path in GetPathsAvailable(filePaths))
-			{
-				Add(path);
-				success++;
-			}
+		});
 
-			IPCHandles.SyncPlaylist();
-		}
-
-
-		void Add(string s)
-		{
-			string fileName = Path.GetFileNameWithoutExtension(s);
-			MidiBard.config.Playlist.Add(s);
-			FilePathList.Add((path: s, fileName, SwitchInstrument.ParseSongName(fileName, out _, out _), false));
-		}
+		IPCHandles.SyncPlaylist();
 
 		PluginLog.Information($"File import all complete in {sw.Elapsed.TotalMilliseconds} ms! success: {success} total: {count}");
 	}
 
-	internal static async IAsyncEnumerable<string> GetPathsAvailable(string[] filePaths)
+	internal static IEnumerable<string> CheckValidFiles(string[] filePaths)
 	{
 		foreach (var path in filePaths)
 		{
-			MidiFile file = await LoadMidiFile(path);
+			MidiFile file = LoadMidiFile(path);
 			if (file is not null) yield return path;
 		}
 	}
 
-	internal static async Task<MidiFile> LoadMidiFile(int index)
-	{
-		if (index < 0 || index >= FilePathList.Count)
-		{
-			return null;
-		}
-
-		return await LoadMidiFile(FilePathList[index].path);
-	}
-
-	internal static async Task<MidiFile> LoadMidiFile(string filePath)
+	internal static MidiFile LoadMidiFile(string filePath)
 	{
 		PluginLog.Debug($"[LoadMidiFile] -> {filePath} START");
 		MidiFile loaded = null;
 		var stopwatch = Stopwatch.StartNew();
 
-		await Task.Run(() =>
+		try
 		{
-			try
+			if (!File.Exists(filePath))
 			{
-				if (!File.Exists(filePath))
-				{
-					PluginLog.Warning($"File not exist! path: {filePath}");
-					return;
-				}
-
-				using (var f = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-				{
-					loaded = MidiFile.Read(f, readingSettings);
-				}
-
-				PluginLog.Debug($"[LoadMidiFile] -> {filePath} OK! in {stopwatch.Elapsed.TotalMilliseconds} ms");
+				PluginLog.Warning($"File not exist! path: {filePath}");
+				return null;
 			}
-			catch (Exception ex)
+
+			using (var f = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 			{
-				PluginLog.Warning(ex, "Failed to load file at {0}", filePath);
+				loaded = MidiFile.Read(f, readingSettings);
 			}
-		});
+
+			PluginLog.Debug($"[LoadMidiFile] -> {filePath} OK! in {stopwatch.Elapsed.TotalMilliseconds} ms");
+		}
+		catch (Exception ex)
+		{
+			PluginLog.Warning(ex, "Failed to load file at {0}", filePath);
+		}
 
 
 		return loaded;
+	}
+
+	public static SongEntry? GetSongEntry(int playlistIndex, int songIndex)
+	{
+		SongEntry ret = null;
+		var container = PlaylistContainerManager.Container;
+		try
+		{
+			ret = container.Entries[playlistIndex].PathList[songIndex];
+		}
+		catch (Exception e)
+		{
+			PluginLog.Warning(e, "error when getting songEntry");
+		}
+		return ret;
+	}
+	public static async Task<bool> LoadPlayback(int? index = null, bool startPlaying = false, bool sync = true)
+	{
+		//if (index < 0 || index >= FilePathList.Count)
+		//{
+		//	PluginLog.Warning($"LoadPlaybackIndex: invalid playlist index {index}");
+		//	//return false;
+		//}
+
+		if (index is int songIndex) CurrentSongIndex = songIndex;
+		if (sync) IPCHandles.SyncPlayStatus(true);
+		if (await LoadPlayback())
+		{
+			if (startPlaying)
+			{
+				MidiBard.CurrentPlayback?.Start();
+			}
+
+			return true;
+		}
+		return false;
+	}
+
+	private static async Task<bool> LoadPlayback()
+	{
+		try
+		{
+			var songEntry = FilePathList[CurrentSongIndex];
+			return await FilePlayback.LoadPlayback(songEntry.FilePath);
+		}
+		catch (Exception e)
+		{
+			PluginLog.Warning(e.ToString());
+			return false;
+		}
 	}
 }

@@ -40,50 +40,6 @@ public partial class PluginUI
             ImGui.EndPopup();
         }
 
-        if (api.KeyState[VirtualKey.CONTROL] && api.KeyState[VirtualKey.V])
-        {
-            if (!IsImportRunning)
-            {
-                IsImportRunning = true;
-                string[] array = null;
-                var t = new Thread(() =>
-                {
-                    PluginLog.Information($"start getting GetFileDropList thread");
-                    try
-                    {
-                        array = Clipboard.GetFileDropList().Cast<string>().Where(i => i.EndsWith(".mid")).ToArray();
-                    }
-                    catch (Exception e)
-                    {
-                        PluginLog.Error(e, "error when getting files from clipboard");
-                        array = new string[] { };
-                    }
-                    finally
-                    {
-                        PluginLog.Information($"getting GetFileDropList thread end");
-                    }
-                });
-                t.SetApartmentState(ApartmentState.STA);
-                t.Start();
-
-                try
-                {
-                    Task.Run(async () =>
-                    {
-                        await Coroutine.WaitUntil(() => array != null, 5000);
-                        await PlaylistManager.AddAsync(array);
-                    });
-                }
-                catch (Exception e)
-                {
-                    PluginLog.Error(e, "error when importing files from clipboard");
-                }
-                finally
-                {
-                    Task.Delay(2000).ContinueWith(task => IsImportRunning = false);
-                }
-            }
-        }
         ImGui.BeginGroup();
 
         if (ImGuiUtil.IconButton(FontAwesomeIcon.Plus, "buttonimport"))
@@ -91,7 +47,7 @@ public partial class PluginUI
             RunImportFileTask();
         }
 
-        ImGuiUtil.ToolTip("Import midi file\nRight click to select file dialog type\nPress ctrl+V to import files from clipboard".Localize());
+        ImGuiUtil.ToolTip("Import midi file\nRight click to select file dialog type".Localize());
         ImGui.SameLine();
         if (ImGuiUtil.IconButton(FontAwesomeIcon.FolderOpen, "buttonimportFolder"))
         {
@@ -139,7 +95,7 @@ public partial class PluginUI
 
     private void RunImportFileTaskWin32()
     {
-        var b = new Browse((result, filePath) =>
+        var b = new Browse((result, filePaths) =>
         {
             if (result == true)
             {
@@ -147,7 +103,7 @@ public partial class PluginUI
                 {
                     try
                     {
-                        await PlaylistManager.AddAsync(filePath);
+                        await PlaylistManager.AddAsync(filePaths);
                     }
                     finally
                     {

@@ -33,7 +33,8 @@ internal sealed class BardPlayback : Playback
 			FilePath = filePath,
 			TrackChunks = trackChunks,
 			TrackInfos = trackInfos,
-			MidiFileConfig = midiFileConfig
+			MidiFileConfig = midiFileConfig,
+			DisplayName = $"{PlaylistContainerManager.Container.CurrentPlaylist?.Name} {PlaylistContainerManager.Container.CurrentPlaylist?.CurrentSongIndex:000}\n{PlaylistContainerManager.Container.CurrentPlaylist?.CurrentSongEntry?.FileName}"
 		};
 	}
 
@@ -56,6 +57,8 @@ internal sealed class BardPlayback : Playback
 	internal string FilePath { get; init; }
 	internal TrackChunk[] TrackChunks { get; init; }
 	internal TrackInfo[] TrackInfos { get; init; }
+
+	internal string DisplayName { get; init; }
 
 	private static void PreparePlaybackData(MidiFile file, out TempoMap tempoMap, out TrackChunk[] trackChunks, out TrackInfo[] trackInfos, out TimedEventWithMetadata[] timedEventWithMetadata)
 	{

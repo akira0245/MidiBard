@@ -88,7 +88,7 @@ public partial class PluginUI
 		string songName = "";
 		try
 		{
-			songName = PlaylistManager.FilePathList[PlaylistManager.CurrentPlaying].displayName;
+			songName = PlaylistManager.FilePathList[PlaylistManager.CurrentSongIndex].FileName;
 		}
 		catch (Exception e)
 		{

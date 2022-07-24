@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Interface;
@@ -135,7 +135,7 @@ public partial class PluginUI
                                 && MidiBard.config.TrackStatus[(int)MidiBard.config.SoloedTrack].Enabled
                                 && MidiBard.CurrentPlayback.TrackInfos[(int)MidiBard.config.SoloedTrack].InstrumentIDFromTrackName != null)
                             {
-                                SwitchInstrument.SwitchTo((uint)MidiBard.CurrentPlayback.TrackInfos[(int)MidiBard.config.SoloedTrack].InstrumentIDFromTrackName);
+                                SwitchInstrument.SwitchToAsync((uint)MidiBard.CurrentPlayback.TrackInfos[(int)MidiBard.config.SoloedTrack].InstrumentIDFromTrackName);
                             }
                         }
 
@@ -232,11 +232,11 @@ public partial class PluginUI
             var firstEnabledTrack = MidiBard.CurrentPlayback.TrackInfos.FirstOrDefault(trackInfo => trackInfo.IsEnabled);
             if (firstEnabledTrack?.InstrumentIDFromTrackName != null)
             {
-                SwitchInstrument.SwitchTo((uint)firstEnabledTrack.InstrumentIDFromTrackName);
+                SwitchInstrument.SwitchToAsync((uint)firstEnabledTrack.InstrumentIDFromTrackName);
             }
             else
             {
-                SwitchInstrument.SwitchTo(0);
+                SwitchInstrument.SwitchToAsync(0);
             }
         }
     }

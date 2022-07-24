@@ -4,8 +4,10 @@ using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using Dalamud.Interface;
+using Dalamud.Logging;
 using ImGuiNET;
 using MidiBard.Control.MidiControl;
+using MidiBard.IPC;
 using MidiBard.Managers.Ipc;
 using MidiBard.Util;
 using static ImGuiNET.ImGui;
@@ -55,14 +57,19 @@ public partial class PluginUI
 			SameLine();
 			ButtonSearch();
 			SameLine();
+			ButtonClearPlaylist();
+			SameLine();
 			ButtonStandalonePlaylist();
 			SameLine();
-			ButtonClearPlaylist();
-
+			if (IconButton(FontAwesomeIcon.EllipsisV, "more"))
+			{
+				MidiBard.config.DrawSelectPlaylistWindow ^= true;
+			}
+			ToolTip("Show playlist selector".Localize());
 
 			if (MidiBard.Localizer.Language == UILang.CN)
 			{
-				SameLine(ImGuiUtil.GetWindowContentRegionWidth() - ImGuiHelpers.GetButtonSize(FontAwesomeIcon.QuestionCircle.ToIconString()).X);
+				SameLine();
 
 				if (IconButton(FontAwesomeIcon.QuestionCircle, "helpbutton"))
 				{
@@ -73,6 +80,10 @@ public partial class PluginUI
 			}
 			PopStyleVar(2);
 
+			if (MidiBard.config.DrawSelectPlaylistWindow)
+			{
+				DrawPlaylistSelector();
+			}
 
 			if (MidiBard.config.enableSearching)
 			{
@@ -91,6 +102,99 @@ public partial class PluginUI
 			{
 				DrawPlaylistTable();
 			}
+		}
+	}
+
+	private void DrawPlaylistSelector()
+	{
+		ImGui.SetNextWindowPos(GetWindowPos() + new Vector2(GetWindowWidth(), 0), ImGuiCond.Always);
+		SetNextWindowSize(new Vector2(ImGuiHelpers.GlobalScale * 150, GetWindowHeight()));
+		if (ImGui.Begin("playlists",
+				ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoMove |
+				ImGuiWindowFlags.NoFocusOnAppearing))
+		{
+			try
+			{
+				bool sync = false;
+				var container = PlaylistContainerManager.Container;
+				var playlistEntries = container.Entries;
+				if (BeginListBox("##playlistListbox", new Vector2(-1, ImGuiUtil.GetWindowContentRegionHeight() - 2 * GetFrameHeightWithSpacing())))
+				{
+					for (int i = 0; i < playlistEntries.Count; i++)
+					{
+						var playlist = playlistEntries[i];
+						if (Selectable($"{playlist.Name} ({playlist.PathList.Count})##{i}",
+								PlaylistContainerManager.CurrentPlaylistIndex == i))
+						{
+							PlaylistContainerManager.CurrentPlaylistIndex = i;
+						}
+					}
+
+					EndListBox();
+				}
+				SetNextItemWidth(-1);
+				if (InputText($"##currentPlaylistName", ref container.CurrentPlaylist.Name, 128, ImGuiInputTextFlags.AutoSelectAll | ImGuiInputTextFlags.EnterReturnsTrue))
+				{
+					sync = true;
+				}
+
+				if (IconButton(FontAwesomeIcon.File, "new", "New playlist"))
+				{
+					playlistEntries.Add(new PlaylistEntry() { Name = "New playlist" });
+					sync = true;
+				}
+
+				SameLine();
+				if (IconButton(FontAwesomeIcon.Copy, "clone", "Clone current playlist"))
+				{
+					playlistEntries.Insert(container.CurrentListIndex, container.CurrentPlaylist.Clone());
+					sync = true;
+				}
+				SameLine();
+				if (IconButton(FontAwesomeIcon.Download, "saveas", "Save current search result as new playlist"))
+				{
+					try
+					{
+						var c = new PlaylistEntry();
+						c.Name = PlaylistSearchString;
+						RefreshSearchResult();
+						c.PathList = MidiBard.Ui.searchedPlaylistIndexs.Select(i => PlaylistManager.FilePathList[i]).ToList();
+						playlistEntries.Add(c);
+						sync = true;
+					}
+					catch (Exception e)
+					{
+						PluginLog.Warning(e, "error when try saving current search result as new playlist");
+					}
+				}
+				SameLine();
+				if (IconButton(FontAwesomeIcon.Save, "save", "Save and sync"))
+				{
+					container.Save();
+					sync = true;
+				}
+
+				SameLine(GetWindowWidth() - ImGui.GetFrameHeightWithSpacing());
+				if (ImGuiUtil.IconButton(FontAwesomeIcon.TrashAlt, "deleteCurrentPlist", "Double click to delete current playlist"))
+				{
+				}
+				if (IsItemHovered() && IsMouseDoubleClicked(ImGuiMouseButton.Left))
+				{
+					playlistEntries.Remove(container.CurrentPlaylist);
+					sync = true;
+				}
+
+				if (sync)
+				{
+					IPCHandles.SyncPlaylist();
+				}
+			}
+			catch (Exception e)
+			{
+				PluginLog.Error(e, "error when draw playlist popup");
+			}
+
+			End();
 		}
 	}
 
@@ -185,13 +289,14 @@ public partial class PluginUI
 	{
 		try
 		{
-			var (_, fileName, displayName, played) = PlaylistManager.FilePathList[i];
+			var entry = PlaylistManager.FilePathList[i];
+			var displayName = entry.FileName;
 			TextUnformatted(displayName);
 
 			if (IsItemHovered())
 			{
 				BeginTooltip();
-				TextUnformatted(fileName);
+				TextUnformatted(displayName);
 				EndTooltip();
 			}
 		}
@@ -203,17 +308,13 @@ public partial class PluginUI
 
 	private static void DrawPlaylistItemSelectable(int i)
 	{
-		if (Selectable($"{i + 1:000}##plistitem", PlaylistManager.CurrentPlaying == i,
+		if (Selectable($"{i + 1:000}##plistitem", PlaylistManager.CurrentSongIndex == i,
 				ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowDoubleClick |
 				ImGuiSelectableFlags.AllowItemOverlap))
 		{
 			if (IsMouseDoubleClicked(ImGuiMouseButton.Left))
 			{
-				MidiPlayerControl.SwitchSong(i);
-			}
-			else
-			{
-				PlaylistManager.CurrentSelected = i;
+				PlaylistManager.LoadPlayback(i);
 			}
 		}
 	}
@@ -234,7 +335,8 @@ public partial class PluginUI
 
 	private static void ButtonClearPlaylist()
 	{
-		Button("Clear Playlist".Localize());
+		IconButton(FontAwesomeIcon.TrashAlt, "clearplaylist");
+		//Button("Clear Playlist".Localize());
 		if (IsItemHovered())
 		{
 			BeginTooltip();
@@ -249,7 +351,7 @@ public partial class PluginUI
 
 	private static void ButtonStandalonePlaylist()
 	{
-		var fontAwesomeIcon = MidiBard.config.UseStandalonePlaylistWindow? FontAwesomeIcon.Compress : FontAwesomeIcon.Expand;
+		var fontAwesomeIcon = MidiBard.config.UseStandalonePlaylistWindow ? FontAwesomeIcon.Compress : FontAwesomeIcon.Expand;
 		if (ImGuiUtil.IconButton(fontAwesomeIcon, "ButtonStandalonePlaylist"))
 		{
 			MidiBard.config.UseStandalonePlaylistWindow ^= true;
@@ -270,14 +372,19 @@ public partial class PluginUI
 		if (InputTextWithHint("##searchplaylist", "Enter to search".Localize(), ref PlaylistSearchString, 255,
 				ImGuiInputTextFlags.AutoSelectAll))
 		{
-			searchedPlaylistIndexs.Clear();
+			RefreshSearchResult();
+		}
+	}
 
-			for (var i = 0; i < PlaylistManager.FilePathList.Count; i++)
+	internal void RefreshSearchResult()
+	{
+		searchedPlaylistIndexs.Clear();
+
+		for (var i = 0; i < PlaylistManager.FilePathList.Count; i++)
+		{
+			if (PlaylistManager.FilePathList[i].FileName.ContainsIgnoreCase(PlaylistSearchString))
 			{
-				if (PlaylistManager.FilePathList[i].fileName.ContainsIgnoreCase(PlaylistSearchString))
-				{
-					searchedPlaylistIndexs.Add(i);
-				}
+				searchedPlaylistIndexs.Add(i);
 			}
 		}
 	}

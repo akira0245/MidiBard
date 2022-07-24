@@ -59,7 +59,7 @@ public partial class PluginUI
 		ImGui.SameLine();
 		if (IconButton(FontAwesomeIcon.Stop, "btnstop"))
 		{
-			if (FilePlayback.isWaiting)
+			if (FilePlayback.IsWaiting)
 			{
 				FilePlayback.CancelWaiting();
 			}

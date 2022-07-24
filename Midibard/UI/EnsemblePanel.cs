@@ -221,14 +221,14 @@ public partial class PluginUI
 			{
 				if (ImGui.Button($"Select a song from playlist", new Vector2(-1, ImGui.GetFrameHeight())))
 				{
-					try
-					{
-						FilePlayback.LoadPlayback(new Random().Next(0, PlaylistManager.FilePathList.Count));
-					}
-					catch (Exception e)
-					{
-						//
-					}
+					//try
+					//{
+					//	FilePlayback.LoadPlayback(new Random().Next(0, PlaylistManager.FilePathList.Count));
+					//}
+					//catch (Exception e)
+					//{
+					//	//
+					//}
 				}
 			}
 			else

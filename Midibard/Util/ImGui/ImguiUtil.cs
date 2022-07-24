@@ -106,7 +106,12 @@ public static class ImGuiUtil
 			PopFont();
 		}
 	}
-
+	public static bool IconButton(FontAwesomeIcon icon, string id, string tooltip, float? width = null)
+	{
+		var r = IconButton(icon, $"{id}{tooltip}", width);
+		ToolTip(tooltip);
+		return r;
+	}
 
 	public static bool IconButton(FontAwesomeIcon icon, string id, float? width = null)
 	{
@@ -259,6 +264,8 @@ public static class ImGuiUtil
 		return b;
 	}
 	public static float GetWindowContentRegionWidth() => ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X;
+	public static float GetWindowContentRegionHeight() => ImGui.GetWindowContentRegionMax().Y - ImGui.GetWindowContentRegionMin().Y;
+	public static Vector2 GetWindowContentRegion() => ImGui.GetWindowContentRegionMax() - ImGui.GetWindowContentRegionMin();
 
 	public const uint ColorRed = 0xFF0000C8;
 	public const uint ColorYellow = 0xFF00C8C8;
