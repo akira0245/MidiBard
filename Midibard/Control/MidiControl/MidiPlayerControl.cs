@@ -83,18 +83,18 @@ internal static class MidiPlayerControl
 
 	internal static void Next(bool startPlaying = false)
 	{
-		var songIndex = GetNextPrevSongIndex(PlaylistManager.CurrentSongIndex, true);
+		var songIndex = GetSongIndex(PlaylistManager.CurrentSongIndex, true);
 		PlaylistManager.LoadPlayback(songIndex, MidiBard.IsPlaying || startPlaying);
 	}
 
 	internal static void Prev()
 	{
-		var songIndex = GetNextPrevSongIndex(PlaylistManager.CurrentSongIndex, false);
+		var songIndex = GetSongIndex(PlaylistManager.CurrentSongIndex, false);
 		PlaylistManager.LoadPlayback(songIndex, MidiBard.IsPlaying);
 
 	}
 
-	private static int GetNextPrevSongIndex(int songIndex, bool next)
+	private static int GetSongIndex(int songIndex, bool next)
 	{
 		var playMode = (PlayMode)MidiBard.config.PlayMode;
 		switch (playMode)
@@ -102,8 +102,6 @@ internal static class MidiPlayerControl
 			case PlayMode.Single:
 			case PlayMode.SingleRepeat:
 			case PlayMode.ListOrdered:
-				songIndex += next ? 1 : -1;
-				break;
 			case PlayMode.ListRepeat:
 				songIndex += next ? 1 : -1;
 				break;
@@ -111,7 +109,7 @@ internal static class MidiPlayerControl
 
 		if (playMode == PlayMode.ListRepeat)
 		{
-			songIndex.Cycle(0, PlaylistManager.FilePathList.Count - 1);
+			songIndex = songIndex.Cycle(0, PlaylistManager.FilePathList.Count - 1);
 		}
 		else if (playMode == PlayMode.Random)
 		{

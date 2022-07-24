@@ -154,4 +154,15 @@ static class Extensions
 		if (value.CompareTo(Tmax) > 0) return Tmin;
 		return value;
 	}
+
+	//public static void Clamp<T>(this ref T value, T Tmin, T Tmax) where T : struct, IComparable<T>
+	//{
+	//	if (value.CompareTo(Tmin) < 0) value = Tmin;
+	//	if (value.CompareTo(Tmax) > 0) value = Tmax;
+	//}
+	//public static void Cycle<T>(this ref T value, T Tmin, T Tmax) where T : struct, IComparable<T>
+	//{
+	//	if (value.CompareTo(Tmin) < 0) value = Tmax;
+	//	if (value.CompareTo(Tmax) > 0) value = Tmin;
+	//}
 }

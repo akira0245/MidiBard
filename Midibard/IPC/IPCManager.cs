@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Linq.Expressions;
@@ -103,9 +104,12 @@ internal class IPCManager : IDisposable
 		if (initFailed) return;
 		try
 		{
-			PluginLog.Verbose($"Message received");
+			var sw = Stopwatch.StartNew();
+			PluginLog.Verbose($"message received");
 			var bytes = e.Message.Decompress();
+			PluginLog.Verbose($"message decompressed in {sw.Elapsed.TotalMilliseconds}ms");
 			var message = bytes.ProtoDeserialize<IPCEnvelope>();
+			PluginLog.Verbose($"proto deserialized in {sw.Elapsed.TotalMilliseconds}ms");
 			PluginLog.Debug(message.ToString());
 			ProcessMessage(message);
 		}
@@ -125,7 +129,7 @@ internal class IPCManager : IDisposable
 		if (initFailed) return;
 		try
 		{
-			PluginLog.Verbose($"en-queuing message. length: {Dalamud.Utility.Util.FormatBytes(serialized.Length)}" + (includeSelf ? " includeSelf" : null));
+			PluginLog.Verbose($"queuing message. length: {Dalamud.Utility.Util.FormatBytes(serialized.Length)}" + (includeSelf ? " includeSelf" : null));
 			messageQueue.Enqueue(new(serialized, includeSelf));
 			_autoResetEvent.Set();
 		}

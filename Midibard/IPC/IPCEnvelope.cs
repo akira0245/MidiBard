@@ -18,7 +18,6 @@ namespace MidiBard.IPC;
 [ProtoContract]
 internal class IPCEnvelope
 {
-	[ProtoIgnore]
 	private static readonly int processId = Process.GetCurrentProcess().Id;
 	public IPCEnvelope(MessageTypeCode messageType, byte[] data, params string[] stringData)
 	{

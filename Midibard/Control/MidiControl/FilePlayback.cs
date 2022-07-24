@@ -68,6 +68,8 @@ public static class FilePlayback
 						CurrentPlayback.MoveToStart();
 						CurrentPlayback.Start();
 						break;
+					case PlayMode.ListOrdered when PlaylistManager.CurrentSongIndex >= PlaylistManager.FilePathList.Count - 1:
+						break;
 					case PlayMode.ListOrdered:
 					case PlayMode.ListRepeat:
 					case PlayMode.Random:

@@ -34,7 +34,7 @@ public class PlaylistContainer
 	public int CurrentListIndex
 	{
 		get => _currentListIndex;
-		set => _currentListIndex = Math.Min(Entries.Count - 1, Math.Max(0, value));
+		set => _currentListIndex = value.Clamp(0, Entries.Count - 1);
 	}
 	[JsonIgnore]
 	public PlaylistEntry? CurrentPlaylist
@@ -66,7 +66,7 @@ public class PlaylistEntry
 	public int CurrentSongIndex
 	{
 		get => _currentSongIndex;
-		set => _currentSongIndex = Math.Min(PathList.Count - 1, Math.Max(-1, value));
+		set => _currentSongIndex = value.Clamp(0, PathList.Count - 1);
 	}
 	[JsonIgnore]
 	public SongEntry? CurrentSongEntry
