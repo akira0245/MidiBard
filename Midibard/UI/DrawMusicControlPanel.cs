@@ -7,6 +7,7 @@ using Melanchall.DryWetMidi.Interaction;
 using MidiBard.Control.CharacterControl;
 using MidiBard.Control.MidiControl;
 using MidiBard.Util;
+using MidiBard.Managers.Ipc;
 using static ImGuiNET.ImGui;
 using static MidiBard.ImGuiUtil;
 using static MidiBard.Resources.Language;
@@ -40,9 +41,17 @@ public partial class PluginUI
 		//-------------------
 		SameLine(ImGuiUtil.GetWindowContentRegionWidth() / 2);
 		SetNextItemWidth(itemWidth);
-		InputInt(Transpose, ref MidiBard.config.TransposeGlobal, 12);
+		if (InputInt(Transpose, ref MidiBard.config.TransposeGlobal, 12))
+		{
+			MidiBard.config.SetTransposeGlobal(MidiBard.config.TransposeGlobal);
+			IPC.IPCHandles.GlobalTranspose(MidiBard.config.TransposeGlobal);
+		}
 		if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right))
+		{
 			MidiBard.config.TransposeGlobal = 0;
+			IPC.IPCHandles.GlobalTranspose(MidiBard.config.TransposeGlobal);
+
+		}
 		ToolTip(TransposeTooltip);
 
 
@@ -84,7 +93,7 @@ public partial class PluginUI
 		//-------------------
 	}
 
-	private static void SetSpeed()
+	internal static void SetSpeed()
 	{
 		MidiBard.config.playSpeed = MidiBard.config.playSpeed.Clamp(0.1f, 10f);
 		var currenttime = MidiBard.CurrentPlayback?.GetCurrentTime(TimeSpanType.Midi);
@@ -93,6 +102,8 @@ public partial class PluginUI
 			MidiBard.CurrentPlayback.Speed = MidiBard.config.playSpeed;
 			MidiBard.CurrentPlayback?.MoveToTime(currenttime);
 		}
+
+		IPC.IPCHandles.PlaybackSpeed(MidiBard.config.playSpeed);
 	}
 
 	private static string GetBpmString()
@@ -130,12 +141,26 @@ public partial class PluginUI
 					$"{(currentTime.Hours != 0 ? currentTime.Hours + ":" : "")}{currentTime.Minutes:00}:{currentTime.Seconds:00}",
 					ImGuiSliderFlags.AlwaysClamp | ImGuiSliderFlags.NoRoundToFormat))
 			{
-				MidiBard.CurrentPlayback.MoveToTime(duration.Multiply(progress));
+				if (DalamudApi.api.PartyList.Length < 2)
+				{
+					MidiBard.CurrentPlayback.MoveToTime(duration.Multiply(progress));
+				}
+				else
+				{
+					IPC.IPCHandles.MoveToTime(progress);
+				}
 			}
 
 			if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right))
 			{
-				MidiBard.CurrentPlayback.MoveToTime(duration.Multiply(0));
+				if (DalamudApi.api.PartyList.Length < 2)
+				{
+					MidiBard.CurrentPlayback.MoveToTime(duration.Multiply(0));
+				}
+				else
+				{
+					IPC.IPCHandles.MoveToTime(0);
+				}
 			}
 		}
 		else

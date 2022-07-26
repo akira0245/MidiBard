@@ -13,6 +13,7 @@ using MidiBard.Managers;
 using MidiBard.Managers.Agents;
 using MidiBard.Managers.Ipc;
 using MidiBard.Util;
+using Melanchall.DryWetMidi.Interaction;
 
 namespace MidiBard.IPC;
 public enum MessageTypeCode
@@ -39,7 +40,12 @@ public enum MessageTypeCode
 	ShowWindow,
 	SyncAllSettings,
 	Object,
-	SyncPlayStatus
+	SyncPlayStatus,
+	PlaybackSpeed,
+	GlobalTranspose,
+	MoveToTime,
+
+	ErrPlaybackNull = 1000
 }
 
 enum PlaylistOperation
@@ -75,6 +81,7 @@ static class IPCHandles
 
 	public static void SyncPlayStatus(bool loadPlayback)
 	{
+		if (api.PartyList.Length < 2 || !api.PartyList.IsPartyLeader()) return;
 		var status = (PlaylistContainerManager.CurrentPlaylistIndex, PlaylistManager.CurrentSongIndex, loadPlayback);
 		var ipcEnvelope = IPCEnvelope.Create(MessageTypeCode.SyncPlayStatus, status);
 		ipcEnvelope.BroadCast();
@@ -108,6 +115,7 @@ static class IPCHandles
 
 	public static void UpdateMidiFileConfig(MidiFileConfig config)
 	{
+		if (api.PartyList.Length < 2 || !api.PartyList.IsPartyLeader()) return;
 		IPCEnvelope.Create(MessageTypeCode.UpdateMidiFileConfig, config.JsonSerialize()).BroadCast(true);
 	}
 
@@ -146,7 +154,7 @@ static class IPCHandles
 
 	public static void UpdateInstrument(bool takeout)
 	{
-		if (!api.PartyList.IsPartyLeader()) return;
+		if (api.PartyList.Length < 2 || !api.PartyList.IsPartyLeader()) return;
 		IPCEnvelope.Create(MessageTypeCode.SetInstrument, takeout).BroadCast(true);
 	}
 	[IPCHandle(MessageTypeCode.SetInstrument)]
@@ -212,5 +220,89 @@ static class IPCHandles
 		//do not overwrite track settings
 		jsonDeserialize.TrackStatus = MidiBard.config.TrackStatus;
 		MidiBard.config = jsonDeserialize;
+	}
+
+	public static void PlaybackSpeed(float playbackSpeed)
+	{
+		if (api.PartyList.Length < 2 || !api.PartyList.IsPartyLeader()) return;
+		IPCEnvelope.Create(MessageTypeCode.PlaybackSpeed, playbackSpeed).BroadCast();
+	}
+
+	[IPCHandle(MessageTypeCode.PlaybackSpeed)]
+	public static void HandlePlaybackSpeed(IPCEnvelope message)
+	{
+		var playbackSpeed = message.DataStruct<float>();
+		MidiBard.config.playSpeed = playbackSpeed;
+		PluginUI.SetSpeed();
+	}
+
+	public static void GlobalTranspose(int transpose)
+	{
+		if (api.PartyList.Length < 2 || !api.PartyList.IsPartyLeader()) return;
+		IPCEnvelope.Create(MessageTypeCode.GlobalTranspose, transpose).BroadCast();
+	}
+
+	[IPCHandle(MessageTypeCode.GlobalTranspose)]
+	public static void HandleGlobalTranspose(IPCEnvelope message)
+	{
+		var globalTranspose = message.DataStruct<int>();
+		MidiBard.config.SetTransposeGlobal(globalTranspose);
+	}
+
+	public static void MoveToTime(float progress)
+	{
+		if (api.PartyList.Length < 2 || !api.PartyList.IsPartyLeader()) return;
+		IPCEnvelope.Create(MessageTypeCode.MoveToTime, progress).BroadCast(true);
+	}
+
+	[IPCHandle(MessageTypeCode.MoveToTime)]
+	public static void HandleMoveToTime(IPCEnvelope message)
+	{
+		if (MidiBard.CurrentPlayback == null)
+		{
+			return;
+		}
+
+		var progress = message.DataStruct<float>();
+		if (MidiBard.CurrentPlayback.IsRunning)
+		{
+			var compensation = MidiBard.CurrentInstrument switch
+			{
+				0 or 3 => 105,
+				1 => 85,
+				2 or 4 => 90,
+				>= 5 and <= 8 => 95,
+				9 or 10 => 90,
+				11 or 12 => 80,
+				13 => 85,
+				>= 14 => 30
+			};
+			var timeSpan = MidiBard.CurrentPlayback.GetDuration<MetricTimeSpan>().Multiply(progress);
+			if (MidiBard.AgentMetronome.EnsembleModeRunning)
+			{
+				timeSpan.Add(new MetricTimeSpan((105 - compensation) * 1000), TimeSpanMode.LengthLength);
+			}
+			MidiBard.CurrentPlayback.MoveToTime(timeSpan);
+		}
+		else
+		{
+			var timeSpan = MidiBard.CurrentPlayback.GetDuration<MetricTimeSpan>().Multiply(progress);
+			MidiBard.CurrentPlayback.Stop();
+			MidiBard.CurrentPlayback.MoveToTime(timeSpan);
+			MidiBard.CurrentPlayback.PlaybackStart = timeSpan;
+		}
+	}
+
+	public static void ErrPlaybackNull(string characterName)
+	{
+		IPCEnvelope.Create(MessageTypeCode.ErrPlaybackNull, characterName).BroadCast(true);
+	}
+
+	[IPCHandle(MessageTypeCode.ErrPlaybackNull)]
+	public static void HandleErrPlaybackNull(IPCEnvelope message)
+	{
+		var characterName = message.StringData[0];
+		PluginLog.LogWarning($"ERR: Playback Null on character: {characterName}");
+		api.ChatGui.PrintError($"[MidiBard 2] Error: Load song failed on character: {characterName}, please try to switch the song again.");
 	}
 }

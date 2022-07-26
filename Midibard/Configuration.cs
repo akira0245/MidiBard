@@ -160,4 +160,29 @@ public class Configuration : IPluginConfiguration
 
     public bool DrawSelectPlaylistWindow;
     //[JsonIgnore] public bool OverrideGuitarTones => GuitarToneMode == GuitarToneMode.Override;
+
+    public void SetTransposeGlobal(int transpose)
+    {
+        bool isDrumTrackPlaying = false;
+        if (MidiBard.CurrentPlayback?.TrackInfos?.Length > 0)
+        {
+            foreach (var trackInfo in MidiBard.CurrentPlayback?.TrackInfos)
+            {
+                var insID = trackInfo.InstrumentIDFromTrackName;
+                if (trackInfo.IsEnabled && insID >= 10 && insID <= 14)
+                {
+                    isDrumTrackPlaying = true;
+                    break;
+                }
+            }
+        }
+
+        if (isDrumTrackPlaying)
+        {
+            TransposeGlobal = 0;
+            return;
+        }
+
+        TransposeGlobal = transpose;
+    }
 }
