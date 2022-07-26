@@ -125,6 +125,7 @@ public partial class PluginUI
 			ImGui.SameLine();
 			if (ImGuiUtil.IconButton(FontAwesomeIcon.SyncAlt, "syncsettings", width))
 			{
+				MidiBard.SaveConfig();
 				IPCHandles.SyncAllSettings();
 			}
 
