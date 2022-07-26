@@ -125,9 +125,13 @@ public partial class PluginUI
 			{
 				if (MidiBard.CurrentPlayback != null)
 				{
-					MidiFileConfigManager.GetMidiConfigFileInfo(MidiBard.CurrentPlayback.FilePath).Delete();
-					MidiBard.CurrentPlayback.MidiFileConfig =
-						MidiFileConfigManager.GetMidiConfigFromTrack(MidiBard.CurrentPlayback.TrackInfos);
+					if (MidiBard.CurrentPlayback != null)
+					{
+						MidiFileConfigManager.GetMidiConfigFileInfo(MidiBard.CurrentPlayback.FilePath).Delete();
+						MidiBard.CurrentPlayback.MidiFileConfig =
+							MidiFileConfigManager.GetMidiConfigAsDefaultPerformer(MidiBard.CurrentPlayback.TrackInfos); // use default performer
+					}
+					IPCHandles.UpdateInstrument(true);
 				}
 			}
 
@@ -154,16 +158,16 @@ public partial class PluginUI
 			}
 			
 			ImGui.SameLine();
-			if (ImGui.Button(ensemble_Save_default_performers))
+			if (!MidiFileConfigManager.UsingDefaultPerformer)
 			{
-				if (MidiBard.CurrentPlayback?.MidiFileConfig is { } MidiFileConfig)
+				if (ImGui.Button(ensemble_Save_default_performers))
 				{
-					var configTracks = MidiFileConfig.Tracks;
-					for (var i = 0; i < configTracks.Count; i++)
-					{
-						MidiBard.config.TrackDefaultCids[i] = configTracks[i].PlayerCid;
-					}
+					MidiFileConfigManager.ExportToDefaultPerformer();
 				}
+			}
+			else
+			{
+				ImGui.LabelText("[Using Default Performers]", "[Using Default Performers]");
 			}
 			ImGuiUtil.PopIconButtonSize();
 
@@ -240,18 +244,58 @@ public partial class PluginUI
 								12, () => 0);
 							ImGui.TableNextColumn(); //3
 							ImGui.SetNextItemWidth(-1);
-							var current = api.PartyList.ToList()
-								.FindIndex(i => i?.ContentId != 0 && i?.ContentId == dbTrack.PlayerCid);
-							var strings = api.PartyList.Select(i => i.NameAndWorld()).ToArray();
-							if (ImGui.Combo("##partymemberSelect", ref current, strings, strings.Length))
+							var firstCid = MidiFileConfig.GetFirstCidInParty(dbTrack);
+							var currentNum = api.PartyList.ToList().FindIndex(i => i?.ContentId != 0 && i?.ContentId == firstCid) + 1;
+							var strings = api.PartyList.Select(i => i.NameAndWorld()).ToList();
+							strings.Insert(0, "");
+							if (ImGui.Combo("##partymemberSelect", ref currentNum, strings.ToArray(), strings.Count))
 							{
-								dbTrack.PlayerCid = api.PartyList[current]?.ContentId ?? 0;
-								changed = true;
+								if (currentNum >= 1)
+								{
+									var currentCid = api.PartyList[currentNum - 1]?.ContentId;
+									if (firstCid > 0 && currentCid != firstCid)
+									{
+										// character changed, delete the old one
+										dbTrack.AssignedCids.Remove(firstCid);
+										changed = true;
+									}
+
+									if (currentCid > 0)
+									{
+										// add character
+										if (!dbTrack.AssignedCids.Contains((long)currentCid))
+										{
+											dbTrack.AssignedCids.Insert(0, (long)currentCid);
+											changed = true;
+										}
+									}
+								}
+								else
+								{
+									// choose empty, remove all the characters in the same party
+									foreach (var member in api.PartyList)
+									{
+										if (dbTrack.AssignedCids.Contains(member.ContentId))
+										{
+											dbTrack.AssignedCids.Remove(member.ContentId);
+										}
+									}
+
+									changed = true;
+								}
 							}
 
 							if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
 							{
-								dbTrack.PlayerCid = 0;
+								// choose empty, remove all the characters in the same party
+								foreach (var member in api.PartyList)
+								{
+									if (dbTrack.AssignedCids.Contains(member.ContentId))
+									{
+										dbTrack.AssignedCids.Remove(member.ContentId);
+									}
+								}
+
 								changed = true;
 							}
 
