@@ -11,6 +11,7 @@ using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.Multimedia;
 using MidiBard.Managers;
 using MidiBard.Util;
+using MidiBard.Util.MidiPreprocessor;
 
 namespace MidiBard.Control.MidiControl.PlaybackInstance;
 
@@ -64,7 +65,7 @@ internal sealed class BardPlayback : Playback
 	{
 		tempoMap = TryGetTempoNap(file);
 		var map = tempoMap;
-		trackChunks = GetNoteTracks(file).ToArray();
+		trackChunks = MidiPreprocessor.ProcessTracks(GetNoteTracks(file).ToArray(), map);
 		trackInfos = trackChunks.Select((chunk, index) => GetTrackInfos(chunk, index, map)).ToArray();
 		timedEventWithMetadata = GetTimedEventWithMetadata(trackChunks).ToArray();
 	}
