@@ -6,6 +6,7 @@ using ImGuiNET;
 using MidiBard.Control.MidiControl;
 using MidiBard.Managers;
 using MidiBard.Resources;
+using MidiBard.Managers.Ipc;
 using static MidiBard.ImGuiUtil;
 
 namespace MidiBard;
@@ -36,6 +37,11 @@ public partial class PluginUI
 
 	private unsafe void DrawButtonShowEnsembleControl()
 	{
+		if (DalamudApi.api.PartyList.Length < 2 || !DalamudApi.api.PartyList.IsPartyLeader())
+        {
+			return;
+        }
+
 		ImGui.SameLine();
 		ImGui.PushStyleColor(ImGuiCol.Text, MidiBard.Ui.ShowEnsembleControlWindow ? MidiBard.config.themeColor : *ImGui.GetStyleColorVec4(ImGuiCol.Text));
 

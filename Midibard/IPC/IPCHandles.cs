@@ -146,6 +146,7 @@ static class IPCHandles
 
 	public static void UpdateInstrument(bool takeout)
 	{
+		if (!api.PartyList.IsPartyLeader()) return;
 		IPCEnvelope.Create(MessageTypeCode.SetInstrument, takeout).BroadCast(true);
 	}
 	[IPCHandle(MessageTypeCode.SetInstrument)]

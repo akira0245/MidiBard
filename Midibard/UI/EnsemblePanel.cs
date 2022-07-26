@@ -24,6 +24,7 @@ public partial class PluginUI
 	private unsafe void DrawEnsembleControl()
 	{
 		if (!ShowEnsembleControlWindow) return;
+		if (!api.PartyList.IsPartyLeader()) return;
 
 		ImGui.PushStyleColor(ImGuiCol.TitleBgActive, *ImGui.GetStyleColorVec4(ImGuiCol.WindowBg));
 		ImGui.PushStyleColor(ImGuiCol.TitleBg, *ImGui.GetStyleColorVec4(ImGuiCol.WindowBg));
