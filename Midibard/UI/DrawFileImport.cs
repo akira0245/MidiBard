@@ -13,6 +13,7 @@ using ImGuiNET;
 using Microsoft.Win32;
 using MidiBard.DalamudApi;
 using MidiBard.Managers.Ipc;
+using MidiBard.Resources;
 using MidiBard.UI.Win32;
 using MidiBard.Util;
 
@@ -22,17 +23,15 @@ public partial class PluginUI
 {
     #region import
 
-    private static readonly string LabelFileImportRunning = "Import in progress...".Localize();
-
     private void ButtonImport()
     {
         if (ImGui.BeginPopup("OpenFileDialog_selection"))
         {
-            if (ImGui.MenuItem("Win32 file dialog".Localize(), null, MidiBard.config.useLegacyFileDialog))
+            if (ImGui.MenuItem(Language.w32_file_dialog, null, MidiBard.config.useLegacyFileDialog))
             {
                 MidiBard.config.useLegacyFileDialog = true;
             }
-            else if (ImGui.MenuItem("ImGui file dialog".Localize(), null, !MidiBard.config.useLegacyFileDialog))
+            else if (ImGui.MenuItem(Language.imgui_file_dialog, null, !MidiBard.config.useLegacyFileDialog))
             {
                 MidiBard.config.useLegacyFileDialog = false;
             }
@@ -47,13 +46,13 @@ public partial class PluginUI
             RunImportFileTask();
         }
 
-        ImGuiUtil.ToolTip("Import midi file\nRight click to select file dialog type".Localize());
+        ImGuiUtil.ToolTip(Language.button_import_file);
         ImGui.SameLine();
         if (ImGuiUtil.IconButton(FontAwesomeIcon.FolderOpen, "buttonimportFolder"))
         {
             RunImportFolderTask();
         }
-        ImGuiUtil.ToolTip("Import folder\nImports all midi files in selected folder and it's all subfolders.\nThis may take a while when you select a folder that contains multiple layers of folders.".Localize());
+        ImGuiUtil.ToolTip(Language.button_import_folder);
         ImGui.EndGroup();
 
         ImGui.OpenPopupOnItemClick("OpenFileDialog_selection", ImGuiPopupFlags.MouseButtonRight);
@@ -212,7 +211,7 @@ public partial class PluginUI
 
     private void ButtonImportInProgress()
     {
-        ImGui.Button(LabelFileImportRunning);
+        ImGui.Button(Language.Import_in_progress___);
     }
 
     public bool IsImportRunning { get; private set; }

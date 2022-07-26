@@ -16,7 +16,7 @@ public static class ImGuiUtil
 	public static bool EnumCombo<TEnum>(string label, ref TEnum @enum, string[] toolTips, ImGuiComboFlags flags = ImGuiComboFlags.None, bool showValue = false) where TEnum : struct, Enum
 	{
 		var ret = false;
-		var previewValue = showValue ? $"{@enum.ToString().Localize()} ({Convert.ChangeType(@enum, @enum.GetTypeCode())})" : @enum.ToString().Localize();
+		var previewValue = showValue ? $"{@enum} ({Convert.ChangeType(@enum, @enum.GetTypeCode())})" : @enum.ToString();
 		if (BeginCombo(label, previewValue, flags))
 		{
 			var values = Enum.GetValues<TEnum>();
@@ -25,8 +25,8 @@ public static class ImGuiUtil
 				{
 					PushID(i);
 					var s = showValue
-						? $"{values[i].ToString().Localize()} ({Convert.ChangeType(values[i], values[i].GetTypeCode())})"
-						: values[i].ToString().Localize();
+						? $"{values[i].ToString()} ({Convert.ChangeType(values[i], values[i].GetTypeCode())})"
+						: values[i].ToString();
 					if (Selectable(s, values[i].Equals(@enum)))
 					{
 						ret = true;
@@ -37,7 +37,7 @@ public static class ImGuiUtil
 					{
 						try
 						{
-							ToolTip(toolTips[i].Localize());
+							ToolTip(toolTips[i]);
 						}
 						catch (Exception e)
 						{

@@ -92,7 +92,7 @@ public class Configuration : IPluginConfiguration
     public int? SoloedChannel = null;
     //public bool EnableTransposePerTrack = false;
     public int uiLang = DalamudApi.api.PluginInterface.UiLanguage == "zh" ? 1 : 0;
-    public bool showSettingsPanel = true;
+    //public bool showSettingsPanel = true;
     public int playlistSizeY = 10;
     public bool miniPlayer = false;
     public bool enableSearching = false;
@@ -143,7 +143,7 @@ public class Configuration : IPluginConfiguration
     public bool StopPlayingWhenEnsembleEnds = true;
     public bool AutoSetBackgroundFrameLimit = true;
 
-    public bool ShowEnsembleControlWindow = false;
+    //public bool ShowEnsembleControlWindow = false;
     public bool SyncClients = true;
     //public bool SyncPlaybackLoading = false;
     //public bool SyncTrackStatus = false;

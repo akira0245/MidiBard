@@ -33,8 +33,8 @@ using MidiBard.DalamudApi;
 using MidiBard.IPC;
 using MidiBard.Managers;
 using MidiBard.Managers.Ipc;
+using MidiBard.Resources;
 using MidiBard.Util;
-using MoreLinq;
 using Newtonsoft.Json;
 using static ImGuiNET.ImGui;
 using static MidiBard.MidiBard;
@@ -54,7 +54,7 @@ public partial class PluginUI
 	}
 
 	private static bool otherClientsMuted = false;
-	private readonly string[] uilangStrings = { "EN", "ZH" };
+	private readonly string[] uilangStrings = Enum.GetNames<CultureCode>();
 	private bool TrackViewVisible;
 	private bool MainWindowVisible;
 	public bool MainWindowOpened => MainWindowVisible;
@@ -93,10 +93,6 @@ public partial class PluginUI
 			}
 
 			DrawEnsembleControl();
-			if (config.showSettingsPanel)
-			{
-				DrawSettingsWindow();
-			}
 		}
 	}
 
@@ -126,19 +122,19 @@ public partial class PluginUI
 			{
 				if (ensembleModeRunning)
 				{
-					if (ensemblePreparing)
+					//if (ensemblePreparing)
+					//{
+					//	DrawColoredBanner(orange, "Ensemble Mode Preparing".Localize());
+					//}
+					//else
 					{
-						DrawColoredBanner(orange, "Ensemble Mode Preparing".Localize());
-					}
-					else
-					{
-						DrawColoredBanner(red, "Ensemble Mode Running".Localize());
+						DrawColoredBanner(red, Language.label_ensemble_mode_running);
 					}
 				}
 
 				if (listeningForEvents)
 				{
-					DrawColoredBanner(violet, "Listening input device: ".Localize() + InputDeviceManager.CurrentInputDevice.DeviceName());
+					DrawColoredBanner(violet, Language.listenning_midi_device_banner + InputDeviceManager.CurrentInputDevice.DeviceName());
 				}
 
 				DrawPlaylist();
@@ -167,9 +163,18 @@ public partial class PluginUI
 
 				if (!config.miniPlayer)
 				{
-					DrawTrackTrunkSelectionWindow();
-					Separator();
-					DrawPanelMusicControl();
+					ImGui.Separator();
+					if (showSettingsPanel)
+					{
+						DrawSettingsWindow();
+					}
+					else
+					{
+						DrawTrackTrunkSelectionWindow();
+						Separator();
+						DrawPanelMusicControl();
+					}
+
 				}
 			}
 		}
@@ -186,60 +191,6 @@ public partial class PluginUI
 		PushStyleColor(ImGuiCol.Text, b ? MidiBard.config.themeColor : *GetStyleColorVec4(ImGuiCol.Text));
 		if (Button(((FontAwesomeIcon)62800).ToIconString())) b ^= true;
 		PopStyleColor();
-	}
-
-	private static unsafe void DrawKeyboardModeSwitchingGuide()
-	{
-		var bdl = GetBackgroundDrawList(GetMainViewport());
-		var PerformanceMode = DalamudApi.api.GameGui.GetAddonByName("PerformanceMode", 1);
-		try
-		{
-			var shouldGuide = PerformanceMode != IntPtr.Zero;
-			if (shouldGuide)
-			{
-				var atkUnitBase = (AtkUnitBase*)PerformanceMode;
-				var keyboardNode = atkUnitBase->GetNodeById(19);
-
-				var keyboardNodePos = GetMainViewport().Pos + new Vector2(atkUnitBase->X, atkUnitBase->Y) + new Vector2(keyboardNode->X, keyboardNode->Y);
-				var keyboardNodeSize = new Vector2(keyboardNode->Width, keyboardNode->Height) * atkUnitBase->Scale;
-
-				bdl.AddRectFilled(keyboardNodePos, keyboardNodePos + keyboardNodeSize, 0xA000_0000);
-				var text = "Midibard auto performance only supports 37-key layout.\nPlease consider switching in performance settings.".Localize();
-				var textSize = CalcTextSize(text);
-				var textPos = keyboardNodePos + keyboardNodeSize / 2 - textSize / 2;
-				bdl.AddText(textPos, UInt32.MaxValue, text);
-
-				var settingsIconNode = atkUnitBase->GetNodeById(8);
-				settingsIconNode->MultiplyGreen = 200;
-			}
-
-
-			var PerformanceModeSettings = DalamudApi.api.GameGui.GetAddonByName("PerformanceModeSettings", 1);
-
-			if (PerformanceModeSettings != IntPtr.Zero)
-			{
-				var PerformanceModeSettingsAtkUnitBase = (AtkUnitBase*)PerformanceModeSettings;
-
-				var KeyboardSettingsNode = PerformanceModeSettingsAtkUnitBase->GetNodeById(4);
-				var KeyboardModeCheckboxNode = PerformanceModeSettingsAtkUnitBase->GetNodeById(27);
-
-				if (shouldGuide)
-				{
-					KeyboardModeCheckboxNode->MultiplyGreen = 255;
-					KeyboardSettingsNode->MultiplyGreen = 200;
-				}
-				else
-				{
-					KeyboardModeCheckboxNode->MultiplyGreen = 100;
-					KeyboardSettingsNode->MultiplyGreen = 100;
-				}
-			}
-
-		}
-		catch (Exception e)
-		{
-			PluginLog.Error(e.ToString());
-		}
 	}
 
 	private static bool showhelp = false;

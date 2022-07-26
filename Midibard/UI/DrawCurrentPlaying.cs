@@ -5,6 +5,7 @@ using Dalamud.Logging;
 using ImGuiNET;
 using Melanchall.DryWetMidi.Interaction;
 using MidiBard.Control.MidiControl;
+using MidiBard.Resources;
 
 namespace MidiBard;
 
@@ -21,11 +22,7 @@ public partial class PluginUI
 		else
 		{
 			var c = PlaylistManager.FilePathList.Count;
-			var text = c > 1
-				? $"{PlaylistManager.FilePathList.Count} " +
-				  "tracks in playlist.".Localize()
-				: $"{PlaylistManager.FilePathList.Count} " +
-				  "track in playlist.".Localize();
+			var text = string.Format(Language._0__tracks_in_playlist_, c);
 			ImGui.TextUnformatted($"{PlaylistContainerManager.Container.CurrentPlaylist?.Name}\n{text}");
 		}
 	}

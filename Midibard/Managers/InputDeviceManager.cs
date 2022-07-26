@@ -11,6 +11,7 @@ using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Multimedia;
 using MidiBard.Control;
 using MidiBard.DalamudApi;
+using MidiBard.Resources;
 
 namespace MidiBard;
 
@@ -111,15 +112,13 @@ static class InputDeviceManager
 			CurrentInputDevice.EventReceived += InputDevice_EventReceived;
 			CurrentInputDevice.StartEventsListening();
 			ImGuiUtil.AddNotification(NotificationType.Success,
-				"Start event listening on \"{0}\".".Localize(CurrentInputDevice.Name),
-				"Listening input device".Localize());
+				string.Format(Language.notice_start_event_listening, CurrentInputDevice.Name));
 		}
 		catch (Exception e)
 		{
 			MidiBard.config.lastUsedMidiDeviceName = "";
 			ImGuiUtil.AddNotification(NotificationType.Error,
-				"\"{0}\" is not available now.\nPlease check log for further error information.".Localize(device.Name),
-				"Cannot start listening Midi device".Localize());
+				string.Format(Language.notice_midi_device_error, CurrentInputDevice.Name));
 			PluginLog.Error(e, "midi device is possibly being occupied.");
 			DisposeCurrentInputDevice();
 		}
@@ -133,7 +132,7 @@ static class InputDeviceManager
 		{
 			CurrentInputDevice.EventReceived -= InputDevice_EventReceived;
 			CurrentInputDevice.Dispose();
-			ImGuiUtil.AddNotification(NotificationType.Info, $"Stop event listening on \"{CurrentInputDevice.Name}\"	.", "Midi device disconnected");
+			ImGuiUtil.AddNotification(NotificationType.Info, string.Format(Language.notice_midi_device_stop_listening, CurrentInputDevice.Name));
 		}
 		catch (Exception e)
 		{

@@ -13,14 +13,17 @@ using MidiBard.Managers;
 using MidiBard.Managers.Agents;
 using MidiBard.Managers.Ipc;
 using MidiBard.Util;
+using static MidiBard.Resources.Language;
 
 namespace MidiBard;
 
 public partial class PluginUI
 {
-	private static unsafe void DrawEnsembleControl()
+	private bool ShowEnsembleControlWindow;
+
+	private unsafe void DrawEnsembleControl()
 	{
-		if (!MidiBard.config.ShowEnsembleControlWindow) return;
+		if (!ShowEnsembleControlWindow) return;
 
 		ImGui.PushStyleColor(ImGuiCol.TitleBgActive, *ImGui.GetStyleColorVec4(ImGuiCol.WindowBg));
 		ImGui.PushStyleColor(ImGuiCol.TitleBg, *ImGui.GetStyleColorVec4(ImGuiCol.WindowBg));
@@ -28,13 +31,13 @@ public partial class PluginUI
 		//ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(ImGui.GetStyle().ItemSpacing.X, ImGui.GetStyle().ItemSpacing.Y));
 		ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, ImGui.GetStyle().FramePadding * 2.5f);
 		ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new Vector2(ImGui.GetStyle().CellPadding.Y));
-		if (ImGui.Begin($"MidiBard local ensemble control", ref MidiBard.config.ShowEnsembleControlWindow))
+		if (ImGui.Begin(ensemble_window_title+"###midibardEnsembleWindow", ref ShowEnsembleControlWindow))
 		{
 			var width = ImGuiHelpers.GlobalScale * 25;
 			var ensembleRunning = MidiBard.AgentMetronome.EnsembleModeRunning;
 			if (ImGuiUtil.IconButton(
-				    (FontAwesomeIcon)(ensembleRunning ? FontAwesomeIcon.Stop : FontAwesomeIcon.UserCheck),
-				    (string)"EnsembleBegin", (float?)width))
+				    ensembleRunning ? FontAwesomeIcon.Stop : FontAwesomeIcon.UserCheck,
+				    "ensembleBegin", width))
 			{
 				if (!ensembleRunning)
 				{
@@ -53,22 +56,22 @@ public partial class PluginUI
 				}
 			}
 
-			ImGuiUtil.ToolTip((string)(ensembleRunning
-				? "Stop ensemble".Localize()
-				: "Begin ensemble ready check".Localize()));
+			ImGuiUtil.ToolTip(ensembleRunning
+				? Stop_ensemble
+				: Begin_ensemble_ready_check);
 
 			ImGui.SameLine();
 			if (ensembleRunning)
 			{
 				ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.TextDisabled));
-				ImGuiUtil.IconButton((FontAwesomeIcon)FontAwesomeIcon.Guitar, (string)"UpdateInstrument",
-					(float?)width);
+				ImGuiUtil.IconButton(FontAwesomeIcon.Guitar, "UpdateInstrument",
+					width);
 				ImGui.PopStyleColor();
 			}
 			else
 			{
-				if (ImGuiUtil.IconButton((FontAwesomeIcon)FontAwesomeIcon.Guitar, (string)"UpdateInstrument",
-					    (float?)width))
+				if (ImGuiUtil.IconButton(FontAwesomeIcon.Guitar, "UpdateInstrument",
+					    width))
 				{
 					if (MidiBard.CurrentPlayback?.MidiFileConfig is { } config)
 					{
@@ -84,14 +87,13 @@ public partial class PluginUI
 				}
 			}
 
-			ImGuiUtil.ToolTip("Update Instruments, right click to pull back instrument".Localize());
+			ImGuiUtil.ToolTip(ensemble_update_instruments);
 
 			//Dalamud.Utility.Util.ShowStruct(MidiBard.AgentPerformance.Struct);
 
 
 			ImGui.SameLine();
-			if (ImGuiUtil.IconButton((FontAwesomeIcon)FontAwesomeIcon.FolderOpen,
-				    (string)"Open current midi file directory", (float?)width))
+			if (ImGuiUtil.IconButton(FontAwesomeIcon.FolderOpen,"btn open config", width))
 			{
 				try
 				{
@@ -108,12 +110,12 @@ public partial class PluginUI
 				}
 			}
 
-			ImGuiUtil.ToolTip("Open current midi file directory".Localize());
+			ImGuiUtil.ToolTip(ensemble_open_midi_config_directory);
 
 
 			ImGui.SameLine();
-			if (ImGuiUtil.IconButton((FontAwesomeIcon)FontAwesomeIcon.Edit, (string)"Open current midi config file",
-				    (float?)width))
+			if (ImGuiUtil.IconButton(FontAwesomeIcon.Edit, "openConfigFileBtn",
+				    width))
 			{
 				try
 				{
@@ -131,12 +133,12 @@ public partial class PluginUI
 				}
 			}
 
-			ImGuiUtil.ToolTip("Open current midi config file".Localize());
+			ImGuiUtil.ToolTip(ensemble_open_midi_config_file);
 
 			ImGui.SameLine();
-			if (ImGuiUtil.IconButtonColored((FontAwesomeIcon)FontAwesomeIcon.TrashAlt, (string)"deleteConfig",
-				    (ImGuiCol)(MidiBard.CurrentPlayback == null ? ImGuiCol.TextDisabled : ImGuiCol.Text),
-				    (float?)width))
+			if (ImGuiUtil.IconButtonColored(FontAwesomeIcon.TrashAlt, "deleteConfig",
+				    MidiBard.CurrentPlayback == null ? ImGuiCol.TextDisabled : ImGuiCol.Text,
+				    width))
 			{
 				if (MidiBard.CurrentPlayback != null)
 				{
@@ -146,26 +148,26 @@ public partial class PluginUI
 				}
 			}
 
-			ImGuiUtil.ToolTip("Delete and reset current file config".Localize());
+			ImGuiUtil.ToolTip(ensemble_Delete_and_reset_current_file_config);
 
 			ImGui.SameLine();
 			if (ImGuiUtil.IconButton(
-				    (FontAwesomeIcon)(otherClientsMuted ? FontAwesomeIcon.VolumeOff : FontAwesomeIcon.VolumeUp),
-				    (string)"Mute other clients", (float?)width))
+				    otherClientsMuted ? FontAwesomeIcon.VolumeOff : FontAwesomeIcon.VolumeUp,
+				    "Mute other clients", width))
 			{
 				IPCHandles.SetOption(ConfigOption.SoundMaster, otherClientsMuted ? 100 : 0, false);
 				AgentConfigSystem.SetOptionValue(ConfigOption.SoundMaster, 100);
 				otherClientsMuted ^= true;
 			}
 
-			ImGuiUtil.ToolTip((string)(otherClientsMuted
-				? "Unmute other clients".Localize()
-				: "Mute other clients".Localize()));
+			ImGuiUtil.ToolTip(otherClientsMuted
+				? ensemble_unmute_other_clients
+				: ensemble_mute_other_clients);
 
 
 			ImGui.SameLine();
-			if (ImGuiUtil.IconButton((FontAwesomeIcon)FontAwesomeIcon.WindowMinimize, (string)"WindowMinimize",
-				    (float?)width))
+			if (ImGuiUtil.IconButton(FontAwesomeIcon.WindowMinimize, "WindowMinimize",
+				    width))
 			{
 				IPCHandles.ShowWindow(Winapi.nCmdShow.SW_MINIMIZE);
 			}
@@ -175,17 +177,17 @@ public partial class PluginUI
 				IPCHandles.ShowWindow(Winapi.nCmdShow.SW_RESTORE);
 			}
 
-			ImGuiUtil.ToolTip("Minimize other clients, right click to restore them.".Localize());
+			ImGuiUtil.ToolTip(ensemble_Minimize_other_clients);
 
 			ImGui.SameLine();
-			if (ImGuiUtil.IconButton((FontAwesomeIcon)FontAwesomeIcon.SyncAlt, (string)"syncsettings", (float?)width))
+			if (ImGuiUtil.IconButton(FontAwesomeIcon.SyncAlt, "syncsettings", width))
 			{
 				IPCHandles.SyncAllSettings();
 			}
 
-			ImGuiUtil.ToolTip("Sync all midibard's settings on this pc".Localize());
+			ImGuiUtil.ToolTip(ensemble_Sync_settings);
 			ImGui.SameLine();
-			if (ImGui.Button("Save default performer"))
+			if (ImGui.Button(ensemble_Save_default_performers))
 			{
 				if (MidiBard.CurrentPlayback?.MidiFileConfig is { } MidiFileConfig)
 				{
@@ -219,7 +221,7 @@ public partial class PluginUI
 			ImGui.Separator();
 			if (MidiBard.CurrentPlayback == null)
 			{
-				if (ImGui.Button($"Select a song from playlist", new Vector2(-1, ImGui.GetFrameHeight())))
+				if (ImGui.Button(ensemble_Select_a_song_from_playlist, new Vector2(-1, ImGui.GetFrameHeight())))
 				{
 					//try
 					//{
@@ -266,8 +268,8 @@ public partial class PluginUI
 							changed |= SelectInstrumentCombo($"##selectInstrument", ref dbTrack.Instrument);
 							ImGui.TableNextColumn(); //2
 							ImGui.SetNextItemWidth(ImGui.GetFrameHeight() * 3.3f);
-							changed |= ImGuiUtil.InputIntWithReset((string)$"##transpose", ref dbTrack.Transpose,
-								(int)12, (Func<int>)(() => 0));
+							changed |= ImGuiUtil.InputIntWithReset($"##transpose", ref dbTrack.Transpose,
+								12, () => 0);
 							ImGui.TableNextColumn(); //3
 							ImGui.SetNextItemWidth(-1);
 							var current = api.PartyList.ToList()
@@ -285,7 +287,7 @@ public partial class PluginUI
 								changed = true;
 							}
 
-							ImGuiUtil.ToolTip("Right click to reset".Localize());
+							ImGuiUtil.ToolTip(ensemble_assign_track_character_tooltip);
 
 							ImGui.PopStyleColor();
 
@@ -309,10 +311,10 @@ public partial class PluginUI
 
 			ImGui.Separator();
 
-			ImGui.Checkbox("Draw ensemble progress indicator on visualizer", ref MidiBard.config.UseEnsembleIndicator);
-			ImGui.DragFloat("Ensemble indicator delay", ref MidiBard.config.EnsembleIndicatorDelay, 0.01f, -10, 0,
+			ImGui.Checkbox(ensemble_config_Draw_ensemble_progress_indicator_on_visualizer, ref MidiBard.config.UseEnsembleIndicator);
+			ImGui.DragFloat(ensemble_config_Ensemble_indicator_delay, ref MidiBard.config.EnsembleIndicatorDelay, 0.01f, -10, 0,
 				$"{MidiBard.config.EnsembleIndicatorDelay:F3}s");
-			ImGui.Checkbox("Update instrument when begin ensemble", ref MidiBard.config.SetInstrumentBeforeReadyCheck);
+			ImGui.Checkbox(ensemble_config_Update_instrument_when_begin_ensemble, ref MidiBard.config.SetInstrumentBeforeReadyCheck);
 #if DEBUG
 			try
 			{

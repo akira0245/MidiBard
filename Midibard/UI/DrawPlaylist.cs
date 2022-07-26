@@ -7,8 +7,10 @@ using Dalamud.Interface;
 using Dalamud.Logging;
 using ImGuiNET;
 using MidiBard.Control.MidiControl;
+using MidiBard.DalamudApi;
 using MidiBard.IPC;
 using MidiBard.Managers.Ipc;
+using MidiBard.Resources;
 using MidiBard.Util;
 using static ImGuiNET.ImGui;
 using static MidiBard.ImGuiUtil;
@@ -28,7 +30,7 @@ public partial class PluginUI
 			SetNextWindowPos(GetWindowPos() - new Vector2(2, 0), ImGuiCond.FirstUseEver, new Vector2(1, 0));
 			PushStyleColor(ImGuiCol.TitleBgActive, *GetStyleColorVec4(ImGuiCol.WindowBg));
 			PushStyleColor(ImGuiCol.TitleBg, *GetStyleColorVec4(ImGuiCol.WindowBg));
-			if (Begin($"MidiBard Playlist ({PlaylistManager.FilePathList.Count})###MidibardPlaylist", ref MidiBard.config.UseStandalonePlaylistWindow, ImGuiWindowFlags.NoDocking))
+			if (Begin(Language.playlist_window_title + $" ({PlaylistManager.FilePathList.Count})###MidibardPlaylist", ref MidiBard.config.UseStandalonePlaylistWindow, ImGuiWindowFlags.NoDocking))
 			{
 				DrawContent();
 			}
@@ -65,9 +67,9 @@ public partial class PluginUI
 			{
 				MidiBard.config.DrawSelectPlaylistWindow ^= true;
 			}
-			ToolTip("Show playlist selector".Localize());
+			ToolTip(Language.button_show_playlist_selector);
 
-			if (MidiBard.Localizer.Language == UILang.CN)
+			if (Language.Culture.Name.StartsWith("zh"))
 			{
 				SameLine();
 
@@ -92,7 +94,7 @@ public partial class PluginUI
 
 			if (!PlaylistManager.FilePathList.Any())
 			{
-				if (Button("Import midi files to start performing!".Localize(),
+				if (Button(Language.label_empty_playlist,
 						new Vector2(-1, GetFrameHeight())))
 				{
 					RunImportFileTask();
@@ -138,20 +140,20 @@ public partial class PluginUI
 					sync = true;
 				}
 
-				if (IconButton(FontAwesomeIcon.File, "new", "New playlist"))
+				if (IconButton(FontAwesomeIcon.File, "new", Language.New_playlist))
 				{
-					playlistEntries.Add(new PlaylistEntry() { Name = "New playlist" });
+					playlistEntries.Add(new PlaylistEntry() { Name = Language.New_playlist });
 					sync = true;
 				}
 
 				SameLine();
-				if (IconButton(FontAwesomeIcon.Copy, "clone", "Clone current playlist"))
+				if (IconButton(FontAwesomeIcon.Copy, "clone", Language.Clone_current_playlist))
 				{
 					playlistEntries.Insert(container.CurrentListIndex, container.CurrentPlaylist.Clone());
 					sync = true;
 				}
 				SameLine();
-				if (IconButton(FontAwesomeIcon.Download, "saveas", "Save current search result as new playlist"))
+				if (IconButton(FontAwesomeIcon.Download, "saveas", Language.Save_search_as_playlist))
 				{
 					try
 					{
@@ -168,14 +170,14 @@ public partial class PluginUI
 					}
 				}
 				SameLine();
-				if (IconButton(FontAwesomeIcon.Save, "save", "Save and sync"))
+				if (IconButton(FontAwesomeIcon.Save, "save", Language.Save_and_sync))
 				{
 					container.Save();
 					sync = true;
 				}
 
 				SameLine(GetWindowWidth() - ImGui.GetFrameHeightWithSpacing());
-				if (ImGuiUtil.IconButton(FontAwesomeIcon.TrashAlt, "deleteCurrentPlist", "Double click to delete current playlist"))
+				if (ImGuiUtil.IconButton(FontAwesomeIcon.TrashAlt, "deleteCurrentPlist", Language.delete_current_playlist))
 				{
 				}
 				if (IsItemHovered() && IsMouseDoubleClicked(ImGuiMouseButton.Left))
@@ -340,7 +342,7 @@ public partial class PluginUI
 		if (IsItemHovered())
 		{
 			BeginTooltip();
-			TextUnformatted("Double click to clear playlist.".Localize());
+			TextUnformatted(Language.button_clear_playlist);
 			EndTooltip();
 			if (IsMouseDoubleClicked(ImGuiMouseButton.Left))
 			{
@@ -360,7 +362,7 @@ public partial class PluginUI
 		if (IsItemHovered())
 		{
 			BeginTooltip();
-			TextUnformatted("Standalone playlist window".Localize());
+			TextUnformatted(Language.Standalone_playlist_window);
 			EndTooltip();
 		}
 	}
@@ -369,7 +371,7 @@ public partial class PluginUI
 	private void TextBoxSearch()
 	{
 		SetNextItemWidth(-1);
-		if (InputTextWithHint("##searchplaylist", "Enter to search".Localize(), ref PlaylistSearchString, 255,
+		if (InputTextWithHint("##searchplaylist", Language.hint_search_textbox, ref PlaylistSearchString, 255,
 				ImGuiInputTextFlags.AutoSelectAll))
 		{
 			RefreshSearchResult();
@@ -399,33 +401,6 @@ public partial class PluginUI
 		}
 
 		PopStyleColor();
-		ToolTip("Search playlist".Localize());
+		ToolTip(Language.label_search_playlist);
 	}
-#if DEBUG
-
-    class NeoPlaylistManager
-    {
-        class Playlist
-        {
-            private string PlaylistName;
-            private List<string> filePaths;
-
-
-        }
-
-        class SongUserData
-        {
-            public int TranspositionAll { get; set; }
-            public bool TranspositionPerTrack { get; set; }
-            public Dictionary<int, TrackUserData> TrackStatus { get; set; } = new();
-            public record TrackUserData
-            {
-                public bool Enabled { get; set; }
-                public int Transposition { get; set; }
-                public int Instrument { get; set; }
-                public int Tone { get; set; }
-            }
-        }
-    }
-#endif
 }

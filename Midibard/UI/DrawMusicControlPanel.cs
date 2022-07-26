@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Numerics;
 using System.Threading.Tasks;
 using Dalamud.Interface;
@@ -6,9 +6,10 @@ using ImGuiNET;
 using Melanchall.DryWetMidi.Interaction;
 using MidiBard.Control.CharacterControl;
 using MidiBard.Control.MidiControl;
-using MoreLinq;
+using MidiBard.Util;
 using static ImGuiNET.ImGui;
 using static MidiBard.ImGuiUtil;
+using static MidiBard.Resources.Language;
 
 namespace MidiBard;
 
@@ -20,35 +21,34 @@ public partial class PluginUI
 
 		SliderProgress();
 
-		if (DragFloat("Speed".Localize(), ref MidiBard.config.playSpeed, 0.003f, 0.1f, 10f, GetBpmString(),
-				ImGuiSliderFlags.Logarithmic))
-		{
-			SetSpeed();
-		}
-
-		ToolTip("Set the speed of events playing. 1 means normal speed.\nFor example, to play events twice slower this property should be set to 0.5.\nRight Click to reset back to 1.".Localize());
-
+		var itemWidth = ImGuiHelpers.GlobalScale * 100;
+		if (InputFloat(PlaySpeed, ref MidiBard.config.playSpeed, 0.1f, 0.5f, GetBpmString(), ImGuiInputTextFlags.AutoSelectAll)) SetSpeed();
 		if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right))
 		{
 			MidiBard.config.playSpeed = 1;
 			SetSpeed();
 		}
-		
+		ToolTip(Set_speed_tooltip);
+
 		//-------------------
-		if (InputFloat("Delay".Localize(), ref MidiBard.config.secondsBetweenTracks, 0.5f, 0.5f, $"{MidiBard.config.secondsBetweenTracks:f2} s", ImGuiInputTextFlags.AutoSelectAll))
+		SetNextItemWidth(itemWidth);
+		if (InputFloat(label_delay, ref MidiBard.config.secondsBetweenTracks, 0.5f, 0.5f, $" {MidiBard.config.secondsBetweenTracks:f2} s", ImGuiInputTextFlags.AutoSelectAll))
 			MidiBard.config.secondsBetweenTracks = Math.Max(0, MidiBard.config.secondsBetweenTracks);
 		if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right))
 			MidiBard.config.secondsBetweenTracks = 3;
-		ToolTip("Delay time before play next track.".Localize());
+		ToolTip(label_delay_tooltip);
 		//-------------------
-		var pos = ImGui.GetWindowWidth() * 0.75f;
-		InputInt("Transpose".Localize(), ref MidiBard.config.TransposeGlobal, 12);
+		SameLine(ImGuiUtil.GetWindowContentRegionWidth() / 2);
+		SetNextItemWidth(itemWidth);
+		InputInt(Transpose, ref MidiBard.config.TransposeGlobal, 12);
 		if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right))
 			MidiBard.config.TransposeGlobal = 0;
-		ToolTip("Transpose, measured by semitone. \nRight click to reset.".Localize());
+		ToolTip(TransposeTooltip);
+
+
 		//-------------------
-		Checkbox("Auto adapt notes".Localize(), ref MidiBard.config.AdaptNotesOOR);
-		ToolTip("Adapt high/low pitch notes which are out of range\r\ninto 3 octaves we can play".Localize());
+		Checkbox(Auto_adapt_notes, ref MidiBard.config.AdaptNotesOOR);
+		ToolTip(Auto_adapt_notesTooltip);
 		//-------------------
 		SameLine(ImGuiUtil.GetWindowContentRegionWidth() / 2);
 		SetNextItemWidth(itemWidth);
@@ -61,7 +61,7 @@ public partial class PluginUI
 		//-------------------
 		Separator();
 		var inputDevices = InputDeviceManager.Devices;
-		if (BeginCombo("Input Device".Localize(), InputDeviceManager.CurrentInputDevice.DeviceName()))
+		if (BeginCombo(label_inputdevice, InputDeviceManager.CurrentInputDevice.DeviceName()))
 		{
 			if (Selectable("None##device", InputDeviceManager.CurrentInputDevice is null))
 			{
@@ -80,16 +80,13 @@ public partial class PluginUI
 			EndCombo();
 		}
 		if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right)) InputDeviceManager.SetDevice(null);
-		ImGuiUtil.ToolTip("Choose external midi input device. right click to reset.".Localize());
+		ImGuiUtil.ToolTip(label_inputdevice_tooltip);
 		//-------------------
-
-		ImGuiUtil.EnumCombo("Tone mode".Localize(), ref MidiBard.config.GuitarToneMode, _toolTips);
-		ImGuiUtil.ToolTip("Choose how MidiBard will handle MIDI channels and ProgramChange events(current only affects guitar tone changing)".Localize());
 	}
 
 	private static void SetSpeed()
 	{
-		MidiBard.config.playSpeed = Math.Max(0.1f, MidiBard.config.playSpeed);
+		MidiBard.config.playSpeed = MidiBard.config.playSpeed.Clamp(0.1f, 10f);
 		var currenttime = MidiBard.CurrentPlayback?.GetCurrentTime(TimeSpanType.Midi);
 		if (currenttime is not null)
 		{
@@ -107,7 +104,7 @@ public partial class PluginUI
 			bpm = MidiBard.CurrentPlayback?.TempoMap?.GetTempoAtTime(currentTime);
 		}
 
-		var label = $"{MidiBard.config.playSpeed:F2}";
+		var label = $" {MidiBard.config.playSpeed:F2}";
 
 		if (bpm != null) label += $" ({bpm.BeatsPerMinute * MidiBard.config.playSpeed:F1} bpm)";
 		return label;
@@ -129,7 +126,7 @@ public partial class PluginUI
 				progress = 0;
 			}
 
-			if (SliderFloat("Progress".Localize(), ref progress, 0, 1,
+			if (SliderFloat(Progress, ref progress, 0, 1,
 					$"{(currentTime.Hours != 0 ? currentTime.Hours + ":" : "")}{currentTime.Minutes:00}:{currentTime.Seconds:00}",
 					ImGuiSliderFlags.AlwaysClamp | ImGuiSliderFlags.NoRoundToFormat))
 			{
@@ -144,10 +141,10 @@ public partial class PluginUI
 		else
 		{
 			float zeroprogress = 0;
-			SliderFloat("Progress".Localize(), ref zeroprogress, 0, 1, "0:00", ImGuiSliderFlags.NoInput);
+			SliderFloat(Progress, ref zeroprogress, 0, 1, "0:00", ImGuiSliderFlags.NoInput);
 		}
 
-		ToolTip("Set the playing progress. \nRight click to restart current playback.".Localize());
+		ToolTip(Set_progress_tooltip);
 	}
 
 	private static int UIcurrentInstrument;
@@ -159,7 +156,7 @@ public partial class PluginUI
 			UIcurrentInstrument = MidiBard.AgentPerformance.CurrentGroupTone + MidiBard.guitarGroup[0]; ;
 		}
 
-		if (BeginCombo("Instrument".Localize(), MidiBard.InstrumentStrings[UIcurrentInstrument], ImGuiComboFlags.HeightLarge))
+		if (BeginCombo(Instrument, MidiBard.InstrumentStrings[UIcurrentInstrument], ImGuiComboFlags.HeightLarge))
 		{
 			GetWindowDrawList().ChannelsSplit(2);
 			for (int i = 0; i < MidiBard.Instruments.Length; i++)
@@ -186,7 +183,7 @@ public partial class PluginUI
 		//    SwitchInstrument.SwitchToContinue((uint)UIcurrentInstrument);
 		//}
 
-		ToolTip("Select current instrument. \nRight click to quit performance mode.".Localize());
+		ToolTip(select_instrument_tooltip);
 
 		if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right))
 		{

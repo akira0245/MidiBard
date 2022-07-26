@@ -16,6 +16,7 @@ using MidiBard.Control;
 using MidiBard.Control.MidiControl.PlaybackInstance;
 using MidiBard.Managers;
 using MidiBard.Managers.Agents;
+using MidiBard.Resources;
 using MidiBard.Util;
 
 namespace MidiBard;
@@ -47,7 +48,7 @@ public partial class PluginUI
 			ImGui.SetNextWindowSize(ImGuiHelpers.ScaledVector2(640, 480), ImGuiCond.Always);
 			_resetPlotWindowPosition = false;
 		}
-		if (ImGui.Begin("Midi tracks##MIDIBARD", ref MidiBard.config.PlotTracks))
+		if (ImGui.Begin(Language.window_title_visualizor + "###midibardMidiPlot", ref MidiBard.config.PlotTracks))
 		{
 			ImGui.PopStyleVar();
 			MidiPlotWindow();

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -42,7 +43,6 @@ public class MidiBard : IDalamudPlugin
     public static Configuration config { get; internal set; }
     internal static PluginUI Ui { get; set; }
     internal static BardPlayback CurrentPlayback { get; set; }
-    internal static Localizer Localizer { get; set; }
     internal static AgentMetronome AgentMetronome { get; set; }
     internal static AgentPerformance AgentPerformance { get; set; }
     internal static AgentConfigSystem AgentConfigSystem { get; set; }
@@ -69,6 +69,9 @@ public class MidiBard : IDalamudPlugin
     internal static bool IsPlaying => CurrentPlayback?.IsRunning == true;
     public string Name => nameof(MidiBard);
 
+
+
+
     public unsafe MidiBard(DalamudPluginInterface pi)
     {
         api.Initialize(this, pi);
@@ -90,8 +93,8 @@ public class MidiBard : IDalamudPlugin
         }
 
         TryLoadConfig();
+        ConfigureLanguage(GetCultureCodeString((CultureCode)config.uiLang));
 
-        Localizer = new Localizer((UILang)config.uiLang);
         IpcManager = new IPCManager();
         PartyWatcher = new PartyWatcher();
 
@@ -302,6 +305,37 @@ public class MidiBard : IDalamudPlugin
         {
             Ui.Toggle();
         }
+    }
+
+    public enum CultureCode
+    {
+	    English,
+	    简体中文,
+    }
+
+    public static string GetCultureCodeString(CultureCode culture)
+    {
+	    return culture switch
+	    {
+		    CultureCode.English => "en",
+		    CultureCode.简体中文 => "zh-Hans",
+		    _ => null
+	    };
+    }
+
+    internal static void ConfigureLanguage(string? langCode = null)
+    {
+	    // ReSharper disable once ConstantNullCoalescingCondition
+	    langCode ??= api.PluginInterface.UiLanguage ?? "en";
+	    try
+	    {
+		    Resources.Language.Culture = new CultureInfo(langCode);
+	    }
+	    catch (Exception ex)
+	    {
+		    PluginLog.LogError(ex, $"Could not set culture to {langCode} - falling back to default");
+		    Resources.Language.Culture = CultureInfo.DefaultThreadCurrentUICulture;
+	    }
     }
 
     internal static void SaveConfig()

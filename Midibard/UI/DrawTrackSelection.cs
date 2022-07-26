@@ -7,6 +7,7 @@ using static MidiBard.ImGuiUtil;
 using MidiBard.Control.CharacterControl;
 using Dalamud.Logging;
 using MidiBard.Control.MidiControl.PlaybackInstance;
+using MidiBard.Resources;
 
 namespace MidiBard;
 
@@ -46,7 +47,6 @@ public partial class PluginUI
             }
             else
             {
-                ImGui.Separator();
                 if (ImGui.BeginChild("TrackTrunkSelection",
                         new Vector2(
                             ImGuiUtil.GetWindowContentRegionWidth() - 1,
@@ -178,16 +178,14 @@ public partial class PluginUI
             }
             catch (Exception e)
             {
-                PluginLog.Error(e, "error when draeing tracks");
+                PluginLog.Error(e, "error when drawing tracks");
             }
 
             if (ImGui.IsWindowHovered() && !ImGui.IsAnyItemHovered() && showtooltip)
             {
                 ImGui.BeginTooltip();
                 ImGui.PushTextWrapPos(ImGui.GetFontSize() * 20.0f);
-                ImGui.TextUnformatted(
-                    "Track Selection. \nMidiBard will only perform enabled tracks.\nLeft click to enable/disable a track, Right click to solo it."
-                        .Localize());
+                ImGui.TextUnformatted(Language.Track_selection_Tooltip);
                 ImGui.PopTextWrapPos();
                 ImGui.EndTooltip();
             }
