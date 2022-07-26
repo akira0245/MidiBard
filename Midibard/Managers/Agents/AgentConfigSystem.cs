@@ -43,11 +43,29 @@ namespace MidiBard.Managers.Agents
             set
             {
                 if (value)
+                {
                     EnableBackgroundFrameLimit();
+                    RestoreObjQuantity();
+                }
                 else
+                {
                     DisableBackgroundFrameLimit();
+                    SetMinimalObjQuantity();
+                }
 
             }
+        }
+
+        private static int originalObjQuantity;
+        public static unsafe void SetMinimalObjQuantity()
+        {
+            originalObjQuantity = _configModule->GetIntValue(ConfigOption.DisplayObjectLimitType);
+            _configModule->SetOption(ConfigOption.DisplayObjectLimitType, 4);
+        }
+
+        public static unsafe void RestoreObjQuantity()
+        {
+            _configModule->SetOption(ConfigOption.DisplayObjectLimitType, originalObjQuantity);
         }
 
         //public ref T Option<T>(ConfigOption option) where T : unmanaged
