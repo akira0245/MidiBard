@@ -82,56 +82,59 @@ public partial class PluginUI
 				}
 			}
 
-			ImGui.SameLine();
-			if (ImGuiUtil.IconButton(FontAwesomeIcon.FolderOpen,"btn open config", ensemble_open_midi_config_directory))
+			if (!MidiFileConfigManager.UsingDefaultPerformer)
 			{
-				try
+				ImGui.SameLine();
+				if (ImGuiUtil.IconButton(FontAwesomeIcon.FolderOpen, "btn open config", ensemble_open_midi_config_directory))
 				{
-					var fileInfo = MidiFileConfigManager.GetMidiConfigFileInfo(MidiBard.CurrentPlayback.FilePath);
-					var configDirectoryFullName = fileInfo.Directory.FullName;
-					PluginLog.Debug(fileInfo.FullName);
-					PluginLog.Debug(MidiBard.CurrentPlayback.FilePath);
-					PluginLog.Debug(configDirectoryFullName);
-					Process.Start(new ProcessStartInfo(configDirectoryFullName) { UseShellExecute = true });
-				}
-				catch (Exception e)
-				{
-					PluginLog.Warning(e, "error when opening config directory");
-				}
-			}
-
-			ImGui.SameLine();
-			if (ImGuiUtil.IconButton(FontAwesomeIcon.Edit, "openConfigFileBtn", ensemble_open_midi_config_file))
-			{
-				try
-				{
-					if (MidiBard.CurrentPlayback != null)
+					try
 					{
 						var fileInfo = MidiFileConfigManager.GetMidiConfigFileInfo(MidiBard.CurrentPlayback.FilePath);
+						var configDirectoryFullName = fileInfo.Directory.FullName;
 						PluginLog.Debug(fileInfo.FullName);
 						PluginLog.Debug(MidiBard.CurrentPlayback.FilePath);
-						Process.Start(new ProcessStartInfo(fileInfo.FullName) { UseShellExecute = true });
+						PluginLog.Debug(configDirectoryFullName);
+						Process.Start(new ProcessStartInfo(configDirectoryFullName) { UseShellExecute = true });
+					}
+					catch (Exception e)
+					{
+						PluginLog.Warning(e, "error when opening config directory");
 					}
 				}
-				catch (Exception e)
+
+				ImGui.SameLine();
+				if (ImGuiUtil.IconButton(FontAwesomeIcon.Edit, "openConfigFileBtn", ensemble_open_midi_config_file))
 				{
-					PluginLog.Warning(e, "error when opening config file");
+					try
+					{
+						if (MidiBard.CurrentPlayback != null)
+						{
+							var fileInfo = MidiFileConfigManager.GetMidiConfigFileInfo(MidiBard.CurrentPlayback.FilePath);
+							PluginLog.Debug(fileInfo.FullName);
+							PluginLog.Debug(MidiBard.CurrentPlayback.FilePath);
+							Process.Start(new ProcessStartInfo(fileInfo.FullName) { UseShellExecute = true });
+						}
+					}
+					catch (Exception e)
+					{
+						PluginLog.Warning(e, "error when opening config file");
+					}
 				}
-			}
-			
-			ImGui.SameLine();
-			if (ImGuiUtil.IconButton(FontAwesomeIcon.TrashAlt, "deleteConfig", ensemble_Delete_and_reset_current_file_config,
-				    ImGui.GetColorU32(MidiBard.CurrentPlayback == null ? ImGuiCol.TextDisabled : ImGuiCol.Text)))
-			{
-				if (MidiBard.CurrentPlayback != null)
+
+				ImGui.SameLine();
+				if (ImGuiUtil.IconButton(FontAwesomeIcon.TrashAlt, "deleteConfig", ensemble_Delete_and_reset_current_file_config,
+						ImGui.GetColorU32(MidiBard.CurrentPlayback == null ? ImGuiCol.TextDisabled : ImGuiCol.Text)))
 				{
 					if (MidiBard.CurrentPlayback != null)
 					{
-						MidiFileConfigManager.GetMidiConfigFileInfo(MidiBard.CurrentPlayback.FilePath).Delete();
-						MidiBard.CurrentPlayback.MidiFileConfig =
-							MidiFileConfigManager.GetMidiConfigAsDefaultPerformer(MidiBard.CurrentPlayback.TrackInfos); // use default performer
+						if (MidiBard.CurrentPlayback != null)
+						{
+							MidiFileConfigManager.GetMidiConfigFileInfo(MidiBard.CurrentPlayback.FilePath).Delete();
+							MidiBard.CurrentPlayback.MidiFileConfig =
+								MidiFileConfigManager.GetMidiConfigAsDefaultPerformer(MidiBard.CurrentPlayback.TrackInfos); // use default performer
+						}
+						IPCHandles.UpdateInstrument(true);
 					}
-					IPCHandles.UpdateInstrument(true);
 				}
 			}
 
