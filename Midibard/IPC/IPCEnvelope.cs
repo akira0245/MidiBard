@@ -56,7 +56,7 @@ internal class IPCEnvelope
 	public int ProcessId { get; init; }
 	[ProtoMember(5)]
 	public DateTime TimeStamp { get; init; }
-	[ProtoMember(6, DataFormat = DataFormat.Group)]
+	[ProtoMember(6)]
 	public byte[] Data { get; init; }
 	[ProtoMember(7)]
 	public string[] StringData { get; init; }

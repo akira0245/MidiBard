@@ -46,9 +46,11 @@ static class Extensions
 	{
 		using MemoryStream memoryStream1 = new MemoryStream(bytes);
 		using MemoryStream memoryStream2 = new MemoryStream();
-		using (GZipStream destination = new GZipStream(memoryStream2, CompressionMode.Compress))
+		using (GZipStream destination = new GZipStream(memoryStream2, CompressionLevel.Fastest))
 			memoryStream1.CopyTo((Stream)destination);
-		return memoryStream2.ToArray();
+		var compress = memoryStream2.ToArray();
+		PluginLog.Verbose($"original: {Dalamud.Utility.Util.FormatBytes(bytes.Length)}, compressed: {Dalamud.Utility.Util.FormatBytes(compress.Length)}, ratio: {(double)compress.Length / bytes.Length:P}");
+		return compress;
 	}
 
 	public static byte[] Decompress(this byte[] bytes)
