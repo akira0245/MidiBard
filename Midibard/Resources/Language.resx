@@ -132,14 +132,14 @@ This may take a while when you select a folder that contains multiple layers of 
   <data name="label language" xml:space="preserve">
     <value>Language</value>
   </data>
-  <data name="Change UI Language" xml:space="preserve">
-    <value>Change UI Language</value>
+  <data name="label language tooltip" xml:space="preserve">
+    <value>Change Midibard UI language</value>
   </data>
   <data name="label Help" xml:space="preserve">
     <value>Help</value>
   </data>
   <data name="label ensemble mode running" xml:space="preserve">
-    <value>Ensemble Mode Running</value>
+    <value>Ensemble mode running</value>
   </data>
   <data name="label empty playlist" xml:space="preserve">
     <value>Import midi files to start performing!</value>
@@ -162,13 +162,13 @@ This may take a while when you select a folder that contains multiple layers of 
     <value>Single</value>
   </data>
   <data name="ListOrdered" xml:space="preserve">
-    <value>ListOrdered</value>
+    <value>List ordered</value>
   </data>
   <data name="ListRepeat" xml:space="preserve">
-    <value>ListRepeat</value>
+    <value>List repeat</value>
   </data>
   <data name="SingleRepeat" xml:space="preserve">
-    <value>SingleRepeat</value>
+    <value>Single repeat</value>
   </data>
   <data name="Random" xml:space="preserve">
     <value>Random</value>
@@ -183,7 +183,7 @@ This may take a while when you select a folder that contains multiple layers of 
     <value>Mini player</value>
   </data>
   <data name="Track selection Tooltip" xml:space="preserve">
-    <value>Track Selection
+    <value>Track selection
 MidiBard will only perform enabled tracks
 Left click to enable/disable a track, Right click to solo it</value>
   </data>
@@ -200,13 +200,13 @@ Left click to enable/disable a track, Right click to solo it</value>
     <value>Auto adapt notes</value>
   </data>
   <data name="Auto adapt notesTooltip" xml:space="preserve">
-    <value>Adapt high/low pitch notes which are out of range into 3 octaves we can play</value>
+    <value>Adapt high/low pitch notes when they are out of range into 3 octaves we can play</value>
   </data>
   <data name="Progress" xml:space="preserve">
     <value>Progress</value>
   </data>
   <data name="PlaySpeed" xml:space="preserve">
-    <value>PlaySpeed</value>
+    <value>Play speed</value>
   </data>
   <data name="Monitor ensemble" xml:space="preserve">
     <value>Monitor ensemble</value>
@@ -215,7 +215,7 @@ Left click to enable/disable a track, Right click to solo it</value>
     <value>Auto start ensemble when entering in-game party ensemble mode</value>
   </data>
   <data name="Auto Confirm Ensemble Ready Check" xml:space="preserve">
-    <value>Auto Confirm Ensemble Ready Check</value>
+    <value>Auto confirm ensemble ready check</value>
   </data>
   <data name="Auto open MidiBard" xml:space="preserve">
     <value>Auto open MidiBard</value>
@@ -230,10 +230,10 @@ Left click to enable/disable a track, Right click to solo it</value>
     <value>Instrument</value>
   </data>
   <data name="Auto switch instrument" xml:space="preserve">
-    <value>Auto switch instrument</value>
+    <value>Auto switch instrument(file name)</value>
   </data>
   <data name="Auto transpose" xml:space="preserve">
-    <value>Auto transpose</value>
+    <value>Auto transpose(file name)</value>
   </data>
   <data name="Auto switch instrumentTooltip" xml:space="preserve">
     <value>Auto switch instrument on demand. If you need this, 
@@ -264,10 +264,10 @@ Right click to quit performance mode</value>
     <value>Listening input device: </value>
   </data>
   <data name="label inputdevice" xml:space="preserve">
-    <value>Input Device</value>
+    <value>MIDI Input</value>
   </data>
   <data name="label inputdevice tooltip" xml:space="preserve">
-    <value>Choose external midi input device. right click to reset.</value>
+    <value>Choose external midi input device. Right click to reset.</value>
   </data>
   <data name="button clearplaylist tootltip" xml:space="preserve">
     <value>Double click to clear playlist</value>
@@ -299,17 +299,12 @@ Right click to quit performance mode</value>
   <data name="checkbox auto restart listening tooltip" xml:space="preserve">
     <value>Try auto restart listening last used midi device</value>
   </data>
-  <data name="visualization" xml:space="preserve">
-    <value>Tracks visualization</value>
-  </data>
   <data name="visualization tooltip" xml:space="preserve">
-    <value>Right click to reset visualizer window position.</value>
+    <value>Tracks visualization window
+Right click to reset visualizer window position</value>
   </data>
-  <data name="Follow playback" xml:space="preserve">
-    <value>Follow playback</value>
-  </data>
-  <data name="Follow playback tooltip" xml:space="preserve">
-    <value>Lock tracks window and auto following current playback progress</value>
+  <data name="visualizer follow playback tooltip" xml:space="preserve">
+    <value>Following current playback progress</value>
   </data>
   <data name="w32 file dialog" xml:space="preserve">
     <value>Win32 file dialog</value>
@@ -348,10 +343,10 @@ Right click to quit performance mode</value>
     <value>Override by track: Assign guitar tone manually for each track and ignore ProgramChange events.</value>
   </data>
   <data name="label auto switch instrument bmp" xml:space="preserve">
-    <value>Auto switch instrument by midi track name</value>
+    <value>Auto switch instrument(midi track name)</value>
   </data>
   <data name="label auto switch instrument bmp tooltip" xml:space="preserve">
-    <value>Transpose/switch instrument based on first enabled midi track name.</value>
+    <value>Transpose/switch instrument based on first enabled midi track name(BMP rules)</value>
   </data>
   <data name="notice start event listening" xml:space="preserve">
     <value>Start event listening on </value>
@@ -456,5 +451,20 @@ Only recommended while using Midi keyboard.</value>
   </data>
   <data name="window title visualizor" xml:space="preserve">
     <value>MidiBard track visualizer</value>
+  </data>
+  <data name="group ensemble settings" xml:space="preserve">
+    <value>Ensemble settings</value>
+  </data>
+  <data name="group general settings" xml:space="preserve">
+    <value>General settings</value>
+  </data>
+  <data name="group performance settings" xml:space="preserve">
+    <value>Performance settings</value>
+  </data>
+  <data name="Sync clients" xml:space="preserve">
+    <value>Enable local clients sync</value>
+  </data>
+  <data name="sync clients tooltip" xml:space="preserve">
+    <value>Allow midibard settings and midi file settings auto sync between all midibard instances on this pc.</value>
   </data>
 </root>

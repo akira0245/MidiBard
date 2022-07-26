@@ -33,11 +33,10 @@ public partial class PluginUI
 		ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new Vector2(ImGui.GetStyle().CellPadding.Y));
 		if (ImGui.Begin(ensemble_window_title+"###midibardEnsembleWindow", ref ShowEnsembleControlWindow))
 		{
-			var width = ImGuiHelpers.GlobalScale * 25;
+			ImGuiUtil.PushIconButtonSize(new Vector2(ImGuiHelpers.GlobalScale * 40, ImGui.GetFrameHeight()));
 			var ensembleRunning = MidiBard.AgentMetronome.EnsembleModeRunning;
-			if (ImGuiUtil.IconButton(
-				    ensembleRunning ? FontAwesomeIcon.Stop : FontAwesomeIcon.UserCheck,
-				    "ensembleBegin", width))
+			if (ImGuiUtil.IconButton(ensembleRunning ? FontAwesomeIcon.Stop : FontAwesomeIcon.UserCheck,
+				    "ensembleBegin", ensembleRunning ? Stop_ensemble : Begin_ensemble_ready_check))
 			{
 				if (!ensembleRunning)
 				{
@@ -46,7 +45,10 @@ public partial class PluginUI
 						IPCHandles.UpdateMidiFileConfig(config);
 					}
 
-					IPCHandles.UpdateInstrument(true);
+					if (MidiBard.config.UpdateInstrumentBeforeReadyCheck)
+					{
+						IPCHandles.UpdateInstrument(true);
+					}
 
 					MidiBard.EnsembleManager.BeginEnsembleReadyCheck();
 				}
@@ -56,22 +58,15 @@ public partial class PluginUI
 				}
 			}
 
-			ImGuiUtil.ToolTip(ensembleRunning
-				? Stop_ensemble
-				: Begin_ensemble_ready_check);
 
 			ImGui.SameLine();
 			if (ensembleRunning)
 			{
-				ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.TextDisabled));
-				ImGuiUtil.IconButton(FontAwesomeIcon.Guitar, "UpdateInstrument",
-					width);
-				ImGui.PopStyleColor();
+				ImGuiUtil.IconButton(FontAwesomeIcon.Guitar, "UpdateInstrument", ensemble_update_instruments, ImGui.GetColorU32(ImGuiCol.TextDisabled));
 			}
 			else
 			{
-				if (ImGuiUtil.IconButton(FontAwesomeIcon.Guitar, "UpdateInstrument",
-					    width))
+				if (ImGuiUtil.IconButton(FontAwesomeIcon.Guitar, "UpdateInstrument", ensemble_update_instruments))
 				{
 					if (MidiBard.CurrentPlayback?.MidiFileConfig is { } config)
 					{
@@ -87,13 +82,8 @@ public partial class PluginUI
 				}
 			}
 
-			ImGuiUtil.ToolTip(ensemble_update_instruments);
-
-			//Dalamud.Utility.Util.ShowStruct(MidiBard.AgentPerformance.Struct);
-
-
 			ImGui.SameLine();
-			if (ImGuiUtil.IconButton(FontAwesomeIcon.FolderOpen,"btn open config", width))
+			if (ImGuiUtil.IconButton(FontAwesomeIcon.FolderOpen,"btn open config", ensemble_open_midi_config_directory))
 			{
 				try
 				{
@@ -110,12 +100,8 @@ public partial class PluginUI
 				}
 			}
 
-			ImGuiUtil.ToolTip(ensemble_open_midi_config_directory);
-
-
 			ImGui.SameLine();
-			if (ImGuiUtil.IconButton(FontAwesomeIcon.Edit, "openConfigFileBtn",
-				    width))
+			if (ImGuiUtil.IconButton(FontAwesomeIcon.Edit, "openConfigFileBtn", ensemble_open_midi_config_file))
 			{
 				try
 				{
@@ -132,13 +118,10 @@ public partial class PluginUI
 					PluginLog.Warning(e, "error when opening config file");
 				}
 			}
-
-			ImGuiUtil.ToolTip(ensemble_open_midi_config_file);
-
+			
 			ImGui.SameLine();
-			if (ImGuiUtil.IconButtonColored(FontAwesomeIcon.TrashAlt, "deleteConfig",
-				    MidiBard.CurrentPlayback == null ? ImGuiCol.TextDisabled : ImGuiCol.Text,
-				    width))
+			if (ImGuiUtil.IconButton(FontAwesomeIcon.TrashAlt, "deleteConfig", ensemble_Delete_and_reset_current_file_config,
+				    ImGui.GetColorU32(MidiBard.CurrentPlayback == null ? ImGuiCol.TextDisabled : ImGuiCol.Text)))
 			{
 				if (MidiBard.CurrentPlayback != null)
 				{
@@ -148,44 +131,28 @@ public partial class PluginUI
 				}
 			}
 
-			ImGuiUtil.ToolTip(ensemble_Delete_and_reset_current_file_config);
-
 			ImGui.SameLine();
 			if (ImGuiUtil.IconButton(
 				    otherClientsMuted ? FontAwesomeIcon.VolumeOff : FontAwesomeIcon.VolumeUp,
-				    "Mute other clients", width))
+				    "Mute other clients", otherClientsMuted
+					    ? ensemble_unmute_other_clients
+					    : ensemble_mute_other_clients))
 			{
 				IPCHandles.SetOption(ConfigOption.SoundMaster, otherClientsMuted ? 100 : 0, false);
 				AgentConfigSystem.SetOptionValue(ConfigOption.SoundMaster, 100);
 				otherClientsMuted ^= true;
 			}
 
-			ImGuiUtil.ToolTip(otherClientsMuted
-				? ensemble_unmute_other_clients
-				: ensemble_mute_other_clients);
-
-
 			ImGui.SameLine();
-			if (ImGuiUtil.IconButton(FontAwesomeIcon.WindowMinimize, "WindowMinimize",
-				    width))
+			if (ImGuiUtil.IconButton(FontAwesomeIcon.WindowMinimize, "WindowMinimize", ensemble_Minimize_other_clients))
 			{
 				IPCHandles.ShowWindow(Winapi.nCmdShow.SW_MINIMIZE);
 			}
-
 			if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
 			{
 				IPCHandles.ShowWindow(Winapi.nCmdShow.SW_RESTORE);
 			}
-
-			ImGuiUtil.ToolTip(ensemble_Minimize_other_clients);
-
-			ImGui.SameLine();
-			if (ImGuiUtil.IconButton(FontAwesomeIcon.SyncAlt, "syncsettings", width))
-			{
-				IPCHandles.SyncAllSettings();
-			}
-
-			ImGuiUtil.ToolTip(ensemble_Sync_settings);
+			
 			ImGui.SameLine();
 			if (ImGui.Button(ensemble_Save_default_performers))
 			{
@@ -198,6 +165,7 @@ public partial class PluginUI
 					}
 				}
 			}
+			ImGuiUtil.PopIconButtonSize();
 
 			//SameLine();
 			//if (Button("TEST3"))
@@ -310,11 +278,7 @@ public partial class PluginUI
 			}
 
 			ImGui.Separator();
-
-			ImGui.Checkbox(ensemble_config_Draw_ensemble_progress_indicator_on_visualizer, ref MidiBard.config.UseEnsembleIndicator);
-			ImGui.DragFloat(ensemble_config_Ensemble_indicator_delay, ref MidiBard.config.EnsembleIndicatorDelay, 0.01f, -10, 0,
-				$"{MidiBard.config.EnsembleIndicatorDelay:F3}s");
-			ImGui.Checkbox(ensemble_config_Update_instrument_when_begin_ensemble, ref MidiBard.config.SetInstrumentBeforeReadyCheck);
+			ImGui.Checkbox(ensemble_config_Update_instrument_when_begin_ensemble, ref MidiBard.config.UpdateInstrumentBeforeReadyCheck);
 #if DEBUG
 			try
 			{

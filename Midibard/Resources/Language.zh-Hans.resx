@@ -190,9 +190,6 @@
   <data name="label auto switch instrument bmp" xml:space="preserve">
     <value>根据MIDI音轨名自动切换乐器</value>
   </data>
-  <data name="Follow playback" xml:space="preserve">
-    <value>可视化窗口跟随播放进度</value>
-  </data>
   <data name="tone mode off" xml:space="preserve">
     <value>关闭</value>
   </data>
@@ -268,8 +265,8 @@
   <data name="Random" xml:space="preserve">
     <value>随机播放</value>
   </data>
-  <data name="Follow playback tooltip" xml:space="preserve">
-    <value>锁定音轨窗口并自动跟随当前播放进度</value>
+  <data name="visualizer follow playback tooltip" xml:space="preserve">
+    <value>跟随当前播放进度</value>
   </data>
   <data name="tone mode tooltip" xml:space="preserve">
     <value>选择MIDIBARD如何处理MIDI Channel和ProgramChange事件（当前只用于吉他音色控制）</value>
@@ -278,7 +275,7 @@
     <value>选择当前的外部MIDI输入设备，例如虚拟midi接口或midi键盘
 右键单击停止使用外部输入</value>
   </data>
-  <data name="Change UI Language" xml:space="preserve">
+  <data name="label language tooltip" xml:space="preserve">
     <value>选择界面语言</value>
   </data>
   <data name="Progress" xml:space="preserve">
@@ -297,8 +294,9 @@
   <data name="Track" xml:space="preserve">
     <value>音轨</value>
   </data>
-  <data name="visualization" xml:space="preserve">
-    <value>音轨可视化（国服6.1前不可用）</value>
+  <data name="visualization tooltip" xml:space="preserve">
+    <value>音轨可视化（国服6.1前不可用）
+右键单击重置可视化窗口位置</value>
   </data>
   <data name="Track selection Tooltip" xml:space="preserve">
     <value>音轨选择
@@ -313,10 +311,6 @@ MIDIBARD只会演奏被选中的音轨
   </data>
   <data name="label delay tooltip" xml:space="preserve">
     <value>在连续播放时每首乐曲播放结束后的等待时间</value>
-  </data>
-  <data name="visualization tooltip" xml:space="preserve">
-    <value>在新窗口中绘制MIDI音轨图像
-该图像将会反映MIDI音轨当前的移调情况</value>
   </data>
   <data name="Monitor ensemble tooltip" xml:space="preserve">
     <value>在游戏内的合奏助手运行时自动开始同步合奏</value>
@@ -343,10 +337,10 @@ MIDIBARD只会演奏被选中的音轨
     <value>自动恢复监听</value>
   </data>
   <data name="Auto switch instrument" xml:space="preserve">
-    <value>自动切换乐器</value>
+    <value>根据文件名自动切换乐器</value>
   </data>
   <data name="Auto transpose" xml:space="preserve">
-    <value>自动移调</value>
+    <value>根据文件名自动移调</value>
   </data>
   <data name="Auto adapt notes" xml:space="preserve">
     <value>自适应音高</value>
@@ -431,7 +425,7 @@ MIDIBARD只会演奏被选中的音轨
     <value>最小化其他客户端窗口，右键点击还原它们</value>
   </data>
   <data name="ensemble Sync settings" xml:space="preserve">
-    <value>同步所有客户端的MIDIBARD设置</value>
+    <value>立即同步所有客户端的MIDIBARD设置</value>
   </data>
   <data name="ensemble Save default performers" xml:space="preserve">
     <value>保存默认演奏者配置</value>
@@ -453,5 +447,20 @@ MIDIBARD只会演奏被选中的音轨
   </data>
   <data name="window title visualizor" xml:space="preserve">
     <value>MidiBard 音轨可视化</value>
+  </data>
+  <data name="group ensemble settings" xml:space="preserve">
+    <value>合奏设置</value>
+  </data>
+  <data name="group general settings" xml:space="preserve">
+    <value>通用设置</value>
+  </data>
+  <data name="group performance settings" xml:space="preserve">
+    <value>演奏设置</value>
+  </data>
+  <data name="Sync clients" xml:space="preserve">
+    <value>启用本机客户端同步</value>
+  </data>
+  <data name="sync clients tooltip" xml:space="preserve">
+    <value>允许MIDIBARD在这台电脑上正在运行的FFXIV客户端间同步数据</value>
   </data>
 </root>

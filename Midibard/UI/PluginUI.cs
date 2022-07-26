@@ -39,8 +39,6 @@ using Newtonsoft.Json;
 using static ImGuiNET.ImGui;
 using static MidiBard.MidiBard;
 using static MidiBard.ImGuiUtil;
-using AgentConfigSystem = MidiBard.Managers.Agents.AgentConfigSystem;
-using EnsembleManager = MidiBard.Managers.EnsembleManager;
 
 namespace MidiBard;
 
@@ -98,7 +96,6 @@ public partial class PluginUI
 
 	private void DrawMainPluginWindow()
 	{
-		PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(5, 5));
 		SetNextWindowPos(new Vector2(100, 100), ImGuiCond.FirstUseEver);
 		var ensembleModeRunning = AgentMetronome.EnsembleModeRunning;
 		var ensemblePreparing = AgentMetronome.MetronomeBeatsElapsed < 0;
@@ -117,16 +114,14 @@ public partial class PluginUI
 					ref MainWindowVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | flag))
 #else
 			var name = "MidiBard###MIDIBARD";
-			if (Begin(name, ref MainWindowVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | flag))
+			if (Begin(name, ref MainWindowVisible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | flag | ImGuiWindowFlags.NoCollapse))
 #endif
 			{
+				var icon = (FontAwesomeIcon)(MidiBard.config.miniPlayer ? 0xF424 : 0xF422);
+				if (AddHeaderIcon("headerIconMinimode", icon.ToIconString(), Language.button_mini_player)) config.miniPlayer ^= true;
+
 				if (ensembleModeRunning)
 				{
-					//if (ensemblePreparing)
-					//{
-					//	DrawColoredBanner(orange, "Ensemble Mode Preparing".Localize());
-					//}
-					//else
 					{
 						DrawColoredBanner(red, Language.label_ensemble_mode_running);
 					}
@@ -156,8 +151,8 @@ public partial class PluginUI
 					DrawButtonFastForward();
 					DrawButtonPlayMode();
 					DrawButtonShowSettingsPanel();
+					DrawButtonVisualization();
 					DrawButtonShowEnsembleControl();
-					DrawButtonMiniPlayer();
 				}
 				PopStyleVar(2);
 
@@ -171,7 +166,6 @@ public partial class PluginUI
 					else
 					{
 						DrawTrackTrunkSelectionWindow();
-						Separator();
 						DrawPanelMusicControl();
 					}
 
@@ -181,7 +175,6 @@ public partial class PluginUI
 		finally
 		{
 			End();
-			PopStyleVar();
 		}
 	}
 

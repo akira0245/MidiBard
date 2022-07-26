@@ -22,42 +22,6 @@ namespace MidiBard;
 public partial class PluginUI
 {
     #region import
-
-    private void ButtonImport()
-    {
-        if (ImGui.BeginPopup("OpenFileDialog_selection"))
-        {
-            if (ImGui.MenuItem(Language.w32_file_dialog, null, MidiBard.config.useLegacyFileDialog))
-            {
-                MidiBard.config.useLegacyFileDialog = true;
-            }
-            else if (ImGui.MenuItem(Language.imgui_file_dialog, null, !MidiBard.config.useLegacyFileDialog))
-            {
-                MidiBard.config.useLegacyFileDialog = false;
-            }
-
-            ImGui.EndPopup();
-        }
-
-        ImGui.BeginGroup();
-
-        if (ImGuiUtil.IconButton(FontAwesomeIcon.Plus, "buttonimport"))
-        {
-            RunImportFileTask();
-        }
-
-        ImGuiUtil.ToolTip(Language.button_import_file);
-        ImGui.SameLine();
-        if (ImGuiUtil.IconButton(FontAwesomeIcon.FolderOpen, "buttonimportFolder"))
-        {
-            RunImportFolderTask();
-        }
-        ImGuiUtil.ToolTip(Language.button_import_folder);
-        ImGui.EndGroup();
-
-        ImGui.OpenPopupOnItemClick("OpenFileDialog_selection", ImGuiPopupFlags.MouseButtonRight);
-    }
-
     private void RunImportFileTask()
     {
         if (!IsImportRunning)
@@ -208,12 +172,7 @@ public partial class PluginUI
         t.SetApartmentState(ApartmentState.STA);
         t.Start();
     }
-
-    private void ButtonImportInProgress()
-    {
-        ImGui.Button(Language.Import_in_progress___);
-    }
-
+    
     public bool IsImportRunning { get; private set; }
     
     #endregion

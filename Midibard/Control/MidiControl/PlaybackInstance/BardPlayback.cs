@@ -34,7 +34,7 @@ internal sealed class BardPlayback : Playback
 			TrackChunks = trackChunks,
 			TrackInfos = trackInfos,
 			MidiFileConfig = midiFileConfig,
-			DisplayName = $"{PlaylistContainerManager.Container.CurrentPlaylist?.Name} {PlaylistContainerManager.Container.CurrentPlaylist?.CurrentSongIndex:000}\n{PlaylistContainerManager.Container.CurrentPlaylist?.CurrentSongEntry?.FileName}"
+			DisplayName = $"{PlaylistContainerManager.Container.CurrentPlaylist?.Name} {PlaylistContainerManager.Container.CurrentPlaylist?.CurrentSongIndex + 1:000}\n{PlaylistContainerManager.Container.CurrentPlaylist?.CurrentSongEntry?.FileName}"
 		};
 	}
 

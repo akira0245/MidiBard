@@ -88,7 +88,7 @@ namespace MidiBard.Resources {
         }
         
         /// <summary>
-        ///   查找类似 Adapt high/low pitch notes which are out of range into 3 octaves we can play 的本地化字符串。
+        ///   查找类似 Adapt high/low pitch notes when they are out of range into 3 octaves we can play 的本地化字符串。
         /// </summary>
         internal static string Auto_adapt_notesTooltip {
             get {
@@ -97,7 +97,7 @@ namespace MidiBard.Resources {
         }
         
         /// <summary>
-        ///   查找类似 Auto Confirm Ensemble Ready Check 的本地化字符串。
+        ///   查找类似 Auto confirm ensemble ready check 的本地化字符串。
         /// </summary>
         internal static string Auto_Confirm_Ensemble_Ready_Check {
             get {
@@ -142,7 +142,7 @@ namespace MidiBard.Resources {
         }
         
         /// <summary>
-        ///   查找类似 Auto switch instrument 的本地化字符串。
+        ///   查找类似 Auto switch instrument(file name) 的本地化字符串。
         /// </summary>
         internal static string Auto_switch_instrument {
             get {
@@ -162,7 +162,7 @@ namespace MidiBard.Resources {
         }
         
         /// <summary>
-        ///   查找类似 Auto transpose 的本地化字符串。
+        ///   查找类似 Auto transpose(file name) 的本地化字符串。
         /// </summary>
         internal static string Auto_transpose {
             get {
@@ -253,15 +253,6 @@ namespace MidiBard.Resources {
         internal static string button_show_playlist_selector {
             get {
                 return ResourceManager.GetString("button show playlist selector", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Change UI Language 的本地化字符串。
-        /// </summary>
-        internal static string Change_UI_Language {
-            get {
-                return ResourceManager.GetString("Change UI Language", resourceCulture);
             }
         }
         
@@ -437,20 +428,29 @@ namespace MidiBard.Resources {
         }
         
         /// <summary>
-        ///   查找类似 Follow playback 的本地化字符串。
+        ///   查找类似 Ensemble settings 的本地化字符串。
         /// </summary>
-        internal static string Follow_playback {
+        internal static string group_ensemble_settings {
             get {
-                return ResourceManager.GetString("Follow playback", resourceCulture);
+                return ResourceManager.GetString("group ensemble settings", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   查找类似 Lock tracks window and auto following current playback progress 的本地化字符串。
+        ///   查找类似 General settings 的本地化字符串。
         /// </summary>
-        internal static string Follow_playback_tooltip {
+        internal static string group_general_settings {
             get {
-                return ResourceManager.GetString("Follow playback tooltip", resourceCulture);
+                return ResourceManager.GetString("group general settings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Performance settings 的本地化字符串。
+        /// </summary>
+        internal static string group_performance_settings {
+            get {
+                return ResourceManager.GetString("group performance settings", resourceCulture);
             }
         }
         
@@ -491,7 +491,7 @@ namespace MidiBard.Resources {
         }
         
         /// <summary>
-        ///   查找类似 Auto switch instrument by midi track name 的本地化字符串。
+        ///   查找类似 Auto switch instrument(midi track name) 的本地化字符串。
         /// </summary>
         internal static string label_auto_switch_instrument_bmp {
             get {
@@ -500,7 +500,7 @@ namespace MidiBard.Resources {
         }
         
         /// <summary>
-        ///   查找类似 Transpose/switch instrument based on first enabled midi track name. 的本地化字符串。
+        ///   查找类似 Transpose/switch instrument based on first enabled midi track name(BMP rules) 的本地化字符串。
         /// </summary>
         internal static string label_auto_switch_instrument_bmp_tooltip {
             get {
@@ -536,7 +536,7 @@ namespace MidiBard.Resources {
         }
         
         /// <summary>
-        ///   查找类似 Ensemble Mode Running 的本地化字符串。
+        ///   查找类似 Ensemble mode running 的本地化字符串。
         /// </summary>
         internal static string label_ensemble_mode_running {
             get {
@@ -554,7 +554,7 @@ namespace MidiBard.Resources {
         }
         
         /// <summary>
-        ///   查找类似 Input Device 的本地化字符串。
+        ///   查找类似 MIDI Input 的本地化字符串。
         /// </summary>
         internal static string label_inputdevice {
             get {
@@ -563,7 +563,7 @@ namespace MidiBard.Resources {
         }
         
         /// <summary>
-        ///   查找类似 Choose external midi input device. right click to reset. 的本地化字符串。
+        ///   查找类似 Choose external midi input device. Right click to reset. 的本地化字符串。
         /// </summary>
         internal static string label_inputdevice_tooltip {
             get {
@@ -577,6 +577,15 @@ namespace MidiBard.Resources {
         internal static string label_language {
             get {
                 return ResourceManager.GetString("label language", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Change Midibard UI language 的本地化字符串。
+        /// </summary>
+        internal static string label_language_tooltip {
+            get {
+                return ResourceManager.GetString("label language tooltip", resourceCulture);
             }
         }
         
@@ -626,7 +635,7 @@ namespace MidiBard.Resources {
         }
         
         /// <summary>
-        ///   查找类似 ListOrdered 的本地化字符串。
+        ///   查找类似 List ordered 的本地化字符串。
         /// </summary>
         internal static string ListOrdered {
             get {
@@ -635,7 +644,7 @@ namespace MidiBard.Resources {
         }
         
         /// <summary>
-        ///   查找类似 ListRepeat 的本地化字符串。
+        ///   查找类似 List repeat 的本地化字符串。
         /// </summary>
         internal static string ListRepeat {
             get {
@@ -763,7 +772,7 @@ namespace MidiBard.Resources {
         }
         
         /// <summary>
-        ///   查找类似 PlaySpeed 的本地化字符串。
+        ///   查找类似 Play speed 的本地化字符串。
         /// </summary>
         internal static string PlaySpeed {
             get {
@@ -855,7 +864,7 @@ namespace MidiBard.Resources {
         }
         
         /// <summary>
-        ///   查找类似 SingleRepeat 的本地化字符串。
+        ///   查找类似 Single repeat 的本地化字符串。
         /// </summary>
         internal static string SingleRepeat {
             get {
@@ -878,6 +887,24 @@ namespace MidiBard.Resources {
         internal static string Stop_ensemble {
             get {
                 return ResourceManager.GetString("Stop ensemble", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Enable local clients sync 的本地化字符串。
+        /// </summary>
+        internal static string Sync_clients {
+            get {
+                return ResourceManager.GetString("Sync clients", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Allow midibard settings and midi file settings auto sync between all midibard instances on this pc. 的本地化字符串。
+        /// </summary>
+        internal static string sync_clients_tooltip {
+            get {
+                return ResourceManager.GetString("sync clients tooltip", resourceCulture);
             }
         }
         
@@ -981,7 +1008,7 @@ namespace MidiBard.Resources {
         }
         
         /// <summary>
-        ///   查找类似 Track Selection
+        ///   查找类似 Track selection
         ///MidiBard will only perform enabled tracks
         ///Left click to enable/disable a track, Right click to solo it 的本地化字符串。
         /// </summary>
@@ -1011,20 +1038,21 @@ namespace MidiBard.Resources {
         }
         
         /// <summary>
-        ///   查找类似 Tracks visualization 的本地化字符串。
-        /// </summary>
-        internal static string visualization {
-            get {
-                return ResourceManager.GetString("visualization", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Right click to reset visualizer window position. 的本地化字符串。
+        ///   查找类似 Tracks visualization window
+        ///Right click to reset visualizer window position 的本地化字符串。
         /// </summary>
         internal static string visualization_tooltip {
             get {
                 return ResourceManager.GetString("visualization tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Following current playback progress 的本地化字符串。
+        /// </summary>
+        internal static string visualizer_follow_playback_tooltip {
+            get {
+                return ResourceManager.GetString("visualizer follow playback tooltip", resourceCulture);
             }
         }
         

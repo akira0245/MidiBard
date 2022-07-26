@@ -121,12 +121,14 @@ internal class IPCManager : IDisposable
 
 	private void ProcessMessage(IPCEnvelope message)
 	{
+		if (!MidiBard.config.SyncClients) return;
 		_methodInfos[message.MessageType](message);
 	}
 
 	public void BroadCast(byte[] serialized, bool includeSelf = false)
 	{
 		if (initFailed) return;
+		if (!MidiBard.config.SyncClients) return;
 		try
 		{
 			PluginLog.Verbose($"queuing message. length: {Dalamud.Utility.Util.FormatBytes(serialized.Length)}" + (includeSelf ? " includeSelf" : null));

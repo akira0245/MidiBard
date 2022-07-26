@@ -12,15 +12,17 @@ namespace MidiBard;
 
 public partial class PluginUI
 {
-	private unsafe void DrawButtonMiniPlayer()
+	private unsafe void DrawButtonVisualization()
 	{
-		//mini player
-
 		ImGui.SameLine();
-		if (IconButton(((FontAwesomeIcon)(MidiBard.config.miniPlayer ? 0xF424 : 0xF422)), "miniplayer"))
-			MidiBard.config.miniPlayer ^= true;
-
-		ToolTip(Language.button_mini_player);
+		var color = MidiBard.config.PlotTracks ? MidiBard.config.themeColor : *ImGui.GetStyleColorVec4(ImGuiCol.Text);
+		if (IconButton((FontAwesomeIcon)0xf008, "miniplayer", Language.visualization_tooltip,
+				ImGui.ColorConvertFloat4ToU32(color)))
+			MidiBard.config.PlotTracks ^= true;
+		if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
+		{
+			_resetPlotWindowPosition = true;
+		}
 	}
 
 	private unsafe void DrawButtonShowSettingsPanel()
