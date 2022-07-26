@@ -130,8 +130,6 @@ public class Configuration : IPluginConfiguration
     public bool PlotTracks;
     public bool LockPlot;
 
-    public long[] TrackDefaultCids = new long[100];
-
     public bool TrimChords = false;
     public int TrimTo = 1;
 

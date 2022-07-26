@@ -32,13 +32,13 @@ public partial class PluginUI
 		//ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(ImGui.GetStyle().ItemSpacing.X, ImGui.GetStyle().ItemSpacing.Y));
 		ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, ImGui.GetStyle().FramePadding * 2.5f);
 		ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new Vector2(ImGui.GetStyle().CellPadding.Y));
-		if (ImGui.Begin(ensemble_window_title+"###midibardEnsembleWindow", ref ShowEnsembleControlWindow))
+		if (ImGui.Begin(ensemble_window_title + "###midibardEnsembleWindow", ref ShowEnsembleControlWindow))
 		{
 			var width = ImGuiHelpers.GlobalScale * 25;
 			var ensembleRunning = MidiBard.AgentMetronome.EnsembleModeRunning;
 			if (ImGuiUtil.IconButton(
-				    ensembleRunning ? FontAwesomeIcon.Stop : FontAwesomeIcon.UserCheck,
-				    "ensembleBegin", width))
+					ensembleRunning ? FontAwesomeIcon.Stop : FontAwesomeIcon.UserCheck,
+					"ensembleBegin", width))
 			{
 				if (!ensembleRunning)
 				{
@@ -72,7 +72,7 @@ public partial class PluginUI
 			else
 			{
 				if (ImGuiUtil.IconButton(FontAwesomeIcon.Guitar, "UpdateInstrument",
-					    width))
+						width))
 				{
 					if (MidiBard.CurrentPlayback?.MidiFileConfig is { } config)
 					{
@@ -92,69 +92,11 @@ public partial class PluginUI
 
 			//Dalamud.Utility.Util.ShowStruct(MidiBard.AgentPerformance.Struct);
 
-
 			ImGui.SameLine();
-			if (ImGuiUtil.IconButton(FontAwesomeIcon.FolderOpen,"btn open config", width))
-			{
-				try
-				{
-					var fileInfo = MidiFileConfigManager.GetMidiConfigFileInfo(MidiBard.CurrentPlayback.FilePath);
-					var configDirectoryFullName = fileInfo.Directory.FullName;
-					PluginLog.Debug(fileInfo.FullName);
-					PluginLog.Debug(MidiBard.CurrentPlayback.FilePath);
-					PluginLog.Debug(configDirectoryFullName);
-					Process.Start(new ProcessStartInfo(configDirectoryFullName) { UseShellExecute = true });
-				}
-				catch (Exception e)
-				{
-					PluginLog.Warning(e, "error when opening config directory");
-				}
-			}
 
-			ImGuiUtil.ToolTip(ensemble_open_midi_config_directory);
-
-
-			ImGui.SameLine();
-			if (ImGuiUtil.IconButton(FontAwesomeIcon.Edit, "openConfigFileBtn",
-				    width))
-			{
-				try
-				{
-					if (MidiBard.CurrentPlayback != null)
-					{
-						var fileInfo = MidiFileConfigManager.GetMidiConfigFileInfo(MidiBard.CurrentPlayback.FilePath);
-						PluginLog.Debug(fileInfo.FullName);
-						PluginLog.Debug(MidiBard.CurrentPlayback.FilePath);
-						Process.Start(new ProcessStartInfo(fileInfo.FullName) { UseShellExecute = true });
-					}
-				}
-				catch (Exception e)
-				{
-					PluginLog.Warning(e, "error when opening config file");
-				}
-			}
-
-			ImGuiUtil.ToolTip(ensemble_open_midi_config_file);
-
-			ImGui.SameLine();
-			if (ImGuiUtil.IconButtonColored(FontAwesomeIcon.TrashAlt, "deleteConfig",
-				    MidiBard.CurrentPlayback == null ? ImGuiCol.TextDisabled : ImGuiCol.Text,
-				    width))
-			{
-				if (MidiBard.CurrentPlayback != null)
-				{
-					MidiFileConfigManager.GetMidiConfigFileInfo(MidiBard.CurrentPlayback.FilePath).Delete();
-					MidiBard.CurrentPlayback.MidiFileConfig =
-						MidiFileConfigManager.GetMidiConfigFromTrack(MidiBard.CurrentPlayback.TrackInfos);
-				}
-			}
-
-			ImGuiUtil.ToolTip(ensemble_Delete_and_reset_current_file_config);
-
-			ImGui.SameLine();
 			if (ImGuiUtil.IconButton(
-				    otherClientsMuted ? FontAwesomeIcon.VolumeOff : FontAwesomeIcon.VolumeUp,
-				    "Mute other clients", width))
+					otherClientsMuted ? FontAwesomeIcon.VolumeOff : FontAwesomeIcon.VolumeUp,
+					"Mute other clients", width))
 			{
 				IPCHandles.SetOption(ConfigOption.SoundMaster, otherClientsMuted ? 100 : 0, false);
 				AgentConfigSystem.SetOptionValue(ConfigOption.SoundMaster, 100);
@@ -168,7 +110,7 @@ public partial class PluginUI
 
 			ImGui.SameLine();
 			if (ImGuiUtil.IconButton(FontAwesomeIcon.WindowMinimize, "WindowMinimize",
-				    width))
+					width))
 			{
 				IPCHandles.ShowWindow(Winapi.nCmdShow.SW_MINIMIZE);
 			}
@@ -187,18 +129,81 @@ public partial class PluginUI
 			}
 
 			ImGuiUtil.ToolTip(ensemble_Sync_settings);
-			ImGui.SameLine();
-			if (ImGui.Button(ensemble_Save_default_performers))
+
+			if (!MidiFileConfigManager.UsingDefaultPerformer)
 			{
-				if (MidiBard.CurrentPlayback?.MidiFileConfig is { } MidiFileConfig)
+				ImGui.SameLine();
+				if (ImGuiUtil.IconButton(FontAwesomeIcon.FolderOpen, "btn open config", width))
 				{
-					var configTracks = MidiFileConfig.Tracks;
-					for (var i = 0; i < configTracks.Count; i++)
+					try
 					{
-						MidiBard.config.TrackDefaultCids[i] = configTracks[i].PlayerCid;
+						var fileInfo = MidiFileConfigManager.GetMidiConfigFileInfo(MidiBard.CurrentPlayback.FilePath);
+						var configDirectoryFullName = fileInfo.Directory.FullName;
+						PluginLog.Debug(fileInfo.FullName);
+						PluginLog.Debug(MidiBard.CurrentPlayback.FilePath);
+						PluginLog.Debug(configDirectoryFullName);
+						Process.Start(new ProcessStartInfo(configDirectoryFullName) { UseShellExecute = true });
+					}
+					catch (Exception e)
+					{
+						PluginLog.Warning(e, "error when opening config directory");
 					}
 				}
+
+				ImGuiUtil.ToolTip(ensemble_open_midi_config_directory);
+
+
+				ImGui.SameLine();
+				if (ImGuiUtil.IconButton(FontAwesomeIcon.Edit, "openConfigFileBtn",
+						width))
+				{
+					try
+					{
+						if (MidiBard.CurrentPlayback != null)
+						{
+							var fileInfo = MidiFileConfigManager.GetMidiConfigFileInfo(MidiBard.CurrentPlayback.FilePath);
+							PluginLog.Debug(fileInfo.FullName);
+							PluginLog.Debug(MidiBard.CurrentPlayback.FilePath);
+							Process.Start(new ProcessStartInfo(fileInfo.FullName) { UseShellExecute = true });
+						}
+					}
+					catch (Exception e)
+					{
+						PluginLog.Warning(e, "error when opening config file");
+					}
+				}
+
+				ImGuiUtil.ToolTip(ensemble_open_midi_config_file);
+
+				ImGui.SameLine();
+
+				if (ImGuiUtil.IconButtonColored(FontAwesomeIcon.TrashAlt, "deleteConfig",
+						MidiBard.CurrentPlayback == null ? ImGuiCol.TextDisabled : ImGuiCol.Text,
+						width))
+				{
+					if (MidiBard.CurrentPlayback != null)
+					{
+						MidiFileConfigManager.GetMidiConfigFileInfo(MidiBard.CurrentPlayback.FilePath).Delete();
+						MidiBard.CurrentPlayback.MidiFileConfig =
+							MidiFileConfigManager.GetMidiConfigAsDefaultPerformer(MidiBard.CurrentPlayback.TrackInfos); // use default performer
+					}
+					IPCHandles.UpdateInstrument(true);
+				}
+				ImGuiUtil.ToolTip(ensemble_Delete_and_reset_current_file_config);
+				ImGui.SameLine();
 			}
+
+			ImGui.SameLine();
+			if (!MidiFileConfigManager.UsingDefaultPerformer)
+			{
+				if (ImGui.Button(ensemble_Save_default_performers))
+				{
+					MidiFileConfigManager.ExportToDefaultPerformer();
+				}
+			} else
+            {
+				ImGui.LabelText("[Using Default Performers]", "[Using Default Performers]");
+            }
 
 			//SameLine();
 			//if (Button("TEST3"))
@@ -273,18 +278,58 @@ public partial class PluginUI
 								12, () => 0);
 							ImGui.TableNextColumn(); //3
 							ImGui.SetNextItemWidth(-1);
-							var current = api.PartyList.ToList()
-								.FindIndex(i => i?.ContentId != 0 && i?.ContentId == dbTrack.PlayerCid);
-							var strings = api.PartyList.Select(i => i.NameAndWorld()).ToArray();
-							if (ImGui.Combo("##partymemberSelect", ref current, strings, strings.Length))
+							var firstCid = MidiFileConfig.GetFirstCidInParty(dbTrack);
+							var currentNum = api.PartyList.ToList().FindIndex(i => i?.ContentId != 0 && i?.ContentId == firstCid) + 1;
+							var strings = api.PartyList.Select(i => i.NameAndWorld()).ToList();
+							strings.Insert(0, "");
+							if (ImGui.Combo("##partymemberSelect", ref currentNum, strings.ToArray(), strings.Count))
 							{
-								dbTrack.PlayerCid = api.PartyList[current]?.ContentId ?? 0;
-								changed = true;
+								if (currentNum >= 1)
+								{
+									var currentCid = api.PartyList[currentNum - 1]?.ContentId;
+									if (firstCid > 0 && currentCid != firstCid)
+									{
+										// character changed, delete the old one
+										dbTrack.AssignedCids.Remove(firstCid);
+										changed = true;
+									}
+
+									if (currentCid > 0)
+									{
+										// add character
+										if (!dbTrack.AssignedCids.Contains((long)currentCid))
+										{
+											dbTrack.AssignedCids.Insert(0, (long)currentCid);
+											changed = true;
+										}
+									}
+								}
+								else
+								{
+									// choose empty, remove all the characters in the same party
+									foreach (var member in api.PartyList)
+									{
+										if (dbTrack.AssignedCids.Contains(member.ContentId))
+										{
+											dbTrack.AssignedCids.Remove(member.ContentId);
+										}
+									}
+
+									changed = true;
+								}
 							}
 
 							if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
 							{
-								dbTrack.PlayerCid = 0;
+								// choose empty, remove all the characters in the same party
+								foreach (var member in api.PartyList)
+								{
+									if (dbTrack.AssignedCids.Contains(member.ContentId))
+									{
+										dbTrack.AssignedCids.Remove(member.ContentId);
+									}
+								}
+
 								changed = true;
 							}
 

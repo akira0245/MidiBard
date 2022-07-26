@@ -35,6 +35,7 @@ public enum MessageTypeCode
 	MidiEvent,
 	SetInstrument,
 	EnsembleStartTime,
+	UpdateDefaultPerformer,
 
 	SetOption = 100,
 	ShowWindow,
@@ -130,7 +131,7 @@ static class IPCHandles
 		{
 			try
 			{
-				trackStatus[i].Enabled = dbTracks[i].Enabled && dbTracks[i].PlayerCid == (long)api.ClientState.LocalContentId;
+				trackStatus[i].Enabled = dbTracks[i].Enabled && MidiFileConfig.GetFirstCidInParty(dbTracks[i]) == (long)api.ClientState.LocalContentId;
 				trackStatus[i].Transpose = dbTracks[i].Transpose;
 				trackStatus[i].Tone = InstrumentHelper.GetGuitarTone(dbTracks[i].Instrument);
 			}
@@ -166,10 +167,19 @@ static class IPCHandles
 			SwitchInstrument.SwitchToContinue(0);
 			return;
 		}
-		var instrument = MidiBard.CurrentPlayback?.MidiFileConfig?.Tracks
-			.FirstOrDefault(i => i.Enabled && i.PlayerCid == (long)api.ClientState.LocalContentId)?.Instrument;
+
+		uint? instrument = null;
+		foreach (var cur in MidiBard.CurrentPlayback.MidiFileConfig.Tracks)
+		{
+			if (cur.Enabled && MidiFileConfig.IsCidOnTrack((long)api.ClientState.LocalContentId, cur))
+			{
+				instrument = (uint?)cur.Instrument;
+				break;
+			}
+		}
+
 		if (instrument != null)
-			SwitchInstrument.SwitchToContinue((uint)instrument);
+			SwitchInstrument.SwitchToContinue((uint)instrument);	
 	}
 
 	public static void SetOption(ConfigOption option, int value, bool includeSelf)
@@ -304,5 +314,22 @@ static class IPCHandles
 		var characterName = message.StringData[0];
 		PluginLog.LogWarning($"ERR: Playback Null on character: {characterName}");
 		api.ChatGui.PrintError($"[MidiBard 2] Error: Load song failed on character: {characterName}, please try to switch the song again.");
+	}
+
+	public static void UpdateDefaultPerformer()
+	{
+		IPCEnvelope.Create(MessageTypeCode.UpdateDefaultPerformer, MidiFileConfigManager.defaultPerformer.JsonSerialize()).BroadCast();
+	}
+
+	[IPCHandle(MessageTypeCode.UpdateDefaultPerformer)]
+	public static void HandleDefaultPerformer(IPCEnvelope message)
+	{
+		var str = message.StringData[0];
+		var jsonDeserialize = str.JsonDeserialize<DefaultPerformer>();
+		MidiFileConfigManager.defaultPerformer = jsonDeserialize;
+		if (MidiBard.CurrentPlayback != null)
+		{
+			MidiBard.CurrentPlayback.MidiFileConfig = MidiFileConfigManager.GetMidiConfigAsDefaultPerformer(MidiBard.CurrentPlayback.TrackInfos);
+		}
 	}
 }

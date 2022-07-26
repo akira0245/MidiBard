@@ -21,11 +21,21 @@ internal sealed class BardPlayback : Playback
 	{
 		PreparePlaybackData(file, out var tempoMap, out var trackChunks, out var trackInfos, out var timedEventWithMetadata);
 
-		var midiFileConfig = MidiFileConfigManager.GetMidiConfigFromFile(filePath);
-
-		if (midiFileConfig is null || midiFileConfig.Tracks.Count != trackChunks.Length)
+		MidiFileConfig midiFileConfig = null;
+		// only use midiFileConfig(including default performer) when in the party
+		if (DalamudApi.api.PartyList.Length > 1)
 		{
-			midiFileConfig = MidiFileConfigManager.GetMidiConfigFromTrack(trackInfos);
+			midiFileConfig = MidiFileConfigManager.GetMidiConfigFromFile(filePath);
+
+			if (midiFileConfig is null || midiFileConfig.Tracks.Count != trackChunks.Length)
+			{
+				// If can not find individual config, use the default performer instead.
+				midiFileConfig = MidiFileConfigManager.GetMidiConfigAsDefaultPerformer(trackInfos);
+			}
+			else
+			{
+				MidiFileConfigManager.UsingDefaultPerformer = false;
+			}
 		}
 
 		return new BardPlayback(timedEventWithMetadata, tempoMap)
