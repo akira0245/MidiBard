@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Numerics;
 using System.Threading.Tasks;
 using Dalamud.Interface;
@@ -51,11 +51,9 @@ public partial class PluginUI
 		ToolTip("Adapt high/low pitch notes which are out of range\r\ninto 3 octaves we can play".Localize());
 		//-------------------
 		SameLine(ImGuiUtil.GetWindowContentRegionWidth() / 2);
-		Checkbox("Transpose per track".Localize(), ref MidiBard.config.EnableTransposePerTrack);
-		if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right))
-			MidiBard.config.TrackStatus.ForEach(i => i.Transpose = 0);
-		ToolTip("Transpose per track, right click to reset all tracks' transpose offset back to zero.".Localize());
-
+		SetNextItemWidth(itemWidth);
+		ImGuiUtil.EnumCombo(tone_mode, ref MidiBard.config.GuitarToneMode, _toolTips);
+		ImGuiUtil.ToolTip(tone_mode_tooltip);
 
 
 

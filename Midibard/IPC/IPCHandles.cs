@@ -131,8 +131,6 @@ static class IPCHandles
 				PluginLog.Error(e, $"error when updating track {i}");
 			}
 		}
-
-		MidiBard.config.EnableTransposePerTrack = true;
 	}
 
 	//public static void LoadPlayback(int index)

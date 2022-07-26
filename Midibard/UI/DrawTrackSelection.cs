@@ -104,7 +104,7 @@ public partial class PluginUI
                             JudgeSwitchInstrument(i);
                         }
 
-                        if (MidiBard.config.EnableTransposePerTrack)
+                        //if (MidiBard.config.EnableTransposePerTrack)
                         {
                             ImGui.SameLine();
                             ImGui.Dummy(Vector2.Zero);

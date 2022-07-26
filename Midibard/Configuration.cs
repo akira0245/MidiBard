@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -90,7 +90,7 @@ public class Configuration : IPluginConfiguration
 
     public int? SoloedTrack = null;
     public int? SoloedChannel = null;
-    public bool EnableTransposePerTrack = false;
+    //public bool EnableTransposePerTrack = false;
     public int uiLang = DalamudApi.api.PluginInterface.UiLanguage == "zh" ? 1 : 0;
     public bool showSettingsPanel = true;
     public int playlistSizeY = 10;

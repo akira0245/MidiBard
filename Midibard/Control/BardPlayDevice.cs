@@ -265,7 +265,7 @@ internal class BardPlayDevice : IOutputDevice
 
 	public static int GetNoteNumberTranslatedPerTrack(int noteNumber, int trackIndex)
 	{
-		noteNumber += MidiBard.config.EnableTransposePerTrack ? MidiBard.config.TrackStatus[trackIndex].Transpose : 0;
+		noteNumber += MidiBard.config.TrackStatus[trackIndex].Transpose;
 		return GetNoteNumberTranslated(noteNumber);
 	}
 

@@ -20,7 +20,7 @@ internal static class SwitchInstrument
 {
 	public static bool SwitchingInstrument { get; private set; }
 
-	public static void SwitchToContinue(uint instrumentId, int timeOut = 3000)
+	public static void SwitchToContinue(uint instrumentId)
 	{
 		Task.Run(async () =>
 		{
@@ -151,26 +151,18 @@ internal static class SwitchInstrument
 			var firstEnabledTrack = MidiBard.CurrentPlayback.TrackInfos.FirstOrDefault(i => i.IsEnabled);
 			UpdateGuitarToneByConfig();
 
-			if (config.EnableTransposePerTrack)
+			var currentTracks = MidiBard.CurrentPlayback.TrackInfos;
+			foreach (var trackInfo in currentTracks)
 			{
-				var currentTracks = MidiBard.CurrentPlayback.TrackInfos;
-				foreach (var trackInfo in currentTracks)
+				var transposePerTrack = trackInfo.TransposeFromTrackName;
+				if (transposePerTrack != 0)
 				{
-					var transposePerTrack = trackInfo.TransposeFromTrackName;
-					if (transposePerTrack != 0)
-					{
-						PluginLog.Information($"applying transpose {transposePerTrack:+#;-#;0} for track [{trackInfo.Index + 1}]{trackInfo.TrackName}");
-					}
-					config.TrackStatus[trackInfo.Index].Transpose = transposePerTrack;
+					PluginLog.Information($"applying transpose {transposePerTrack:+#;-#;0} for track [{trackInfo.Index + 1}]{trackInfo.TrackName}");
 				}
+				config.TrackStatus[trackInfo.Index].Transpose = transposePerTrack;
+			}
 
-				config.TransposeGlobal = 0;
-			}
-			else
-			{
-				var transpose = firstEnabledTrack?.TransposeFromTrackName ?? 0;
-				config.TransposeGlobal = transpose;
-			}
+			config.TransposeGlobal = 0;
 
 			var idFromTrackName = firstEnabledTrack?.InstrumentIDFromTrackName;
 			if (idFromTrackName != null)
