@@ -106,61 +106,42 @@ public static class ImGuiUtil
 			PopFont();
 		}
 	}
-	public static bool IconButton(FontAwesomeIcon icon, string id, string tooltip, float? width = null)
-	{
-		var r = IconButton(icon, $"{id}{tooltip}", width);
-		ToolTip(tooltip);
-		return r;
-	}
 
-	public static bool IconButton(FontAwesomeIcon icon, string id, float? width = null)
+	public static Stack<Vector2> IconButtonSize = new Stack<Vector2>();
+
+	public static void PushIconButtonSize(Vector2 size) => IconButtonSize.Push(size);
+	public static void PopIconButtonSize() => IconButtonSize.TryPop(out _);
+
+	public static bool IconButton(FontAwesomeIcon icon, string? id = null, string tooltip = null, uint? color = null)
 	{
-		var h = ImGui.CalcTextSize("").Y;
 		PushFont(UiBuilder.IconFont);
 		try
 		{
-			var w = width ?? CalcTextSize(icon.ToIconString()).X;
-			var ret = Button($"{icon.ToIconString()}##{id}", new Vector2(w, h) + GetStyle().FramePadding * 2f);
-			return ret;
+			if (color != null) PushStyleColor(ImGuiCol.Text, (uint)color);
+			if (IconButtonSize.TryPeek(out var result))
+			{
+				return Button($"{icon.ToIconString()}##{id}{tooltip}", result);
+			}
+			else
+			{
+				return Button($"{icon.ToIconString()}##{id}{tooltip}");
+			}
 		}
 		finally
 		{
 			PopFont();
+			if (color != null) PopStyleColor();
+			if (tooltip != null) ToolTip(tooltip);
 		}
 	}
-	public static bool IconButtonColored(FontAwesomeIcon icon, string id, uint color, float? width = null)
-	{
-		ImGui.PushStyleColor(ImGuiCol.Text, color);
-		try
-		{
-			return IconButton(icon, id, width);
-		}
-		finally
-		{
-			PopStyleColor();
-		}
-	}
-	public static bool IconButtonColored(FontAwesomeIcon icon, string id, ImGuiCol color, float? width = null)
-	{
-		ImGui.PushStyleColor(ImGuiCol.Text, GetColorU32(color));
-		try
-		{
-			return IconButton(icon, id, width);
-		}
-		finally
-		{
-			PopStyleColor();
-		}
-	}
+
 	public static void ToolTip(string desc)
 	{
 		if (IsItemHovered())
 		{
 			PushFont(UiBuilder.DefaultFont);
 			BeginTooltip();
-			PushTextWrapPos(GetFontSize() * 20.0f * ImGuiHelpers.GlobalScale);
 			TextUnformatted(desc);
-			PopTextWrapPos();
 			EndTooltip();
 			PopFont();
 		}
@@ -210,7 +191,34 @@ public static class ImGuiUtil
 			EndPopup();
 		}
 	}
-
+	public static void ColorPicker(int id, string description, ref Vector4 originalColor, ImGuiColorEditFlags flags)
+	{
+		Vector4 col = originalColor;
+		if (ColorButton($"{description}###ColorPickerButton{id}", originalColor, flags))
+			OpenPopup($"###ColorPickerPopup{id}");
+		if (BeginPopup($"###ColorPickerPopup{id}"))
+		{
+			if (ColorPicker4($"###ColorPicker{id}", ref col, flags))
+			{
+				originalColor = col;
+			}
+			EndPopup();
+		}
+	}
+	public static void ColorPickerButton(int id, string description, ref Vector4 originalColor, ImGuiColorEditFlags flags)
+	{
+		Vector4 col = originalColor;
+		if (Button($"{description}###ColorPickerButton{id}"))
+			OpenPopup($"###ColorPickerPopup{id}");
+		if (BeginPopup($"###ColorPickerPopup{id}"))
+		{
+			if (ColorPicker4($"###ColorPicker{id}", ref col, flags))
+			{
+				originalColor = col;
+			}
+			EndPopup();
+		}
+	}
 	public static void AddNotification(NotificationType type, string content, string title = null)
 	{
 		PluginLog.Debug($"[Notification] {type}:{title}:{content}");
@@ -223,14 +231,14 @@ public static class ImGuiUtil
 		{
 			for (int i = 0; i < colors.Length; i++)
 			{
-				ImGui.PushStyleColor(colors[i], color);
+				PushStyleColor(colors[i], color);
 			}
 		}
 		else
 		{
 			for (int i = 0; i < colors.Length; i++)
 			{
-				ImGui.PushStyleColor(colors[i], ImGui.GetColorU32(colors[i]));
+				PushStyleColor(colors[i], GetColorU32(colors[i]));
 			}
 		}
 	}
@@ -240,22 +248,22 @@ public static class ImGuiUtil
 		{
 			for (int i = 0; i < colors.Length; i++)
 			{
-				ImGui.PushStyleColor(colors[i], color);
+				PushStyleColor(colors[i], color);
 			}
 		}
 		else
 		{
 			for (int i = 0; i < colors.Length; i++)
 			{
-				ImGui.PushStyleColor(colors[i], ImGui.GetColorU32(colors[i]));
+				PushStyleColor(colors[i], GetColorU32(colors[i]));
 			}
 		}
 	}
 
 	public static bool InputIntWithReset(string label, ref int num, int step, Func<int> getDefaultValue)
 	{
-		var b = ImGui.InputInt(label, ref num, step);
-		if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
+		var b = InputInt(label, ref num, step);
+		if (IsItemClicked(ImGuiMouseButton.Right))
 		{
 			num = getDefaultValue();
 			b = true;
@@ -263,9 +271,9 @@ public static class ImGuiUtil
 
 		return b;
 	}
-	public static float GetWindowContentRegionWidth() => ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X;
-	public static float GetWindowContentRegionHeight() => ImGui.GetWindowContentRegionMax().Y - ImGui.GetWindowContentRegionMin().Y;
-	public static Vector2 GetWindowContentRegion() => ImGui.GetWindowContentRegionMax() - ImGui.GetWindowContentRegionMin();
+	public static float GetWindowContentRegionWidth() => GetWindowContentRegionMax().X - GetWindowContentRegionMin().X;
+	public static float GetWindowContentRegionHeight() => GetWindowContentRegionMax().Y - GetWindowContentRegionMin().Y;
+	public static Vector2 GetWindowContentRegion() => GetWindowContentRegionMax() - GetWindowContentRegionMin();
 
 	public const uint ColorRed = 0xFF0000C8;
 	public const uint ColorYellow = 0xFF00C8C8;
@@ -275,4 +283,64 @@ public static class ImGuiUtil
 	public const uint alphaedgrassgreen = 0x3C60FF8E;
 	public const uint darkgreen = 0xAC104020;
 	public const uint violet = 0xAAFF888E;
+
+
+
+	//https://github.com/UnknownX7/DalamudRepoBrowser/blob/master/PluginUI.cs#L20
+	public static bool AddHeaderIcon(string id, string icon, string tooltip = null)
+	{
+		if (IsWindowCollapsed()) return false;
+		var nodeco = GetWindowContentRegionMin() == GetStyle().WindowPadding;
+		var prevCursorPos = GetCursorPos();
+		var height = GetTextLineHeightWithSpacing() * 0.95f;
+		var textLineHeight = new Vector2(height);
+		var buttonPos = new Vector2(GetWindowWidth() - (nodeco ? 1.05f : 2.1f) * height, (GetFrameHeight() - height) / 2);
+		SetCursorPos(buttonPos);
+		var drawList = GetWindowDrawList();
+		drawList.PushClipRectFullScreen();
+
+		var pressed = false;
+		InvisibleButton(id, textLineHeight);
+		var itemMin = GetItemRectMin();
+		var itemMax = GetItemRectMax();
+		var halfSize = GetItemRectSize() / 2;
+		var center = itemMin + halfSize;
+		if (IsWindowHovered() && IsMouseHoveringRect(itemMin, itemMax, false))
+		{
+			GetWindowDrawList().AddCircleFilled(center, halfSize.X, GetColorU32(IsMouseDown(ImGuiMouseButton.Left) ? ImGuiCol.ButtonActive : ImGuiCol.ButtonHovered));
+			if (IsMouseReleased(ImGuiMouseButton.Left))
+				pressed = true;
+
+			if (tooltip != null)
+			{
+				BeginTooltip();
+				TextUnformatted(tooltip);
+				EndTooltip();
+			}
+		}
+
+		SetCursorPos(buttonPos);
+		PushFont(UiBuilder.IconFont);
+		drawList.AddText(UiBuilder.IconFont, GetFontSize(), center - CalcTextSize(icon) / 2, GetColorU32(ImGuiCol.Text), icon);
+		PopFont();
+
+		PopClipRect();
+		SetCursorPos(prevCursorPos);
+
+		return pressed;
+	}
+
+	//https://git.annaclemens.io/ascclemens/ChatTwo/src/commit/b63d007f15a825b669523a78945dc872e663c348/ChatTwo/Util/ImGuiUtil.cs#L215
+	internal static bool BeginComboVertical(string label, string previewValue, ImGuiComboFlags flags = ImGuiComboFlags.None)
+	{
+		TextUnformatted(label);
+		SetNextItemWidth(-1);
+		return BeginCombo($"##{label}", previewValue, flags);
+	}
+	internal static bool DragFloatVertical(string label, ref float value, float vSpeed = 1.0f, float vMin = float.MinValue, float vMax = float.MaxValue, string? format = null, ImGuiSliderFlags flags = ImGuiSliderFlags.None)
+	{
+		TextUnformatted(label);
+		SetNextItemWidth(-1);
+		return DragFloat($"##{label}", ref value, vSpeed, vMin, vMax, format, flags);
+	}
 }

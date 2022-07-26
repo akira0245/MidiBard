@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Dalamud.Logging;
@@ -34,7 +35,22 @@ static class PlaylistContainerManager
 		if (!configFile.Exists) return null;
 		return JsonConvert.DeserializeObject<PlaylistContainer>(File.ReadAllText(configFile.FullName));
 	}
-	private static PlaylistContainer GetDefaultPlaylistContainer() => new PlaylistContainer { Entries = new ObservableCollection<PlaylistEntry> { new PlaylistEntry { Name = "Default playlist" } } };
+	private static PlaylistContainer GetDefaultPlaylistContainer()
+	{
+		var entry = new PlaylistEntry { Name = "Default playlist" };
+
+		//migrate old config playlist
+		if (MidiBard.config?.Playlist?.Any() == true)
+		{
+			entry.PathList.AddRange(MidiBard.config.Playlist.Select(i => new SongEntry() { FilePath = i }));
+			MidiBard.config?.Playlist.Clear();
+		}
+
+		var entries = new ObservableCollection<PlaylistEntry> { entry };
+		var container = new PlaylistContainer { Entries = entries };
+		return container;
+	}
+
 	public static PlaylistContainer Container { get; set; } = LoadFromFile() ?? GetDefaultPlaylistContainer();
 	public static int CurrentPlaylistIndex
 	{

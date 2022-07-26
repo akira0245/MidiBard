@@ -38,8 +38,11 @@ public partial class PluginUI
 	private double timeWindow = 10;
 	private void DrawPlotWindow()
 	{
+		var framebg = ImGui.GetColorU32(ImGuiCol.FrameBg);
+		ImGui.PushStyleColor(ImGuiCol.TitleBg, framebg);
+		ImGui.PushStyleColor(ImGuiCol.TitleBgActive, framebg);
 
-		ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
+		ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, -Vector2.One);
 		ImGui.SetNextWindowBgAlpha(0);
 		ImGui.SetNextWindowSize(ImGuiHelpers.ScaledVector2(640, 480), ImGuiCond.FirstUseEver);
 		if (_resetPlotWindowPosition && MidiBard.config.PlotTracks)
@@ -48,9 +51,14 @@ public partial class PluginUI
 			ImGui.SetNextWindowSize(ImGuiHelpers.ScaledVector2(640, 480), ImGuiCond.Always);
 			_resetPlotWindowPosition = false;
 		}
-		if (ImGui.Begin(Language.window_title_visualizor + "###midibardMidiPlot", ref MidiBard.config.PlotTracks))
+		if (ImGui.Begin(Language.window_title_visualizor + "###midibardMidiPlot", ref MidiBard.config.PlotTracks, ImGuiWindowFlags.NoCollapse))
 		{
 			ImGui.PopStyleVar();
+			var icon = MidiBard.config.LockPlot ? FontAwesomeIcon.Lock : FontAwesomeIcon.LockOpen;
+			if (ImGuiUtil.AddHeaderIcon("lockPlot", icon.ToIconString(), Language.visualizer_follow_playback_tooltip))
+			{
+				MidiBard.config.LockPlot ^= true;
+			}
 			MidiPlotWindow();
 		}
 		else
@@ -59,6 +67,7 @@ public partial class PluginUI
 		}
 
 		ImGui.End();
+		ImGui.PopStyleColor(2);
 	}
 
 	private unsafe void MidiPlotWindow()
@@ -95,8 +104,9 @@ public partial class PluginUI
 		{
 			//
 		}
-		if (ImPlot.BeginPlot(songName + "###midiTrackPlot",
-				ImGui.GetWindowSize() - ImGuiHelpers.ScaledVector2(0, ImGui.GetCursorPosY()), ImPlotFlags.NoTitle))
+
+		//ImGui.SetCursorPos(ImGui.GetWindowContentRegionMin());
+		if (ImPlot.BeginPlot(songName + "###midiTrackPlot", ImGuiUtil.GetWindowContentRegion(), ImPlotFlags.NoTitle))
 		{
 			ImPlot.SetupAxisLimits(ImAxis.X1, 0, 20, ImPlotCond.Once);
 			ImPlot.SetupAxisLimits(ImAxis.Y1, 36, 97, ImPlotCond.Once);

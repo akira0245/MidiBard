@@ -96,6 +96,16 @@ public class MidiBard : IDalamudPlugin
         MidiFileConfigManager.Init();
         ConfigureLanguage(GetCultureCodeString((CultureCode)config.uiLang));
 
+ 
+
+
+
+
+
+
+
+
+
         IpcManager = new IPCManager();
         PartyWatcher = new PartyWatcher();
 
@@ -324,6 +334,7 @@ public class MidiBard : IDalamudPlugin
 	    };
     }
 
+    //https://git.annaclemens.io/ascclemens/SoundFilter/src/commit/0a109907477bf1839e220c460253da68c6162d5c/SoundFilter/Ui/PluginUi.cs#L31
     internal static void ConfigureLanguage(string? langCode = null)
     {
 	    // ReSharper disable once ConstantNullCoalescingCondition

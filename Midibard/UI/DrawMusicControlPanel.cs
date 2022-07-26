@@ -18,57 +18,7 @@ public partial class PluginUI
 {
 	private void DrawPanelMusicControl()
 	{
-		ComboBoxSwitchInstrument();
 
-		SliderProgress();
-
-		var itemWidth = ImGuiHelpers.GlobalScale * 100;
-		if (InputFloat(PlaySpeed, ref MidiBard.config.playSpeed, 0.1f, 0.5f, GetBpmString(), ImGuiInputTextFlags.AutoSelectAll)) SetSpeed();
-		if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right))
-		{
-			MidiBard.config.playSpeed = 1;
-			SetSpeed();
-		}
-		ToolTip(Set_speed_tooltip);
-
-		//-------------------
-		SetNextItemWidth(itemWidth);
-		if (InputFloat(label_delay, ref MidiBard.config.secondsBetweenTracks, 0.5f, 0.5f, $" {MidiBard.config.secondsBetweenTracks:f2} s", ImGuiInputTextFlags.AutoSelectAll))
-			MidiBard.config.secondsBetweenTracks = Math.Max(0, MidiBard.config.secondsBetweenTracks);
-		if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right))
-			MidiBard.config.secondsBetweenTracks = 3;
-		ToolTip(label_delay_tooltip);
-		//-------------------
-		SameLine(ImGuiUtil.GetWindowContentRegionWidth() / 2);
-		SetNextItemWidth(itemWidth);
-		if (InputInt(Transpose, ref MidiBard.config.TransposeGlobal, 12))
-		{
-			MidiBard.config.SetTransposeGlobal(MidiBard.config.TransposeGlobal);
-			IPC.IPCHandles.GlobalTranspose(MidiBard.config.TransposeGlobal);
-		}
-		if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right))
-		{
-			MidiBard.config.TransposeGlobal = 0;
-			IPC.IPCHandles.GlobalTranspose(MidiBard.config.TransposeGlobal);
-
-		}
-		ToolTip(TransposeTooltip);
-
-
-		//-------------------
-		Checkbox(Auto_adapt_notes, ref MidiBard.config.AdaptNotesOOR);
-		ToolTip(Auto_adapt_notesTooltip);
-		//-------------------
-		SameLine(ImGuiUtil.GetWindowContentRegionWidth() / 2);
-		SetNextItemWidth(itemWidth);
-		ImGuiUtil.EnumCombo(tone_mode, ref MidiBard.config.GuitarToneMode, _toolTips);
-		ImGuiUtil.ToolTip(tone_mode_tooltip);
-
-
-
-
-		//-------------------
-		Separator();
 		var inputDevices = InputDeviceManager.Devices;
 		if (BeginCombo(label_inputdevice, InputDeviceManager.CurrentInputDevice.DeviceName()))
 		{
@@ -90,6 +40,58 @@ public partial class PluginUI
 		}
 		if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right)) InputDeviceManager.SetDevice(null);
 		ImGuiUtil.ToolTip(label_inputdevice_tooltip);
+		//-------------------
+
+
+		ComboBoxSwitchInstrument();
+
+		SliderProgress();
+
+		var itemWidth = ImGuiHelpers.GlobalScale * 100;
+		if (InputFloat(PlaySpeed, ref MidiBard.config.playSpeed, 0.1f, 0.5f, GetBpmString(), ImGuiInputTextFlags.AutoSelectAll)) SetSpeed();
+		if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right))
+		{
+			MidiBard.config.playSpeed = 1;
+			SetSpeed();
+		}
+		ToolTip(Set_speed_tooltip);
+
+		//-------------------
+		SetNextItemWidth(itemWidth);
+		if (InputFloat(label_delay, ref MidiBard.config.secondsBetweenTracks, 0.5f, 0.5f, $" {MidiBard.config.secondsBetweenTracks:f2} s", ImGuiInputTextFlags.AutoSelectAll))
+			MidiBard.config.secondsBetweenTracks = Math.Max(0, MidiBard.config.secondsBetweenTracks);
+		if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right))
+			MidiBard.config.secondsBetweenTracks = 3;
+		ToolTip(label_delay_tooltip);
+		//-------------------
+		SameLine(ImGuiUtil.GetWindowContentRegionWidth() / 2f);
+		SetNextItemWidth(itemWidth);
+		if (InputInt(Transpose, ref MidiBard.config.TransposeGlobal, 12))
+		{
+			MidiBard.config.SetTransposeGlobal(MidiBard.config.TransposeGlobal);
+			IPC.IPCHandles.GlobalTranspose(MidiBard.config.TransposeGlobal);
+		}
+		if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right))
+		{
+			MidiBard.config.TransposeGlobal = 0;
+			IPC.IPCHandles.GlobalTranspose(MidiBard.config.TransposeGlobal);
+
+		}
+		ToolTip(TransposeTooltip);
+
+
+		//-------------------
+		Checkbox(Auto_adapt_notes, ref MidiBard.config.AdaptNotesOOR);
+		ToolTip(Auto_adapt_notesTooltip);
+		//-------------------
+		SameLine(ImGuiUtil.GetWindowContentRegionWidth() / 2f);
+		SetNextItemWidth(itemWidth);
+		ImGuiUtil.EnumCombo(tone_mode, ref MidiBard.config.GuitarToneMode, _toolTips);
+		ImGuiUtil.ToolTip(tone_mode_tooltip);
+
+
+
+
 		//-------------------
 	}
 

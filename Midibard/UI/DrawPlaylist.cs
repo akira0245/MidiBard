@@ -50,24 +50,68 @@ public partial class PluginUI
 		{
 			PushStyleVar(ImGuiStyleVar.ItemSpacing, ImGuiHelpers.ScaledVector2(4, 4));
 			PushStyleVar(ImGuiStyleVar.FramePadding, ImGuiHelpers.ScaledVector2(15, 4));
+			PushIconButtonSize(new Vector2(ImGuiHelpers.GlobalScale * 45, GetFrameHeight()));
 
 			if (!IsImportRunning)
-				ButtonImport();
+			{
+				if (ImGui.BeginPopup("OpenFileDialog_selection"))
+				{
+					if (ImGui.MenuItem(Language.w32_file_dialog, null, MidiBard.config.useLegacyFileDialog))
+					{
+						MidiBard.config.useLegacyFileDialog = true;
+					}
+					else if (ImGui.MenuItem(Language.imgui_file_dialog, null, !MidiBard.config.useLegacyFileDialog))
+					{
+						MidiBard.config.useLegacyFileDialog = false;
+					}
+
+					ImGui.EndPopup();
+				}
+
+				ImGui.BeginGroup();
+
+				if (ImGuiUtil.IconButton(FontAwesomeIcon.Plus, "buttonimport", Language.button_import_file))
+				{
+					RunImportFileTask();
+				}
+
+				ImGui.SameLine();
+				if (ImGuiUtil.IconButton(FontAwesomeIcon.FolderOpen, "buttonimportFolder", Language.button_import_folder))
+				{
+					RunImportFolderTask();
+				}
+				ImGui.EndGroup();
+
+				ImGui.OpenPopupOnItemClick("OpenFileDialog_selection", ImGuiPopupFlags.MouseButtonRight);
+			}
 			else
-				ButtonImportInProgress();
+			{
+				ImGui.Button(Language.Import_in_progress___);
+			}
 
 			SameLine();
-			ButtonSearch();
+			var color = MidiBard.config.enableSearching ? ColorConvertFloat4ToU32(MidiBard.config.themeColor) : GetColorU32(ImGuiCol.Text);
+			if (IconButton(FontAwesomeIcon.Search, "searchbutton", Language.label_search_playlist, color))
+			{
+				MidiBard.config.enableSearching ^= true;
+			}
+			ToolTip(Language.label_search_playlist);
 			SameLine();
-			ButtonClearPlaylist();
+
+			IconButton(FontAwesomeIcon.TrashAlt, "clearplaylist", Language.button_clear_playlist);
+			if (IsItemHovered())
+			{
+				if (IsMouseDoubleClicked(ImGuiMouseButton.Left))
+				{
+					PlaylistManager.Clear();
+				}
+			}
+
 			SameLine();
-			ButtonStandalonePlaylist();
-			SameLine();
-			if (IconButton(FontAwesomeIcon.EllipsisV, "more"))
+			if (IconButton(FontAwesomeIcon.EllipsisV, "more", Language.button_show_playlist_selector))
 			{
 				MidiBard.config.DrawSelectPlaylistWindow ^= true;
 			}
-			ToolTip(Language.button_show_playlist_selector);
 
 			if (Language.Culture.Name.StartsWith("zh"))
 			{
@@ -80,6 +124,7 @@ public partial class PluginUI
 
 				DrawHelp();
 			}
+			PopIconButtonSize();
 			PopStyleVar(2);
 
 			if (MidiBard.config.DrawSelectPlaylistWindow)
@@ -335,38 +380,6 @@ public partial class PluginUI
 		PopFont();
 	}
 
-	private static void ButtonClearPlaylist()
-	{
-		IconButton(FontAwesomeIcon.TrashAlt, "clearplaylist");
-		//Button("Clear Playlist".Localize());
-		if (IsItemHovered())
-		{
-			BeginTooltip();
-			TextUnformatted(Language.button_clear_playlist);
-			EndTooltip();
-			if (IsMouseDoubleClicked(ImGuiMouseButton.Left))
-			{
-				PlaylistManager.Clear();
-			}
-		}
-	}
-
-	private static void ButtonStandalonePlaylist()
-	{
-		var fontAwesomeIcon = MidiBard.config.UseStandalonePlaylistWindow ? FontAwesomeIcon.Compress : FontAwesomeIcon.Expand;
-		if (ImGuiUtil.IconButton(fontAwesomeIcon, "ButtonStandalonePlaylist"))
-		{
-			MidiBard.config.UseStandalonePlaylistWindow ^= true;
-		}
-
-		if (IsItemHovered())
-		{
-			BeginTooltip();
-			TextUnformatted(Language.Standalone_playlist_window);
-			EndTooltip();
-		}
-	}
-
 
 	private void TextBoxSearch()
 	{
@@ -389,18 +402,5 @@ public partial class PluginUI
 				searchedPlaylistIndexs.Add(i);
 			}
 		}
-	}
-
-	private unsafe void ButtonSearch()
-	{
-		PushStyleColor(ImGuiCol.Text,
-			MidiBard.config.enableSearching ? MidiBard.config.themeColor : *GetStyleColorVec4(ImGuiCol.Text));
-		if (IconButton(FontAwesomeIcon.Search, "searchbutton"))
-		{
-			MidiBard.config.enableSearching ^= true;
-		}
-
-		PopStyleColor();
-		ToolTip(Language.label_search_playlist);
 	}
 }

@@ -4,7 +4,9 @@ using Dalamud.Interface;
 using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using ImGuiNET;
+using MidiBard.IPC;
 using MidiBard.Resources;
+using MidiBard.Util;
 using static ImGuiNET.ImGui;
 using static MidiBard.Resources.Language;
 
@@ -28,42 +30,77 @@ public partial class PluginUI
 		//var itemWidth = ImGuiHelpers.GlobalScale * 100;
 		//SameLine(ImGuiUtil.GetWindowContentRegionWidth() / 2);
 
+		ImGuiGroupPanel.BeginGroupPanel(group_general_settings);
+		{
+			Checkbox(Auto_open_MidiBard, ref MidiBard.config.AutoOpenPlayerWhenPerforming);
+			ImGuiUtil.ToolTip(Auto_open_MidiBardTooltip);
 
-		Checkbox(Auto_open_MidiBard, ref MidiBard.config.AutoOpenPlayerWhenPerforming);
-		ImGuiUtil.ToolTip(Auto_open_MidiBardTooltip);
+			Checkbox(Standalone_playlist_window, ref MidiBard.config.UseStandalonePlaylistWindow);
 
-		Checkbox(Low_latency_mode, ref MidiBard.config.LowLatencyMode);
-		ImGuiUtil.ToolTip(low_latency_mode_tooltip);
+			//Checkbox(Low_latency_mode, ref MidiBard.config.LowLatencyMode);
+			//ImGuiUtil.ToolTip(low_latency_mode_tooltip);
 
-		//ImGui.Checkbox("Auto restart listening".Localize(), ref MidiBard.config.autoRestoreListening);
-		//ImGuiUtil.ToolTip("Try auto restart listening last used midi device".Localize());
-		//ImGui.SameLine(ImGuiUtil.GetWindowContentRegionWidth() / 2);
-		//ImGui.Checkbox("Auto listening new device".Localize(), ref MidiBard.config.autoStartNewListening);
-		//ImGuiUtil.ToolTip("Auto start listening new midi input device when idle.".Localize());
+			ImGui.Checkbox(Auto_set_background_frame_limit, ref MidiBard.config.AutoSetBackgroundFrameLimit);
+			ImGuiUtil.ToolTip(Auto_set_frame_limit_tooltip);
+
+			//ImGui.Checkbox(checkbox_auto_restart_listening, ref MidiBard.config.autoRestoreListening);
+			//ImGuiUtil.ToolTip(checkbox_auto_restart_listening_tooltip);
+
+			//ImGui.SameLine(ImGuiUtil.GetWindowContentRegionWidth() / 2);
+			//ImGui.Checkbox("Auto listening new device".Localize(), ref MidiBard.config.autoStartNewListening);
+			//ImGuiUtil.ToolTip("Auto start listening new midi input device when idle.".Localize());
+
+			ColorEdit4(label_theme_color, ref MidiBard.config.themeColor, ImGuiColorEditFlags.AlphaPreview | ImGuiColorEditFlags.AlphaBar);
+			//ImGuiUtil.ColorPickerButton(1000, label_theme_color, ref MidiBard.config.themeColor,
+			//	ImGuiColorEditFlags.AlphaPreview | ImGuiColorEditFlags.AlphaBar);
+			//if (ImGui.ColorEdit4("Theme color".Localize(), ref MidiBard.config.themeColor,
+			//	ImGuiColorEditFlags.AlphaPreview | ImGuiColorEditFlags.AlphaBar | ImGuiColorEditFlags.NoInputs))
+
+			if (IsItemClicked(ImGuiMouseButton.Right))
+			{
+				var @in = 0xFFFFA8A8;
+				MidiBard.config.themeColor = ColorConvertU32ToFloat4(@in);
+			}
+
+			if (Combo(label_language, ref MidiBard.config.uiLang, uilangStrings, uilangStrings.Length))
+			{
+				MidiBard.ConfigureLanguage(MidiBard.GetCultureCodeString((MidiBard.CultureCode)MidiBard.config.uiLang));
+			}
+		}
+		ImGuiGroupPanel.EndGroupPanel();
 
 
 
 
 
+		ImGuiGroupPanel.BeginGroupPanel(group_ensemble_settings);
 
+		Checkbox(Sync_clients, ref MidiBard.config.SyncClients);
+		ImGuiUtil.ToolTip(sync_clients_tooltip);
 
-
+		SameLine(ImGuiUtil.GetWindowContentRegionWidth() - 2f*GetFrameHeight());
+		if (ImGuiUtil.IconButton((FontAwesomeIcon)0xF362, "syncbtn", ensemble_Sync_settings))
+		{
+			IPCHandles.SyncAllSettings();
+		}
 
 		Checkbox(Monitor_ensemble, ref MidiBard.config.MonitorOnEnsemble);
 		ImGuiUtil.ToolTip(Monitor_ensemble_tooltip);
 
+		ImGui.Checkbox(ensemble_config_Draw_ensemble_progress_indicator_on_visualizer, ref MidiBard.config.UseEnsembleIndicator);
 
+		Spacing();
+		TextUnformatted(ensemble_config_Ensemble_indicator_delay);
+		Spacing();
+		ImGui.DragFloat("##" + ensemble_config_Ensemble_indicator_delay, ref MidiBard.config.EnsembleIndicatorDelay, 0.01f, -10, 0,
+			$"{MidiBard.config.EnsembleIndicatorDelay:F3}s");
 
-		Checkbox(visualization, ref MidiBard.config.PlotTracks);
-		if (IsItemClicked(ImGuiMouseButton.Right))
-		{
-			_resetPlotWindowPosition = true;
-		}
-		ImGuiUtil.ToolTip(visualization_tooltip);
+		ImGuiGroupPanel.EndGroupPanel();
 
+		ImGuiGroupPanel.BeginGroupPanel(group_performance_settings);
 
-		Checkbox(Follow_playback, ref MidiBard.config.LockPlot);
-		ImGuiUtil.ToolTip(Follow_playback_tooltip);
+		Checkbox(label_auto_switch_instrument_bmp, ref MidiBard.config.bmpTrackNames);
+		ImGuiUtil.ToolTip(label_auto_switch_instrument_bmp_tooltip);
 
 		ImGui.Checkbox(Auto_switch_instrument, ref MidiBard.config.autoSwitchInstrumentBySongName);
 		ImGuiUtil.ToolTip(Auto_switch_instrumentTooltip);
@@ -71,35 +108,7 @@ public partial class PluginUI
 		Checkbox(Auto_transpose, ref MidiBard.config.autoTransposeBySongName);
 		ImGuiUtil.ToolTip(Auto_transpose_notesTooltip);
 
-
-		ImGui.Checkbox(Auto_set_background_frame_limit, ref MidiBard.config.AutoSetBackgroundFrameLimit);
-		ImGuiUtil.ToolTip(Auto_set_frame_limit_tooltip);
-
-
-		ImGuiUtil.ColorPickerWithPalette(1000, label_theme_color, ref MidiBard.config.themeColor, ImGuiColorEditFlags.AlphaPreview | ImGuiColorEditFlags.AlphaBar);
-		//if (ImGui.ColorEdit4("Theme color".Localize(), ref MidiBard.config.themeColor,
-		//	ImGuiColorEditFlags.AlphaPreview | ImGuiColorEditFlags.AlphaBar | ImGuiColorEditFlags.NoInputs))
-		MidiBard.config.themeColorDark = MidiBard.config.themeColor * new Vector4(0.25f, 0.25f, 0.25f, 1);
-		MidiBard.config.themeColorTransparent = MidiBard.config.themeColor * new Vector4(1, 1, 1, 0.33f);
-
-		if (IsItemClicked(ImGuiMouseButton.Right))
-		{
-			MidiBard.config.themeColor = ColorConvertU32ToFloat4(0x9C60FF8E);
-			MidiBard.config.themeColorDark = MidiBard.config.themeColor * new Vector4(0.25f, 0.25f, 0.25f, 1);
-			MidiBard.config.themeColorTransparent = MidiBard.config.themeColor * new Vector4(1, 1, 1, 0.33f);
-		}
-		SameLine();
-		SetCursorPosX(GetCursorPosX() - GetStyle().ItemInnerSpacing.X);
-		TextUnformatted(label_theme_color);
-
-
-		if (Combo(Change_UI_Language, ref MidiBard.config.uiLang, uilangStrings, uilangStrings.Length))
-		{
-			MidiBard.ConfigureLanguage(MidiBard.GetCultureCodeString((MidiBard.CultureCode)MidiBard.config.uiLang));
-		}
-
-
-		Checkbox(label_auto_switch_instrument_bmp, ref MidiBard.config.bmpTrackNames);
-		ImGuiUtil.ToolTip(label_auto_switch_instrument_bmp_tooltip);
+		ImGuiGroupPanel.EndGroupPanel();
+		Spacing();
 	}
 }
