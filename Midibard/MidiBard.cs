@@ -93,6 +93,7 @@ public class MidiBard : IDalamudPlugin
         }
 
         TryLoadConfig();
+        MidiFileConfigManager.Init();
         ConfigureLanguage(GetCultureCodeString((CultureCode)config.uiLang));
 
  

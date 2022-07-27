@@ -11,6 +11,7 @@ using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.Multimedia;
 using MidiBard.Managers;
 using MidiBard.Util;
+using MidiBard.Util.MidiPreprocessor;
 
 namespace MidiBard.Control.MidiControl.PlaybackInstance;
 
@@ -20,11 +21,21 @@ internal sealed class BardPlayback : Playback
 	{
 		PreparePlaybackData(file, out var tempoMap, out var trackChunks, out var trackInfos, out var timedEventWithMetadata);
 
-		var midiFileConfig = MidiFileConfigManager.GetMidiConfigFromFile(filePath);
-
-		if (midiFileConfig is null || midiFileConfig.Tracks.Count != trackChunks.Length)
+		MidiFileConfig midiFileConfig = null;
+		// only use midiFileConfig(including default performer) when in the party
+		if (DalamudApi.api.PartyList.Length > 1)
 		{
-			midiFileConfig = MidiFileConfigManager.GetMidiConfigFromTrack(trackInfos);
+			midiFileConfig = MidiFileConfigManager.GetMidiConfigFromFile(filePath);
+
+			if (midiFileConfig is null || midiFileConfig.Tracks.Count != trackChunks.Length)
+			{
+				// If can not find individual config, use the default performer instead.
+				midiFileConfig = MidiFileConfigManager.GetMidiConfigAsDefaultPerformer(trackInfos);
+			}
+			else
+			{
+				MidiFileConfigManager.UsingDefaultPerformer = false;
+			}
 		}
 
 		return new BardPlayback(timedEventWithMetadata, tempoMap)
@@ -64,7 +75,7 @@ internal sealed class BardPlayback : Playback
 	{
 		tempoMap = TryGetTempoNap(file);
 		var map = tempoMap;
-		trackChunks = GetNoteTracks(file).ToArray();
+		trackChunks = MidiPreprocessor.ProcessTracks(GetNoteTracks(file).ToArray(), map);
 		trackInfos = trackChunks.Select((chunk, index) => GetTrackInfos(chunk, index, map)).ToArray();
 		timedEventWithMetadata = GetTimedEventWithMetadata(trackChunks).ToArray();
 	}

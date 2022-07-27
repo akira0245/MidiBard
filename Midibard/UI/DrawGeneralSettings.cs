@@ -81,6 +81,7 @@ public partial class PluginUI
 		SameLine(ImGuiUtil.GetWindowContentRegionWidth() - 2f*GetFrameHeight());
 		if (ImGuiUtil.IconButton((FontAwesomeIcon)0xF362, "syncbtn", ensemble_Sync_settings))
 		{
+			MidiBard.SaveConfig();
 			IPCHandles.SyncAllSettings();
 		}
 

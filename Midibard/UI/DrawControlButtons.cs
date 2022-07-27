@@ -6,6 +6,8 @@ using ImGuiNET;
 using MidiBard.Control.MidiControl;
 using MidiBard.Managers;
 using MidiBard.Resources;
+using MidiBard.IPC;
+using MidiBard.Managers.Ipc;
 using static MidiBard.ImGuiUtil;
 
 namespace MidiBard;
@@ -38,6 +40,11 @@ public partial class PluginUI
 
 	private unsafe void DrawButtonShowEnsembleControl()
 	{
+		if (DalamudApi.api.PartyList.Length < 2 || !DalamudApi.api.PartyList.IsPartyLeader())
+        {
+			return;
+        }
+
 		ImGui.SameLine();
 		ImGui.PushStyleColor(ImGuiCol.Text, MidiBard.Ui.ShowEnsembleControlWindow ? MidiBard.config.themeColor : *ImGui.GetStyleColorVec4(ImGuiCol.Text));
 
@@ -49,11 +56,19 @@ public partial class PluginUI
 
 	private unsafe void DrawButtonPlayPause()
 	{
-		var PlayPauseIcon = MidiBard.IsPlaying ? FontAwesomeIcon.Pause : FontAwesomeIcon.Play;
+		var PlayPauseIcon = MidiBard.IsPlaying ? (MidiBard.AgentMetronome.EnsembleModeRunning ? FontAwesomeIcon.Stop : FontAwesomeIcon.Pause) : FontAwesomeIcon.Play;
 		if (ImGuiUtil.IconButton(PlayPauseIcon, "playpause"))
 		{
-			PluginLog.Debug($"PlayPause pressed. wasplaying: {MidiBard.IsPlaying}");
-			MidiPlayerControl.PlayPause();
+			if (MidiBard.AgentMetronome.EnsembleModeRunning)
+			{
+				// stops ensemble instead of pausing one client
+				StopEnsemble();
+			}
+			else
+			{
+				PluginLog.Debug($"PlayPause pressed. wasplaying: {MidiBard.IsPlaying}");
+				MidiPlayerControl.PlayPause();
+			}
 		}
 	}
 
@@ -69,6 +84,7 @@ public partial class PluginUI
 			else
 			{
 				MidiPlayerControl.Stop();
+				IPCHandles.UpdateInstrument(false);
 			}
 		}
 	}
@@ -113,6 +129,15 @@ public partial class PluginUI
 		}
 
 		ToolTip(array[MidiBard.config.PlayMode]);
+	}
+
+	private static void StopEnsemble()
+	{
+		if (MidiBard.AgentMetronome.EnsembleModeRunning)
+		{
+			MidiPlayerControl.Stop();
+			IPCHandles.UpdateInstrument(false);
+		}
 	}
 
 	string[] array = new string[]
