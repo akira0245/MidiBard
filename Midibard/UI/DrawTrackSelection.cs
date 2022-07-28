@@ -169,7 +169,7 @@ public partial class PluginUI
 			{
 				ImGui.BeginTooltip();
 				ImGui.PushTextWrapPos(ImGui.GetFontSize() * 20.0f);
-				ImGui.TextUnformatted(Language.Track_selection_Tooltip);
+				ImGui.TextUnformatted(Language.window_tooltip_track_selection);
 				ImGui.PopTextWrapPos();
 				ImGui.EndTooltip();
 			}

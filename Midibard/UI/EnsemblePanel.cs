@@ -31,12 +31,12 @@ public partial class PluginUI
 		//ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(ImGui.GetStyle().ItemSpacing.X, ImGui.GetStyle().ItemSpacing.Y));
 		ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, ImGui.GetStyle().FramePadding * 2.5f);
 		ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new Vector2(ImGui.GetStyle().CellPadding.Y));
-		if (ImGui.Begin(ensemble_window_title+"###midibardEnsembleWindow", ref ShowEnsembleControlWindow))
+		if (ImGui.Begin(window_title_ensemble_panel + "###midibardEnsembleWindow", ref ShowEnsembleControlWindow))
 		{
 			ImGuiUtil.PushIconButtonSize(new Vector2(ImGuiHelpers.GlobalScale * 40, ImGui.GetFrameHeight()));
 			var ensembleRunning = MidiBard.AgentMetronome.EnsembleModeRunning;
 			if (ImGuiUtil.IconButton(ensembleRunning ? FontAwesomeIcon.Stop : FontAwesomeIcon.UserCheck,
-				    "ensembleBegin", ensembleRunning ? Stop_ensemble : Begin_ensemble_ready_check))
+					"ensembleBegin", ensembleRunning ? ensemble_stop_ensemble : ensemble_begin_ensemble_ready_check))
 			{
 				if (!ensembleRunning)
 				{
@@ -83,7 +83,7 @@ public partial class PluginUI
 			}
 
 			ImGui.SameLine();
-			if (ImGuiUtil.IconButton(FontAwesomeIcon.FolderOpen,"btn open config", ensemble_open_midi_config_directory))
+			if (ImGuiUtil.IconButton(FontAwesomeIcon.FolderOpen, "btn open config", ensemble_open_midi_config_directory))
 			{
 				try
 				{
@@ -118,10 +118,10 @@ public partial class PluginUI
 					PluginLog.Warning(e, "error when opening config file");
 				}
 			}
-			
+
 			ImGui.SameLine();
 			if (ImGuiUtil.IconButton(FontAwesomeIcon.TrashAlt, "deleteConfig", ensemble_Delete_and_reset_current_file_config,
-				    ImGui.GetColorU32(MidiBard.CurrentPlayback == null ? ImGuiCol.TextDisabled : ImGuiCol.Text)))
+					ImGui.GetColorU32(MidiBard.CurrentPlayback == null ? ImGuiCol.TextDisabled : ImGuiCol.Text)))
 			{
 				if (MidiBard.CurrentPlayback != null)
 				{
@@ -133,10 +133,10 @@ public partial class PluginUI
 
 			ImGui.SameLine();
 			if (ImGuiUtil.IconButton(
-				    otherClientsMuted ? FontAwesomeIcon.VolumeOff : FontAwesomeIcon.VolumeUp,
-				    "Mute other clients", otherClientsMuted
-					    ? ensemble_unmute_other_clients
-					    : ensemble_mute_other_clients))
+					otherClientsMuted ? FontAwesomeIcon.VolumeOff : FontAwesomeIcon.VolumeUp,
+					"Mute other clients", otherClientsMuted
+						? ensemble_unmute_other_clients
+						: ensemble_mute_other_clients))
 			{
 				IPCHandles.SetOption(ConfigOption.SoundMaster, otherClientsMuted ? 100 : 0, false);
 				AgentConfigSystem.SetOptionValue(ConfigOption.SoundMaster, 100);
@@ -152,7 +152,7 @@ public partial class PluginUI
 			{
 				IPCHandles.ShowWindow(Winapi.nCmdShow.SW_RESTORE);
 			}
-			
+
 			ImGui.SameLine();
 			if (ImGui.Button(ensemble_Save_default_performers))
 			{
@@ -255,7 +255,7 @@ public partial class PluginUI
 								changed = true;
 							}
 
-							ImGuiUtil.ToolTip(ensemble_assign_track_character_tooltip);
+							ImGuiUtil.ToolTip(ensemble_combo_tooltip_assign_track_character);
 
 							ImGui.PopStyleColor();
 

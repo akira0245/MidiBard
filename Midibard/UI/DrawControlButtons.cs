@@ -16,7 +16,7 @@ public partial class PluginUI
 	{
 		ImGui.SameLine();
 		var color = MidiBard.config.PlotTracks ? MidiBard.config.themeColor : *ImGui.GetStyleColorVec4(ImGuiCol.Text);
-		if (IconButton((FontAwesomeIcon)0xf008, "miniplayer", Language.visualization_tooltip,
+		if (IconButton((FontAwesomeIcon)0xf008, "visualizertoggle", Language.icon_button_tooltip_visualization,
 				ImGui.ColorConvertFloat4ToU32(color)))
 			MidiBard.config.PlotTracks ^= true;
 		if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
@@ -33,7 +33,7 @@ public partial class PluginUI
 		if (IconButton(FontAwesomeIcon.Cog, "btnsettingp")) showSettingsPanel ^= true;
 
 		ImGui.PopStyleColor();
-		ToolTip(Language.Settings_panel);
+		ToolTip(Language.icon_button_tooltip_settings_panel);
 	}
 
 	private unsafe void DrawButtonShowEnsembleControl()
@@ -44,7 +44,7 @@ public partial class PluginUI
 		if (IconButton((FontAwesomeIcon)0xF0C0, "btnensemble")) ShowEnsembleControlWindow ^= true;
 
 		ImGui.PopStyleColor();
-		ToolTip(Language.button_ensemble_panel);
+		ToolTip(Language.icon_button_tooltip_ensemble_panel);
 	}
 
 	private unsafe void DrawButtonPlayPause()
@@ -117,10 +117,10 @@ public partial class PluginUI
 
 	string[] array = new string[]
 	{
-		Language.Playmode_Single,
-		Language.SingleRepeat,
-		Language.ListOrdered,
-		Language.ListRepeat,
-		Language.Random,
+		Language.play_mode_single,
+		Language.play_mode_single_repeat,
+		Language.play_mode_list_ordered,
+		Language.play_mode_list_repeat,
+		Language.play_mode_random,
 	};
 }

@@ -55,7 +55,7 @@ public partial class PluginUI
 		{
 			ImGui.PopStyleVar();
 			var icon = MidiBard.config.LockPlot ? FontAwesomeIcon.Lock : FontAwesomeIcon.LockOpen;
-			if (ImGuiUtil.AddHeaderIcon("lockPlot", icon.ToIconString(), Language.visualizer_follow_playback_tooltip))
+			if (ImGuiUtil.AddHeaderIcon("lockPlot", icon.ToIconString(), Language.icon_button_tooltip_visualizer_follow_playback_tooltip))
 			{
 				MidiBard.config.LockPlot ^= true;
 			}

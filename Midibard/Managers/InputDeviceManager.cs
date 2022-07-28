@@ -112,7 +112,7 @@ static class InputDeviceManager
 			CurrentInputDevice.EventReceived += InputDevice_EventReceived;
 			CurrentInputDevice.StartEventsListening();
 			ImGuiUtil.AddNotification(NotificationType.Success,
-				string.Format(Language.notice_start_event_listening, CurrentInputDevice.Name));
+				string.Format(Language.text_start_event_listening, CurrentInputDevice.Name));
 		}
 		catch (Exception e)
 		{

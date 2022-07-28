@@ -30,7 +30,7 @@ public partial class PluginUI
 			SetNextWindowPos(GetWindowPos() - new Vector2(2, 0), ImGuiCond.FirstUseEver, new Vector2(1, 0));
 			PushStyleColor(ImGuiCol.TitleBgActive, *GetStyleColorVec4(ImGuiCol.WindowBg));
 			PushStyleColor(ImGuiCol.TitleBg, *GetStyleColorVec4(ImGuiCol.WindowBg));
-			if (Begin(Language.playlist_window_title + $" ({PlaylistManager.FilePathList.Count})###MidibardPlaylist", ref MidiBard.config.UseStandalonePlaylistWindow, ImGuiWindowFlags.NoDocking))
+			if (Begin(Language.window_title_standalone_playlist + $" ({PlaylistManager.FilePathList.Count})###MidibardPlaylist", ref MidiBard.config.UseStandalonePlaylistWindow, ImGuiWindowFlags.NoDocking))
 			{
 				DrawContent();
 			}
@@ -70,13 +70,13 @@ public partial class PluginUI
 
 				ImGui.BeginGroup();
 
-				if (ImGuiUtil.IconButton(FontAwesomeIcon.Plus, "buttonimport", Language.button_import_file))
+				if (ImGuiUtil.IconButton(FontAwesomeIcon.Plus, "buttonimport", Language.icon_button_tooltip_import_file))
 				{
 					RunImportFileTask();
 				}
 
 				ImGui.SameLine();
-				if (ImGuiUtil.IconButton(FontAwesomeIcon.FolderOpen, "buttonimportFolder", Language.button_import_folder))
+				if (ImGuiUtil.IconButton(FontAwesomeIcon.FolderOpen, "buttonimportFolder", Language.icon_button_tooltip_import_folder))
 				{
 					RunImportFolderTask();
 				}
@@ -86,19 +86,18 @@ public partial class PluginUI
 			}
 			else
 			{
-				ImGui.Button(Language.Import_in_progress___);
+				ImGui.Button(Language.text_Import_in_progress);
 			}
 
 			SameLine();
 			var color = MidiBard.config.enableSearching ? ColorConvertFloat4ToU32(MidiBard.config.themeColor) : GetColorU32(ImGuiCol.Text);
-			if (IconButton(FontAwesomeIcon.Search, "searchbutton", Language.label_search_playlist, color))
+			if (IconButton(FontAwesomeIcon.Search, "searchbutton", Language.icon_button_tooltip_search_playlist, color))
 			{
 				MidiBard.config.enableSearching ^= true;
 			}
-			ToolTip(Language.label_search_playlist);
 			SameLine();
 
-			IconButton(FontAwesomeIcon.TrashAlt, "clearplaylist", Language.button_clear_playlist);
+			IconButton(FontAwesomeIcon.TrashAlt, "clearplaylist", Language.icon_button_tooltip_clearplaylist_tootltip);
 			if (IsItemHovered())
 			{
 				if (IsMouseDoubleClicked(ImGuiMouseButton.Left))
@@ -108,7 +107,7 @@ public partial class PluginUI
 			}
 
 			SameLine();
-			if (IconButton(FontAwesomeIcon.EllipsisV, "more", Language.button_show_playlist_selector))
+			if (IconButton(FontAwesomeIcon.EllipsisV, "more", Language.icon_button_tooltip_show_playlist_selector))
 			{
 				MidiBard.config.DrawSelectPlaylistWindow ^= true;
 			}
@@ -139,7 +138,7 @@ public partial class PluginUI
 
 			if (!PlaylistManager.FilePathList.Any())
 			{
-				if (Button(Language.label_empty_playlist,
+				if (Button(Language.text_playlist_is_empty,
 						new Vector2(-1, GetFrameHeight())))
 				{
 					RunImportFileTask();
@@ -185,20 +184,20 @@ public partial class PluginUI
 					sync = true;
 				}
 
-				if (IconButton(FontAwesomeIcon.File, "new", Language.New_playlist))
+				if (IconButton(FontAwesomeIcon.File, "new", Language.icon_button_tooltip_new_playlist))
 				{
-					playlistEntries.Add(new PlaylistEntry() { Name = Language.New_playlist });
+					playlistEntries.Add(new PlaylistEntry() { Name = Language.icon_button_tooltip_new_playlist });
 					sync = true;
 				}
 
 				SameLine();
-				if (IconButton(FontAwesomeIcon.Copy, "clone", Language.Clone_current_playlist))
+				if (IconButton(FontAwesomeIcon.Copy, "clone", Language.icon_button_tooltip_clone_current_playlist))
 				{
 					playlistEntries.Insert(container.CurrentListIndex, container.CurrentPlaylist.Clone());
 					sync = true;
 				}
 				SameLine();
-				if (IconButton(FontAwesomeIcon.Download, "saveas", Language.Save_search_as_playlist))
+				if (IconButton(FontAwesomeIcon.Download, "saveas", Language.icon_button_tooltip_save_search_as_playlist))
 				{
 					try
 					{
@@ -215,14 +214,14 @@ public partial class PluginUI
 					}
 				}
 				SameLine();
-				if (IconButton(FontAwesomeIcon.Save, "save", Language.Save_and_sync))
+				if (IconButton(FontAwesomeIcon.Save, "save", Language.icon_button_tooltip_save_and_sync_playlist))
 				{
 					container.Save();
 					sync = true;
 				}
 
 				SameLine(GetWindowWidth() - ImGui.GetFrameHeightWithSpacing());
-				if (ImGuiUtil.IconButton(FontAwesomeIcon.TrashAlt, "deleteCurrentPlist", Language.delete_current_playlist))
+				if (ImGuiUtil.IconButton(FontAwesomeIcon.TrashAlt, "deleteCurrentPlist", Language.icon_button_tooltip_delete_current_playlist))
 				{
 				}
 				if (IsItemHovered() && IsMouseDoubleClicked(ImGuiMouseButton.Left))

@@ -22,7 +22,7 @@ public partial class PluginUI
 		else
 		{
 			var c = PlaylistManager.FilePathList.Count;
-			var text = string.Format(Language._0__tracks_in_playlist_, c);
+			var text = string.Format(Language.text_tracks_in_playlist, c);
 			ImGui.TextUnformatted($"{PlaylistContainerManager.Container.CurrentPlaylist?.Name}\n{text}");
 		}
 	}

@@ -19,7 +19,7 @@ public partial class PluginUI
 	{
 
 		var inputDevices = InputDeviceManager.Devices;
-		if (BeginCombo(label_inputdevice, InputDeviceManager.CurrentInputDevice.DeviceName()))
+		if (BeginCombo(setting_label_midi_input_device, InputDeviceManager.CurrentInputDevice.DeviceName()))
 		{
 			if (Selectable("None##device", InputDeviceManager.CurrentInputDevice is null))
 			{
@@ -38,7 +38,7 @@ public partial class PluginUI
 			EndCombo();
 		}
 		if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right)) InputDeviceManager.SetDevice(null);
-		ImGuiUtil.ToolTip(label_inputdevice_tooltip);
+		ImGuiUtil.ToolTip(setting_tooltip_select_input_device);
 		//-------------------
 
 
@@ -47,38 +47,38 @@ public partial class PluginUI
 		SliderProgress();
 
 		var itemWidth = ImGuiHelpers.GlobalScale * 100;
-		if (InputFloat(PlaySpeed, ref MidiBard.config.playSpeed, 0.1f, 0.5f, GetBpmString(), ImGuiInputTextFlags.AutoSelectAll)) SetSpeed();
+		if (InputFloat(setting_label_set_play_speed, ref MidiBard.config.playSpeed, 0.1f, 0.5f, GetBpmString(), ImGuiInputTextFlags.AutoSelectAll)) SetSpeed();
 		if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right))
 		{
 			MidiBard.config.playSpeed = 1;
 			SetSpeed();
 		}
-		ToolTip(Set_speed_tooltip);
+		ToolTip(setting_tooltip_set_speed);
 
 		//-------------------
 		SetNextItemWidth(itemWidth);
-		if (InputFloat(label_delay, ref MidiBard.config.secondsBetweenTracks, 0.5f, 0.5f, $" {MidiBard.config.secondsBetweenTracks:f2} s", ImGuiInputTextFlags.AutoSelectAll))
+		if (InputFloat(setting_label_song_delay, ref MidiBard.config.secondsBetweenTracks, 0.5f, 0.5f, $" {MidiBard.config.secondsBetweenTracks:f2} s", ImGuiInputTextFlags.AutoSelectAll))
 			MidiBard.config.secondsBetweenTracks = Math.Max(0, MidiBard.config.secondsBetweenTracks);
 		if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right))
 			MidiBard.config.secondsBetweenTracks = 3;
-		ToolTip(label_delay_tooltip);
+		ToolTip(setting_tooltip_song_delay);
 		//-------------------
 		SameLine(ImGuiUtil.GetWindowContentRegionWidth() / 2f);
 		SetNextItemWidth(itemWidth);
-		InputInt(Transpose, ref MidiBard.config.TransposeGlobal, 12);
+		InputInt(setting_label_transpose_all, ref MidiBard.config.TransposeGlobal, 12);
 		if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right))
 			MidiBard.config.TransposeGlobal = 0;
-		ToolTip(TransposeTooltip);
+		ToolTip(setting_tooltip_transpose_all);
 
 
 		//-------------------
-		Checkbox(Auto_adapt_notes, ref MidiBard.config.AdaptNotesOOR);
-		ToolTip(Auto_adapt_notesTooltip);
+		Checkbox(setting_label_auto_adapt_notes, ref MidiBard.config.AdaptNotesOOR);
+		ToolTip(setting_tooltip_auto_adapt_notes);
 		//-------------------
 		SameLine(ImGuiUtil.GetWindowContentRegionWidth() / 2f);
 		SetNextItemWidth(itemWidth);
-		ImGuiUtil.EnumCombo(tone_mode, ref MidiBard.config.GuitarToneMode, _toolTips);
-		ImGuiUtil.ToolTip(tone_mode_tooltip);
+		ImGuiUtil.EnumCombo(setting_label_tone_mode, ref MidiBard.config.GuitarToneMode, _toolTips);
+		ImGuiUtil.ToolTip(setting_tooltip_tone_mode);
 
 
 
@@ -128,7 +128,7 @@ public partial class PluginUI
 				progress = 0;
 			}
 
-			if (SliderFloat(Progress, ref progress, 0, 1,
+			if (SliderFloat(setting_label_set_progress, ref progress, 0, 1,
 					$"{(currentTime.Hours != 0 ? currentTime.Hours + ":" : "")}{currentTime.Minutes:00}:{currentTime.Seconds:00}",
 					ImGuiSliderFlags.AlwaysClamp | ImGuiSliderFlags.NoRoundToFormat))
 			{
@@ -143,10 +143,10 @@ public partial class PluginUI
 		else
 		{
 			float zeroprogress = 0;
-			SliderFloat(Progress, ref zeroprogress, 0, 1, "0:00", ImGuiSliderFlags.NoInput);
+			SliderFloat(setting_label_set_progress, ref zeroprogress, 0, 1, "0:00", ImGuiSliderFlags.NoInput);
 		}
 
-		ToolTip(Set_progress_tooltip);
+		ToolTip(setting_tooltip_set_progress);
 	}
 
 	private static int UIcurrentInstrument;
@@ -158,7 +158,7 @@ public partial class PluginUI
 			UIcurrentInstrument = MidiBard.AgentPerformance.CurrentGroupTone + MidiBard.guitarGroup[0]; ;
 		}
 
-		if (BeginCombo(Instrument, MidiBard.InstrumentStrings[UIcurrentInstrument], ImGuiComboFlags.HeightLarge))
+		if (BeginCombo(setting_label_select_instrument, MidiBard.InstrumentStrings[UIcurrentInstrument], ImGuiComboFlags.HeightLarge))
 		{
 			GetWindowDrawList().ChannelsSplit(2);
 			for (int i = 0; i < MidiBard.Instruments.Length; i++)
@@ -185,7 +185,7 @@ public partial class PluginUI
 		//    SwitchInstrument.SwitchToContinue((uint)UIcurrentInstrument);
 		//}
 
-		ToolTip(select_instrument_tooltip);
+		ToolTip(setting_tooltip_select_instrument);
 
 		if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right))
 		{

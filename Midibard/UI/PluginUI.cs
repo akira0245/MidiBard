@@ -118,18 +118,18 @@ public partial class PluginUI
 #endif
 			{
 				var icon = (FontAwesomeIcon)(MidiBard.config.miniPlayer ? 0xF424 : 0xF422);
-				if (AddHeaderIcon("headerIconMinimode", icon.ToIconString(), Language.button_mini_player)) config.miniPlayer ^= true;
+				if (AddHeaderIcon("headerIconMinimode", icon.ToIconString(), Language.icon_button_tooltip_mini_player)) config.miniPlayer ^= true;
 
 				if (ensembleModeRunning)
 				{
 					{
-						DrawColoredBanner(red, Language.label_ensemble_mode_running);
+						DrawColoredBanner(red, Language.text_ensemble_mode_running);
 					}
 				}
 
 				if (listeningForEvents)
 				{
-					DrawColoredBanner(violet, Language.listenning_midi_device_banner + InputDeviceManager.CurrentInputDevice.DeviceName());
+					DrawColoredBanner(violet, Language.text_listening_midi_device + InputDeviceManager.CurrentInputDevice.DeviceName());
 				}
 
 				DrawPlaylist();

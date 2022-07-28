@@ -117,193 +117,192 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="button import file" xml:space="preserve">
+  <data name="icon button tooltip import file" xml:space="preserve">
     <value>Import midi file
 Right click to select file dialog type</value>
   </data>
-  <data name="button import folder" xml:space="preserve">
+  <data name="icon button tooltip import folder" xml:space="preserve">
     <value>Import folder
 Imports all midi files in selected folder and it's all subfolders.
 This may take a while when you select a folder that contains multiple layers of folders.</value>
   </data>
-  <data name="button clear playlist" xml:space="preserve">
+  <data name="icon button tooltip clear playlist" xml:space="preserve">
     <value>Clear Playlist</value>
   </data>
-  <data name="label language" xml:space="preserve">
+  <data name="setting label select ui language" xml:space="preserve">
     <value>Language</value>
   </data>
-  <data name="label language tooltip" xml:space="preserve">
+  <data name="setting tooltip language" xml:space="preserve">
     <value>Change Midibard UI language</value>
   </data>
-  <data name="label Help" xml:space="preserve">
+  <data name="icon button tooltip help" xml:space="preserve">
     <value>Help</value>
   </data>
-  <data name="label ensemble mode running" xml:space="preserve">
+  <data name="text ensemble mode running" xml:space="preserve">
     <value>Ensemble mode running</value>
   </data>
-  <data name="label empty playlist" xml:space="preserve">
+  <data name="text playlist is empty" xml:space="preserve">
     <value>Import midi files to start performing!</value>
   </data>
-  <data name="{0} tracks in playlist." xml:space="preserve">
+  <data name="text tracks in playlist" xml:space="preserve">
     <value>{0} tracks in current playlist.</value>
     
   </data>
-  <data name="Playing:" xml:space="preserve">
+  <data name="text current playing" xml:space="preserve">
     <value>Playing:</value>
   </data>
-  <data name="{0} track in playlist." xml:space="preserve">
-    <value>{0} track in playlist.</value>
-    
-  </data>
-  <data name="Playmode:" xml:space="preserve">
-    <value>Playmode: </value>
-  </data>
-  <data name="Playmode_Single" xml:space="preserve">
-    <value>Single</value>
-  </data>
-  <data name="ListOrdered" xml:space="preserve">
-    <value>List ordered</value>
-  </data>
-  <data name="ListRepeat" xml:space="preserve">
-    <value>List repeat</value>
-  </data>
-  <data name="SingleRepeat" xml:space="preserve">
-    <value>Single repeat</value>
-  </data>
-  <data name="Random" xml:space="preserve">
+  <data name="play mode random" xml:space="preserve">
     <value>Random</value>
   </data>
-  <data name="Music control panel" xml:space="preserve">
+  <data name="play mode list ordered" xml:space="preserve">
+    <value>List ordered</value>
+  </data>
+  <data name="play mode list repeat" xml:space="preserve">
+    <value>List repeat</value>
+  </data>
+  <data name="play mode single repeat" xml:space="preserve">
+    <value>Single repeat</value>
+  </data>
+  <data name="icon button tooltip delete current playlist" xml:space="preserve">
+    <value>Double click to delete current playlist</value>
+  </data>
+  <data name="icon button tooltip save and sync playlist" xml:space="preserve">
+    <value>Save and sync</value>
+  </data>
+  <data name="icon button tooltip save search as playlist" xml:space="preserve">
+    <value>Save current search result as new playlist</value>
+  </data>
+  <data name="icon button tooltip clone current playlist" xml:space="preserve">
+    <value>Clone current playlist</value>
+  </data>
+  <data name="text select playmode" xml:space="preserve">
+    <value>Playmode: </value>
+  </data>
+  <data name="play mode single" xml:space="preserve">
+    <value>Single</value>
+  </data>
+  <data name="icon button tooltip music control panel" xml:space="preserve">
     <value>Music control panel</value>
   </data>
-  <data name="Settings panel" xml:space="preserve">
+  <data name="icon button tooltip settings panel" xml:space="preserve">
     <value>Settings panel</value>
   </data>
-  <data name="button mini player" xml:space="preserve">
+  <data name="icon button tooltip mini player" xml:space="preserve">
     <value>Mini player</value>
   </data>
-  <data name="Track selection Tooltip" xml:space="preserve">
+  <data name="window tooltip track selection" xml:space="preserve">
     <value>Track selection
 MidiBard will only perform enabled tracks
 Left click to enable/disable a track, Right click to solo it</value>
   </data>
-  <data name="Track" xml:space="preserve">
-    <value>Track</value>
-  </data>
-  <data name="Transpose" xml:space="preserve">
+  <data name="setting label transpose all" xml:space="preserve">
     <value>Transpose</value>
   </data>
-  <data name="Reset" xml:space="preserve">
-    <value>Reset</value>
-  </data>
-  <data name="Auto adapt notes" xml:space="preserve">
+  <data name="setting label auto adapt notes" xml:space="preserve">
     <value>Auto adapt notes</value>
   </data>
-  <data name="Auto adapt notesTooltip" xml:space="preserve">
+  <data name="setting tooltip auto adapt notes" xml:space="preserve">
     <value>Adapt high/low pitch notes when they are out of range into 3 octaves we can play</value>
   </data>
-  <data name="Progress" xml:space="preserve">
+  <data name="setting label set progress" xml:space="preserve">
     <value>Progress</value>
   </data>
-  <data name="PlaySpeed" xml:space="preserve">
+  <data name="setting label set play speed" xml:space="preserve">
     <value>Play speed</value>
   </data>
-  <data name="Monitor ensemble" xml:space="preserve">
+  <data name="setting label monitor ensemble" xml:space="preserve">
     <value>Monitor ensemble</value>
   </data>
-  <data name="Monitor ensemble tooltip" xml:space="preserve">
+  <data name="setting tooltip monitor ensemble" xml:space="preserve">
     <value>Auto start ensemble when entering in-game party ensemble mode</value>
   </data>
-  <data name="Auto Confirm Ensemble Ready Check" xml:space="preserve">
-    <value>Auto confirm ensemble ready check</value>
-  </data>
-  <data name="Auto open MidiBard" xml:space="preserve">
+  <data name="setting label auto open MidiBard" xml:space="preserve">
     <value>Auto open MidiBard</value>
   </data>
-  <data name="Auto open MidiBardTooltip" xml:space="preserve">
+  <data name="setting tooltip auto open MidiBardTooltip" xml:space="preserve">
     <value>Auto open or close MidiBard window when entering/exiting performance mode</value>
   </data>
-  <data name="Import in progress..." xml:space="preserve">
+  <data name="text Import in progress" xml:space="preserve">
     <value>Import in progress...</value>
   </data>
-  <data name="Instrument" xml:space="preserve">
+  <data name="setting label select instrument" xml:space="preserve">
     <value>Instrument</value>
   </data>
-  <data name="Auto switch instrument" xml:space="preserve">
+  <data name="setting label auto switch instrument by file name" xml:space="preserve">
     <value>Auto switch instrument(file name)</value>
   </data>
-  <data name="Auto transpose" xml:space="preserve">
+  <data name="setting label auto transpose by file name" xml:space="preserve">
     <value>Auto transpose(file name)</value>
   </data>
-  <data name="Auto switch instrumentTooltip" xml:space="preserve">
+  <data name="setting tooltip label auto switch instrument by file name" xml:space="preserve">
     <value>Auto switch instrument on demand. If you need this, 
 please add #instrument name# before file name. 
 E.g. #harp#demo.mid</value>
   </data>
-  <data name="Auto transpose notesTooltip" xml:space="preserve">
+  <data name="setting tooltip auto transpose by file name" xml:space="preserve">
     <value>Auto transpose notes on demand. If you need this, 
 please add #transpose number# before file name. 
 E.g. #-12#demo.mid</value>
   </data>
-  <data name="TransposeTooltip" xml:space="preserve">
+  <data name="setting tooltip transpose all" xml:space="preserve">
     <value>Transpose, measured by semitone. 
 Right click to reset.</value>
   </data>
-  <data name="Set speed tooltip" xml:space="preserve">
+  <data name="setting tooltip set speed" xml:space="preserve">
     <value>Set the speed of events playing</value>
   </data>
-  <data name="Set progress tooltip" xml:space="preserve">
+  <data name="setting tooltip set progress" xml:space="preserve">
     <value>Set the playing progress 
 Right click to restart current playback</value>
   </data>
-  <data name="select instrument tooltip" xml:space="preserve">
+  <data name="setting tooltip select instrument" xml:space="preserve">
     <value>Select current instrument 
 Right click to quit performance mode</value>
   </data>
-  <data name="listenning midi device banner" xml:space="preserve">
+  <data name="text listening midi device" xml:space="preserve">
     <value>Listening input device: </value>
   </data>
-  <data name="label inputdevice" xml:space="preserve">
+  <data name="setting label midi input device" xml:space="preserve">
     <value>MIDI Input</value>
   </data>
-  <data name="label inputdevice tooltip" xml:space="preserve">
+  <data name="setting tooltip select input device" xml:space="preserve">
     <value>Choose external midi input device. Right click to reset.</value>
   </data>
-  <data name="button clearplaylist tootltip" xml:space="preserve">
+  <data name="icon button tooltip clearplaylist tootltip" xml:space="preserve">
     <value>Double click to clear playlist</value>
   </data>
-  <data name="label search playlist" xml:space="preserve">
+  <data name="icon button tooltip search playlist" xml:space="preserve">
     <value>Search playlist</value>
   </data>
-  <data name="label theme color" xml:space="preserve">
-    <value>Theme color</value>
+  <data name="setting label theme color" xml:space="preserve">
+    <value>UI color</value>
   </data>
   <data name="hint search textbox" xml:space="preserve">
     <value>Enter to search</value>
   </data>
-  <data name="label delay" xml:space="preserve">
+  <data name="setting label song delay" xml:space="preserve">
     <value>Delay</value>
   </data>
-  <data name="label delay tooltip" xml:space="preserve">
+  <data name="setting tooltip song delay" xml:space="preserve">
     <value>Delay time before play next track.</value>
   </data>
-  <data name="label transpose by track" xml:space="preserve">
+  <data name="setting label transpose by track" xml:space="preserve">
     <value>Transpose per track</value>
   </data>
-  <data name="label transpose by track tootltip" xml:space="preserve">
+  <data name="setting tooltip transpose by track" xml:space="preserve">
     <value>Transpose per track, right click to reset all tracks' transpose offset back to zero.</value>
   </data>
-  <data name="checkbox auto restart listening" xml:space="preserve">
+  <data name="setting label auto restart listening" xml:space="preserve">
     <value>Auto restart listening</value>
   </data>
-  <data name="checkbox auto restart listening tooltip" xml:space="preserve">
+  <data name="setting tooltip auto restart listening" xml:space="preserve">
     <value>Try auto restart listening last used midi device</value>
   </data>
-  <data name="visualization tooltip" xml:space="preserve">
+  <data name="icon button tooltip visualization" xml:space="preserve">
     <value>Tracks visualization window
 Right click to reset visualizer window position</value>
   </data>
-  <data name="visualizer follow playback tooltip" xml:space="preserve">
+  <data name="icon button tooltip visualizer follow playback tooltip" xml:space="preserve">
     <value>Following current playback progress</value>
   </data>
   <data name="w32 file dialog" xml:space="preserve">
@@ -312,10 +311,10 @@ Right click to reset visualizer window position</value>
   <data name="imgui file dialog" xml:space="preserve">
     <value>ImGui file dialog</value>
   </data>
-  <data name="tone mode" xml:space="preserve">
+  <data name="setting label tone mode" xml:space="preserve">
     <value>Tone mode</value>
   </data>
-  <data name="tone mode tooltip" xml:space="preserve">
+  <data name="setting tooltip tone mode" xml:space="preserve">
     <value>Choose how MidiBard will handle MIDI channels and ProgramChange events(current only affects guitar tone changing)</value>
   </data>
   <data name="tone mode off" xml:space="preserve">
@@ -342,13 +341,13 @@ Right click to reset visualizer window position</value>
   <data name="tone mode override tooltip" xml:space="preserve">
     <value>Override by track: Assign guitar tone manually for each track and ignore ProgramChange events.</value>
   </data>
-  <data name="label auto switch instrument bmp" xml:space="preserve">
+  <data name="setting label auto switch instrument bmp" xml:space="preserve">
     <value>Auto switch instrument(midi track name)</value>
   </data>
-  <data name="label auto switch instrument bmp tooltip" xml:space="preserve">
+  <data name="setting tooltip auto switch transpose instrument bmp trackname" xml:space="preserve">
     <value>Transpose/switch instrument based on first enabled midi track name(BMP rules)</value>
   </data>
-  <data name="notice start event listening" xml:space="preserve">
+  <data name="text start event listening" xml:space="preserve">
     <value>Start event listening on </value>
   </data>
   <data name="notice midi device error" xml:space="preserve">
@@ -358,53 +357,41 @@ Please check log for further error information.</value>
   <data name="notice midi device stop listening" xml:space="preserve">
     <value>Stop event listening on </value>
   </data>
-  <data name="button ensemble panel" xml:space="preserve">
+  <data name="icon button tooltip ensemble panel" xml:space="preserve">
     <value>Ensemble panel</value>
   </data>
-  <data name="Low latency mode" xml:space="preserve">
+  <data name="setting label low latency mode" xml:space="preserve">
     <value>Low latency mode</value>
   </data>
-  <data name="low latency mode tooltip" xml:space="preserve">
+  <data name="setting tooltip low latency mode" xml:space="preserve">
     <value>Use alternative note input method, May slightly reduce input latency but will affect guitar tone switching accuracy. 
 Only recommended while using Midi keyboard.</value>
   </data>
-  <data name="Auto set background frame limit" xml:space="preserve">
+  <data name="setting label auto set background frame limit" xml:space="preserve">
     <value>Auto set background frame limit</value>
   </data>
-  <data name="Auto set frame limit tooltip" xml:space="preserve">
+  <data name="setting tooltip auto set background frame limit" xml:space="preserve">
     <value>Auto disable background frame limit when entering performance mode and re-enable it when quit performance</value>
   </data>
-  <data name="playlist window title" xml:space="preserve">
+  <data name="window title standalone playlist" xml:space="preserve">
     <value>MidiBard Playlist</value>
   </data>
-  <data name="button show playlist selector" xml:space="preserve">
+  <data name="icon button tooltip show playlist selector" xml:space="preserve">
     <value>Show playlist selector</value>
   </data>
-  <data name="New playlist" xml:space="preserve">
+  <data name="icon button tooltip new playlist" xml:space="preserve">
     <value>New playlist</value>
   </data>
-  <data name="Clone current playlist" xml:space="preserve">
-    <value>Clone current playlist</value>
-  </data>
-  <data name="Save search as playlist" xml:space="preserve">
-    <value>Save current search result as new playlist</value>
-  </data>
-  <data name="Save and sync" xml:space="preserve">
-    <value>Save and sync</value>
-  </data>
-  <data name="delete current playlist" xml:space="preserve">
-    <value>Double click to delete current playlist</value>
-  </data>
-  <data name="Standalone playlist window" xml:space="preserve">
+  <data name="setting label standalone playlist window" xml:space="preserve">
     <value>Standalone playlist window</value>
   </data>
-  <data name="ensemble window title" xml:space="preserve">
+  <data name="window title ensemble panel" xml:space="preserve">
     <value>MidiBard local ensemble control</value>
   </data>
-  <data name="Stop ensemble" xml:space="preserve">
+  <data name="ensemble stop ensemble" xml:space="preserve">
     <value>Stop ensemble</value>
   </data>
-  <data name="Begin ensemble ready check" xml:space="preserve">
+  <data name="ensemble begin ensemble ready check" xml:space="preserve">
     <value>Begin ensemble ready check</value>
   </data>
   <data name="ensemble update instruments" xml:space="preserve">
@@ -428,7 +415,7 @@ Only recommended while using Midi keyboard.</value>
   <data name="ensemble Minimize other clients" xml:space="preserve">
     <value>Minimize other clients, right click to restore them.</value>
   </data>
-  <data name="ensemble Sync settings" xml:space="preserve">
+  <data name="icon button tooltip sync settings" xml:space="preserve">
     <value>Sync all Midibard settings on this pc</value>
   </data>
   <data name="ensemble Save default performers" xml:space="preserve">
@@ -437,7 +424,7 @@ Only recommended while using Midi keyboard.</value>
   <data name="ensemble Select a song from playlist" xml:space="preserve">
     <value>Select a song from playlist</value>
   </data>
-  <data name="ensemble assign track character tooltip" xml:space="preserve">
+  <data name="ensemble combo tooltip assign track character" xml:space="preserve">
     <value>Assign track to a character. Right click to reset assigned character</value>
   </data>
   <data name="ensemble config Draw ensemble progress indicator on visualizer" xml:space="preserve">
@@ -452,19 +439,19 @@ Only recommended while using Midi keyboard.</value>
   <data name="window title visualizor" xml:space="preserve">
     <value>MidiBard track visualizer</value>
   </data>
-  <data name="group ensemble settings" xml:space="preserve">
+  <data name="setting group label ensemble settings" xml:space="preserve">
     <value>Ensemble settings</value>
   </data>
-  <data name="group general settings" xml:space="preserve">
+  <data name="setting group label general settings" xml:space="preserve">
     <value>General settings</value>
   </data>
-  <data name="group performance settings" xml:space="preserve">
+  <data name="setting group label performance settings" xml:space="preserve">
     <value>Performance settings</value>
   </data>
-  <data name="Sync clients" xml:space="preserve">
+  <data name="setting label sync clients" xml:space="preserve">
     <value>Enable local clients sync</value>
   </data>
-  <data name="sync clients tooltip" xml:space="preserve">
-    <value>Allow midibard settings and midi file settings auto sync between all midibard instances on this pc.</value>
+  <data name="setting tooltip sync clients" xml:space="preserve">
+    <value>Allow midibard settings and midi file settings auto sync between all midibard instances on this pc</value>
   </data>
 </root>
