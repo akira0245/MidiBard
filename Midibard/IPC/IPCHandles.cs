@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
@@ -13,6 +13,7 @@ using MidiBard.Managers;
 using MidiBard.Managers.Agents;
 using MidiBard.Managers.Ipc;
 using MidiBard.Util;
+using Melanchall.DryWetMidi.Interaction;
 
 namespace MidiBard.IPC;
 public enum MessageTypeCode
@@ -39,7 +40,9 @@ public enum MessageTypeCode
 	ShowWindow,
 	SyncAllSettings,
 	Object,
-	SyncPlayStatus
+	SyncPlayStatus,
+
+	ErrPlaybackNull = 1000
 }
 
 enum PlaylistOperation
@@ -211,5 +214,18 @@ static class IPCHandles
 		//do not overwrite track settings
 		jsonDeserialize.TrackStatus = MidiBard.config.TrackStatus;
 		MidiBard.config = jsonDeserialize;
+	}
+
+	public static void ErrPlaybackNull(string characterName)
+	{
+		IPCEnvelope.Create(MessageTypeCode.ErrPlaybackNull, characterName).BroadCast(true);
+	}
+
+	[IPCHandle(MessageTypeCode.ErrPlaybackNull)]
+	public static void HandleErrPlaybackNull(IPCEnvelope message)
+	{
+		var characterName = message.StringData[0];
+		PluginLog.LogWarning($"ERR: Playback Null on character: {characterName}");
+		api.ChatGui.PrintError($"[MidiBard 2] Error: Load song failed on character: {characterName}, please try to switch the song again.");
 	}
 }
