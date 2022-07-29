@@ -133,13 +133,11 @@ static class Extensions
 	public static T ProtoDeepClone<T>(this T obj) => ProtoBuf.Serializer.DeepClone(obj);
 	public static string JsonSerialize<T>(this T obj) where T : class => JsonConvert.SerializeObject(obj, Formatting.Indented, JsonSerializerSettings);
 	public static T JsonDeserialize<T>(this string str) where T : class => JsonConvert.DeserializeObject<T>(str);
-	public static TValue GetOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, Func<TValue> valueCreator)
+	public static TValue GetOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, Func<TValue> valueFactory)
 	{
-		if (!dict.TryGetValue(key, out TValue val))
-		{
-			val = valueCreator();
-			dict.Add(key, val);
-		}
+		if (dict.TryGetValue(key, out TValue val)) return val;
+		val = valueFactory();
+		dict.Add(key, val);
 
 		return val;
 	}

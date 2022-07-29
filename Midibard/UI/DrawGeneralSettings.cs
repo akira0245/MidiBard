@@ -35,8 +35,6 @@ public partial class PluginUI
 			Checkbox(setting_label_auto_open_MidiBard, ref MidiBard.config.AutoOpenPlayerWhenPerforming);
 			ImGuiUtil.ToolTip(setting_label_auto_open_MidiBard);
 
-			Checkbox(setting_label_standalone_playlist_window, ref MidiBard.config.UseStandalonePlaylistWindow);
-
 			//Checkbox(Low_latency_mode, ref MidiBard.config.LowLatencyMode);
 			//ImGuiUtil.ToolTip(low_latency_mode_tooltip);
 

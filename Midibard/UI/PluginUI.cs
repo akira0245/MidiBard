@@ -144,7 +144,7 @@ public partial class PluginUI
 				Spacing();
 
 				PushStyleVar(ImGuiStyleVar.ItemSpacing, ImGuiHelpers.ScaledVector2(4, 4));
-				PushStyleVar(ImGuiStyleVar.FramePadding, ImGuiHelpers.ScaledVector2(15, 4));
+				ImGuiUtil.PushIconButtonSize(ImGuiHelpers.ScaledVector2(45.5f,25));
 				{
 					DrawButtonPlayPause();
 					DrawButtonStop();
@@ -154,7 +154,8 @@ public partial class PluginUI
 					DrawButtonVisualization();
 					DrawButtonShowEnsembleControl();
 				}
-				PopStyleVar(2);
+				PopIconButtonSize();
+				PopStyleVar();
 
 				if (!config.miniPlayer)
 				{

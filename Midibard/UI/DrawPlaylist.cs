@@ -49,8 +49,7 @@ public partial class PluginUI
 		void DrawContent()
 		{
 			PushStyleVar(ImGuiStyleVar.ItemSpacing, ImGuiHelpers.ScaledVector2(4, 4));
-			PushStyleVar(ImGuiStyleVar.FramePadding, ImGuiHelpers.ScaledVector2(15, 4));
-			PushIconButtonSize(new Vector2(ImGuiHelpers.GlobalScale * 45, GetFrameHeight()));
+			ImGuiUtil.PushIconButtonSize(ImGuiHelpers.ScaledVector2(45.5f, 25)); 
 
 			if (!IsImportRunning)
 			{
@@ -107,6 +106,13 @@ public partial class PluginUI
 			}
 
 			SameLine();
+			var fontAwesomeIcon = MidiBard.config.UseStandalonePlaylistWindow ? FontAwesomeIcon.Compress : FontAwesomeIcon.Expand;
+			if (ImGuiUtil.IconButton(fontAwesomeIcon, "ButtonStandalonePlaylist", Language.setting_label_standalone_playlist_window))
+			{
+				MidiBard.config.UseStandalonePlaylistWindow ^= true;
+			}
+
+			SameLine();
 			if (IconButton(FontAwesomeIcon.EllipsisV, "more", Language.icon_button_tooltip_show_playlist_selector))
 			{
 				MidiBard.config.DrawSelectPlaylistWindow ^= true;
@@ -123,8 +129,8 @@ public partial class PluginUI
 
 				DrawHelp();
 			}
+			PopStyleVar();
 			PopIconButtonSize();
-			PopStyleVar(2);
 
 			if (MidiBard.config.DrawSelectPlaylistWindow)
 			{
@@ -258,7 +264,7 @@ public partial class PluginUI
 		}
 		else
 		{
-			beginChild = BeginChild("playlistchild", new Vector2(x: -1, y: GetTextLineHeightWithSpacing() * Math.Min(val1: 10, val2: PlaylistManager.FilePathList.Count)));
+			beginChild = BeginChild("playlistchild", new Vector2(x: -1, y: GetTextLineHeightWithSpacing() * Math.Min(val1: 15, val2: PlaylistManager.FilePathList.Count)));
 		}
 
 		if (beginChild)
