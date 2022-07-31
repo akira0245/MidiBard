@@ -69,10 +69,12 @@ public class Configuration : IPluginConfiguration
     public TrackStatus[] TrackStatus = Enumerable.Repeat(new TrackStatus(), 100).ToArray().JsonSerialize().JsonDeserialize<TrackStatus[]>();
 	//public ChannelStatus[] ChannelStatus = Enumerable.Repeat(new ChannelStatus(), 16).ToArray();
 
+	public List<string> RecentUsedPlaylists = new List<string>();
+
 	public List<string> Playlist = new List<string>();
 
-	public float playSpeed = 1f;
-    public float secondsBetweenTracks = 3;
+	public float PlaySpeed = 1f;
+    public float SecondsBetweenTracks = 3;
     public int PlayMode = 0;
     public int TransposeGlobal = 0;
     public bool AdaptNotesOOR = true;
@@ -84,7 +86,7 @@ public class Configuration : IPluginConfiguration
     public bool AutoOpenPlayerWhenPerforming = true;
 
     public int? SoloedTrack = null;
-    public int? SoloedChannel = null;
+    //public int? SoloedChannel = null;
     public int uiLang = DalamudApi.api.PluginInterface.UiLanguage == "zh" ? 1 : 0;
 
     public int playlistSizeY = 10;
@@ -99,7 +101,7 @@ public class Configuration : IPluginConfiguration
     //public bool autoTransposeByTrackName = false;
 
 
-    public Vector4 themeColor = ImGui.ColorConvertU32ToFloat4(0xFFA8A8FF);
+    public Vector4 themeColor = ImGui.ColorConvertU32ToFloat4(0xFFFFA8A8);
     public Vector4 themeColorDark => themeColor * new Vector4(0.25f, 0.25f, 0.25f, 1);
     public Vector4 themeColorTransparent => themeColor * new Vector4(1, 1, 1, 0.33f);
 
@@ -109,15 +111,7 @@ public class Configuration : IPluginConfiguration
     public string lastOpenedFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic);
     //public bool autoStartNewListening = false;
 
-    //public int testLength = 40;
-    //public int testInterval;
-    //public int testRepeat;
-
     //public float timeBetweenSongs = 0;
-
-    // Add any other properties or methods here.
-
-    ///////////////////////////////////////////////////////////////////////////////
 
     public bool useLegacyFileDialog;
     public bool PlotTracks;
@@ -145,6 +139,6 @@ public class Configuration : IPluginConfiguration
 
     public bool UpdateInstrumentBeforeReadyCheck;
 
-    public bool DrawSelectPlaylistWindow;
+    //public bool DrawSelectPlaylistWindow;
     //[JsonIgnore] public bool OverrideGuitarTones => GuitarToneMode == GuitarToneMode.Override;
 }

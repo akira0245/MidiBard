@@ -2,7 +2,7 @@
 	<PropertyGroup>
 		<TargetFramework>net5.0-windows</TargetFramework>
 		<LangVersion>10</LangVersion>
-		<AssemblyVersion>1.10.2.0</AssemblyVersion>
+		<AssemblyVersion>1.12.0.0</AssemblyVersion>
 		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 		<Nullable>disable</Nullable>
@@ -19,6 +19,7 @@
   <ItemGroup>
     <PackageReference Include="DalamudPackager" Version="2.1.7" />
     <PackageReference Include="Fody" Version="6.6.3" PrivateAssets="all" />
+    <PackageReference Include="JetBrains.Annotations" Version="2022.1.0" />
     <PackageReference Include="Resourcer.Fody" Version="1.8.0" PrivateAssets="all" />
 		<!--<PackageReference Include="ILRepack" Version="2.0.18" />-->
 		<PackageReference Include="Melanchall.DryWetMidi" Version="6.1.1" />
@@ -84,7 +85,7 @@
 
 	<Target Name="CleanOutDir" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
 		<ItemGroup>
-			<DeleteAssemblies Include="$(TargetDir)*.pdb" />
+			<!--<DeleteAssemblies Include="$(TargetDir)*.pdb" />-->
 			<DeleteAssemblies Include="$(TargetDir)$(AssemblyName).deps.json" />
 		</ItemGroup>
 		<Message Text="Deleting @(DeleteAssemblies)" Importance="high" />

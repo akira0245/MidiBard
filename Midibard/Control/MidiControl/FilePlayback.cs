@@ -35,7 +35,7 @@ public static class FilePlayback
 		playback.InterruptNotesOnStop = true;
 		playback.TrackNotes = true;
 		playback.TrackProgram = true;
-		playback.Speed = config.playSpeed;
+		playback.Speed = config.PlaySpeed;
 		playback.Finished += Playback_Finished;
 		PluginLog.Debug($"[LoadPlayback] -> {path} OK! in {stopwatch.Elapsed.TotalMilliseconds} ms");
 		return playback;
@@ -56,7 +56,7 @@ public static class FilePlayback
 				if (MidiBard.SlaveMode)
 					return;
 
-				var fromSeconds = TimeSpan.FromSeconds(config.secondsBetweenTracks);
+				var fromSeconds = TimeSpan.FromSeconds(config.SecondsBetweenTracks);
 				PerformWaiting(fromSeconds, ref waitProgress, ref waitStatus);
 				if (waitStatus == Status.canceled) return;
 

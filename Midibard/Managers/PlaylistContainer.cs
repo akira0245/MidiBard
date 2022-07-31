@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Dalamud.Logging;
+using JetBrains.Annotations;
 using MidiBard.Util;
 using Newtonsoft.Json;
 using ProtoBuf;
@@ -13,87 +15,106 @@ namespace MidiBard;
 [ProtoContract]
 public class PlaylistContainer
 {
-	[ProtoMember(1)]
-	private int _currentListIndex;
-	public PlaylistContainer() => Entries.CollectionChanged += (sender, e) =>
+	[CanBeNull]
+	public static PlaylistContainer FromFile(string filePath, bool createIfNotExist = false)
 	{
-		if (!Entries.Any())
-		{
-			Entries.Add(new PlaylistEntry { Name = "Default playlist" });
-			CurrentListIndex = 0;
+		if (File.Exists(filePath)) {
+			RecordToRecentUsed(filePath);
+			var container = new PlaylistContainer();
+			var readLines = File.ReadLines(filePath, Encoding.UTF8);
+			var absolutePaths = readLines.Select(i => Path.GetFullPath(i, filePath));
+			container.SongPaths.AddRange(absolutePaths.Select(i => new SongEntry { FilePath = i }));
+			container.FilePathWhenLoading = filePath;
+			return container;
 		}
 
-		if (CurrentListIndex > Entries.Count - 1)
-		{
-			CurrentListIndex = Entries.Count - 1;
-		}
-	};
-	[ProtoMember(2)]
-	public ObservableCollection<PlaylistEntry> Entries { get; init; } = new();
-	[ProtoMember(3)]
-	public int CurrentListIndex
-	{
-		get => _currentListIndex;
-		set => _currentListIndex = value.Clamp(0, Entries.Count - 1);
-	}
-	[JsonIgnore]
-	public PlaylistEntry? CurrentPlaylist
-	{
-		get
-		{
-			try
-			{
-				return Entries[CurrentListIndex];
-			}
-			catch (Exception e)
-			{
-				return null;
-			}
-		}
-	}
-}
+		if (!createIfNotExist) return null;
 
-[ProtoContract]
-public class PlaylistEntry
-{
-	[ProtoMember(1)]
-	public string Name = "New playlist";
-	[ProtoMember(2)]
-	public List<SongEntry> PathList = new();
-	[ProtoMember(3)]
-	private int _currentSongIndex;
+		var newContainer = new PlaylistContainer { FilePathWhenLoading = filePath };
+		newContainer.Save(filePath);
+		RecordToRecentUsed(filePath);
+		return newContainer;
+	}
+
+	private PlaylistContainer() { }
+
+	private static void RecordToRecentUsed(string filePath)
+	{
+		var usedPlaylists = MidiBard.config.RecentUsedPlaylists;
+		if (usedPlaylists.Contains(filePath)) {
+			usedPlaylists.Remove(filePath);
+		}
+
+		usedPlaylists.Add(filePath);
+
+		const int maxRecentRecordSize = 30;
+		if (usedPlaylists.Count > maxRecentRecordSize) {
+			usedPlaylists.RemoveRange(0, usedPlaylists.Count - maxRecentRecordSize);
+		}
+	}
+
+	public void Save()
+	{
+		Save(FilePathWhenLoading, this);
+	}
+
+	public void Save(string filePath)
+	{
+		Save(filePath, this);
+	}
+
+	public static void Save(string filePath, PlaylistContainer obj)
+	{
+		try
+		{
+			RecordToRecentUsed(filePath);
+			obj.FilePathWhenLoading = filePath;
+			var contents = obj.SongPaths.Select(i => Path.GetRelativePath(filePath, i.FilePath)).ToArray();
+			File.WriteAllLines(filePath, contents, Encoding.UTF8);
+		}
+		catch (Exception e)
+		{
+			PluginLog.Warning(e, "error when saving playlist");
+		}
+	}
+
+	public string DisplayName => Path.GetFileNameWithoutExtension(FilePathWhenLoading);
+
+	[ProtoMember(1)] public string FilePathWhenLoading = null;
+	[ProtoMember(2)] public List<SongEntry> SongPaths = new();
+	[ProtoMember(3)] private int _currentSongIndex = -1;
+
 	[ProtoMember(4)]
 	public int CurrentSongIndex
 	{
 		get => _currentSongIndex;
-		set => _currentSongIndex = value.Clamp(0, PathList.Count - 1);
+		set => _currentSongIndex = value.Clamp(-1, SongPaths.Count - 1);
 	}
-	[JsonIgnore]
+
 	public SongEntry? CurrentSongEntry
 	{
 		get
 		{
-			try
-			{
-				return PathList[CurrentSongIndex];
+			if (CurrentSongIndex < 0) {
+				return null;
 			}
-			catch (Exception e)
-			{
+
+			try {
+				return SongPaths[CurrentSongIndex];
+			}
+			catch (Exception e) {
 				return null;
 			}
 		}
 	}
 
-	public PlaylistEntry Clone() => this.JsonSerialize().JsonDeserialize<PlaylistEntry>();
+	public PlaylistContainer Clone() => this.ProtoDeepClone();
 }
 
 [ProtoContract]
 public class SongEntry
 {
-	[ProtoMember(1)]
-	public string FilePath;
-	[JsonIgnore]
-	private string _name;
-	[JsonIgnore]
-	public string FileName => _name ??= Path.GetFileNameWithoutExtension(FilePath);
+	[ProtoMember(1)] public string FilePath;
+	[JsonIgnore] private string _name;
+	[JsonIgnore] public string FileName => _name ??= Path.GetFileNameWithoutExtension(FilePath);
 }

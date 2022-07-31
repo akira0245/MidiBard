@@ -112,6 +112,14 @@ public static class ImGuiUtil
 	public static void PushIconButtonSize(Vector2 size) => IconButtonSize.Push(size);
 	public static void PopIconButtonSize() => IconButtonSize.TryPop(out _);
 
+	public static Vector2 GetIconButtonSize(FontAwesomeIcon icon)
+	{
+		PushFont(UiBuilder.IconFont);
+		var size = ImGui.CalcTextSize(icon.ToIconString());
+		PopFont();
+		return size;
+	}
+
 	public static bool IconButton(FontAwesomeIcon icon, string? id = null, string tooltip = null, uint? color = null)
 	{
 		PushFont(UiBuilder.IconFont);

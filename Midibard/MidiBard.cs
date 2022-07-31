@@ -93,18 +93,16 @@ public class MidiBard : IDalamudPlugin
         }
 
         TryLoadConfig();
+
+        //migrate old playlist
+        if (MidiBard.config.Playlist.Any()) {
+	        PlaylistManager.CurrentContainer.SongPaths.AddRange(MidiBard.config.Playlist.Select(i=> new SongEntry(){FilePath = i}));
+            MidiBard.config.Playlist.Clear();
+        }
+        
         ConfigureLanguage(GetCultureCodeString((CultureCode)config.uiLang));
 
  
-
-
-
-
-
-
-
-
-
         IpcManager = new IPCManager();
         PartyWatcher = new PartyWatcher();
 
@@ -321,6 +319,9 @@ public class MidiBard : IDalamudPlugin
     {
 	    English,
 	    简体中文,
+        //繁體中文,
+        //日本語,
+        //Deutsch,
     }
 
     public static string GetCultureCodeString(CultureCode culture)
@@ -329,6 +330,9 @@ public class MidiBard : IDalamudPlugin
 	    {
 		    CultureCode.English => "en",
 		    CultureCode.简体中文 => "zh-Hans",
+		    //CultureCode.繁體中文 => "zh-Hant",
+		    //CultureCode.日本語 => "ja",
+		    //CultureCode.Deutsch => "de",
 		    _ => null
 	    };
     }
@@ -381,7 +385,7 @@ public class MidiBard : IDalamudPlugin
             InputDeviceManager.ShouldScanMidiDeviceThread = false;
             api.Framework.Update -= OnFrameworkUpdate;
             api.PluginInterface.UiBuilder.Draw -= Ui.Draw;
-            PlaylistContainerManager.Container.Save();
+            PlaylistManager.CurrentContainer.Save();
 
             EnsembleManager.Dispose();
             PartyWatcher.Dispose();

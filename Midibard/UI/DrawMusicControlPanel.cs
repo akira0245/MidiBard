@@ -47,20 +47,20 @@ public partial class PluginUI
 		SliderProgress();
 
 		var itemWidth = ImGuiHelpers.GlobalScale * 100;
-		if (InputFloat(setting_label_set_play_speed, ref MidiBard.config.playSpeed, 0.1f, 0.5f, GetBpmString(), ImGuiInputTextFlags.AutoSelectAll)) SetSpeed();
+		if (InputFloat(setting_label_set_play_speed, ref MidiBard.config.PlaySpeed, 0.1f, 0.5f, GetBpmString(), ImGuiInputTextFlags.AutoSelectAll)) SetSpeed();
 		if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right))
 		{
-			MidiBard.config.playSpeed = 1;
+			MidiBard.config.PlaySpeed = 1;
 			SetSpeed();
 		}
 		ToolTip(setting_tooltip_set_speed);
 
 		//-------------------
 		SetNextItemWidth(itemWidth);
-		if (InputFloat(setting_label_song_delay, ref MidiBard.config.secondsBetweenTracks, 0.5f, 0.5f, $" {MidiBard.config.secondsBetweenTracks:f2} s", ImGuiInputTextFlags.AutoSelectAll))
-			MidiBard.config.secondsBetweenTracks = Math.Max(0, MidiBard.config.secondsBetweenTracks);
+		if (InputFloat(setting_label_song_delay, ref MidiBard.config.SecondsBetweenTracks, 0.5f, 0.5f, $" {MidiBard.config.SecondsBetweenTracks:f2} s", ImGuiInputTextFlags.AutoSelectAll))
+			MidiBard.config.SecondsBetweenTracks = Math.Max(0, MidiBard.config.SecondsBetweenTracks);
 		if (IsItemHovered() && IsMouseClicked(ImGuiMouseButton.Right))
-			MidiBard.config.secondsBetweenTracks = 3;
+			MidiBard.config.SecondsBetweenTracks = 3;
 		ToolTip(setting_tooltip_song_delay);
 		//-------------------
 		SameLine(ImGuiUtil.GetWindowContentRegionWidth() / 2f);
@@ -88,11 +88,11 @@ public partial class PluginUI
 
 	private static void SetSpeed()
 	{
-		MidiBard.config.playSpeed = MidiBard.config.playSpeed.Clamp(0.1f, 10f);
+		MidiBard.config.PlaySpeed = MidiBard.config.PlaySpeed.Clamp(0.1f, 10f);
 		var currenttime = MidiBard.CurrentPlayback?.GetCurrentTime(TimeSpanType.Midi);
 		if (currenttime is not null)
 		{
-			MidiBard.CurrentPlayback.Speed = MidiBard.config.playSpeed;
+			MidiBard.CurrentPlayback.Speed = MidiBard.config.PlaySpeed;
 			MidiBard.CurrentPlayback?.MoveToTime(currenttime);
 		}
 	}
@@ -106,9 +106,9 @@ public partial class PluginUI
 			bpm = MidiBard.CurrentPlayback?.TempoMap?.GetTempoAtTime(currentTime);
 		}
 
-		var label = $" {MidiBard.config.playSpeed:F2}";
+		var label = $" {MidiBard.config.PlaySpeed:F2}";
 
-		if (bpm != null) label += $" ({bpm.BeatsPerMinute * MidiBard.config.playSpeed:F1} bpm)";
+		if (bpm != null) label += $" ({bpm.BeatsPerMinute * MidiBard.config.PlaySpeed:F1} bpm)";
 		return label;
 	}
 

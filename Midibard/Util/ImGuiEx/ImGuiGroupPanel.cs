@@ -61,10 +61,13 @@ namespace MidiBard.Util
 			ImGui.PushItemWidth(Math.Max(0.0f, itemWidth - frameHeight));
 
 			s_GroupPanelLabelStack.Push(new RectF(labelMin, labelMax));
+
+			ImGui.PushTextWrapPos(igGetContentRegionMax()->X);
 		}
 
 		public static unsafe void EndGroupPanel()
 		{
+			ImGui.PopTextWrapPos();
 			ImGui.PopItemWidth();
 
 			var itemSpacing = ImGui.GetStyle().ItemSpacing;

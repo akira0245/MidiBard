@@ -26,7 +26,6 @@ public partial class PluginUI
 
 	private unsafe void DrawSettingsWindow()
 	{
-
 		//var itemWidth = ImGuiHelpers.GlobalScale * 100;
 		//SameLine(ImGuiUtil.GetWindowContentRegionWidth() / 2);
 
@@ -38,7 +37,8 @@ public partial class PluginUI
 			//Checkbox(Low_latency_mode, ref MidiBard.config.LowLatencyMode);
 			//ImGuiUtil.ToolTip(low_latency_mode_tooltip);
 
-			ImGui.Checkbox(setting_label_auto_set_background_frame_limit, ref MidiBard.config.AutoSetBackgroundFrameLimit);
+			ImGui.Checkbox(setting_label_auto_set_background_frame_limit,
+				ref MidiBard.config.AutoSetBackgroundFrameLimit);
 			ImGuiUtil.ToolTip(setting_tooltip_auto_set_background_frame_limit);
 
 			//ImGui.Checkbox(checkbox_auto_restart_listening, ref MidiBard.config.autoRestoreListening);
@@ -48,28 +48,24 @@ public partial class PluginUI
 			//ImGui.Checkbox("Auto listening new device".Localize(), ref MidiBard.config.autoStartNewListening);
 			//ImGuiUtil.ToolTip("Auto start listening new midi input device when idle.".Localize());
 
-			ColorEdit4(setting_label_theme_color, ref MidiBard.config.themeColor, ImGuiColorEditFlags.AlphaPreview | ImGuiColorEditFlags.AlphaBar);
+			ColorEdit4(setting_label_theme_color, ref MidiBard.config.themeColor,
+				ImGuiColorEditFlags.AlphaPreview | ImGuiColorEditFlags.AlphaBar);
 			//ImGuiUtil.ColorPickerButton(1000, label_theme_color, ref MidiBard.config.themeColor,
 			//	ImGuiColorEditFlags.AlphaPreview | ImGuiColorEditFlags.AlphaBar);
 			//if (ImGui.ColorEdit4("Theme color".Localize(), ref MidiBard.config.themeColor,
 			//	ImGuiColorEditFlags.AlphaPreview | ImGuiColorEditFlags.AlphaBar | ImGuiColorEditFlags.NoInputs))
 
-			if (IsItemClicked(ImGuiMouseButton.Right))
-			{
+			if (IsItemClicked(ImGuiMouseButton.Right)) {
 				var @in = 0xFFFFA8A8;
 				MidiBard.config.themeColor = ColorConvertU32ToFloat4(@in);
 			}
 
-			if (Combo(setting_label_select_ui_language, ref MidiBard.config.uiLang, uilangStrings, uilangStrings.Length))
-			{
+			if (Combo(setting_label_select_ui_language, ref MidiBard.config.uiLang, uilangStrings,
+				    uilangStrings.Length)) {
 				MidiBard.ConfigureLanguage(MidiBard.GetCultureCodeString((MidiBard.CultureCode)MidiBard.config.uiLang));
 			}
-
 		}
 		ImGuiGroupPanel.EndGroupPanel();
-
-
-
 
 
 		ImGuiGroupPanel.BeginGroupPanel(setting_group_label_ensemble_settings);
@@ -77,22 +73,23 @@ public partial class PluginUI
 		Checkbox(setting_label_sync_clients, ref MidiBard.config.SyncClients);
 		ImGuiUtil.ToolTip(setting_tooltip_sync_clients);
 
-		SameLine(ImGuiUtil.GetWindowContentRegionWidth() - 2f*GetFrameHeight());
-		if (ImGuiUtil.IconButton((FontAwesomeIcon)0xF362, "syncbtn", icon_button_tooltip_sync_settings))
-		{
+		SameLine(ImGuiUtil.GetWindowContentRegionWidth() - GetFrameHeightWithSpacing() - ImGuiUtil.GetIconButtonSize((FontAwesomeIcon)0xF362).X);
+		if (ImGuiUtil.IconButton((FontAwesomeIcon)0xF362, "syncbtn", icon_button_tooltip_sync_settings)) {
 			IPCHandles.SyncAllSettings();
+			IPCHandles.SyncPlaylist();
 		}
 
 		Checkbox(setting_label_monitor_ensemble, ref MidiBard.config.MonitorOnEnsemble);
 		ImGuiUtil.ToolTip(setting_tooltip_monitor_ensemble);
 
-		ImGui.Checkbox(ensemble_config_Draw_ensemble_progress_indicator_on_visualizer, ref MidiBard.config.UseEnsembleIndicator);
+		ImGui.Checkbox(ensemble_config_Draw_ensemble_progress_indicator_on_visualizer,
+			ref MidiBard.config.UseEnsembleIndicator);
 
 		Spacing();
 		TextUnformatted(ensemble_config_Ensemble_indicator_delay);
 		Spacing();
-		ImGui.DragFloat("##" + ensemble_config_Ensemble_indicator_delay, ref MidiBard.config.EnsembleIndicatorDelay, 0.01f, -10, 0,
-			$"{MidiBard.config.EnsembleIndicatorDelay:F3}s");
+		ImGui.DragFloat("##" + ensemble_config_Ensemble_indicator_delay, ref MidiBard.config.EnsembleIndicatorDelay,
+			0.01f, -10, 0, $"{MidiBard.config.EnsembleIndicatorDelay:F3}s");
 
 		ImGuiGroupPanel.EndGroupPanel();
 
@@ -101,7 +98,8 @@ public partial class PluginUI
 		Checkbox(setting_label_auto_switch_instrument_bmp, ref MidiBard.config.bmpTrackNames);
 		ImGuiUtil.ToolTip(setting_tooltip_auto_switch_transpose_instrument_bmp_trackname);
 
-		ImGui.Checkbox(setting_label_auto_switch_instrument_by_file_name, ref MidiBard.config.autoSwitchInstrumentBySongName);
+		ImGui.Checkbox(setting_label_auto_switch_instrument_by_file_name,
+			ref MidiBard.config.autoSwitchInstrumentBySongName);
 		ImGuiUtil.ToolTip(setting_tooltip_label_auto_switch_instrument_by_file_name);
 
 		Checkbox(setting_label_auto_transpose_by_file_name, ref MidiBard.config.autoTransposeBySongName);

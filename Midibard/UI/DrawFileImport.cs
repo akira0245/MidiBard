@@ -47,43 +47,39 @@ public partial class PluginUI
 
             if (MidiBard.config.useLegacyFileDialog)
             {
-                RunImportFolderTaskImGui();
+                RunImportFolderTaskWin32();
             }
             else
             {
-                RunImportFolderTaskWin32();
+                RunImportFolderTaskImGui();
             }
         }
     }
 
+
     private void RunImportFileTaskWin32()
     {
-        var b = new Browse((result, filePaths) =>
+        FileDialogs.OpenMidiFileDialog((result, filePaths) =>
         {
-            if (result == true)
-            {
-                Task.Run(async () =>
-                {
-                    try
-                    {
-                        await PlaylistManager.AddAsync(filePaths);
-                    }
-                    finally
-                    {
-                        IsImportRunning = false;
-                    }
-                });
-            }
-            else
-            {
-                IsImportRunning = false;
-            }
+	        if (result == true)
+	        {
+		        Task.Run(async () =>
+		        {
+			        try
+			        {
+				        await PlaylistManager.AddAsync(filePaths);
+			        }
+			        finally
+			        {
+				        IsImportRunning = false;
+			        }
+		        });
+	        }
+	        else
+	        {
+		        IsImportRunning = false;
+	        }
         });
-
-        var t = new Thread(b.BrowseDLL);
-        t.IsBackground = true;
-        t.SetApartmentState(ApartmentState.STA);
-        t.Start();
     }
 
     private void RunImportFileTaskImGui()
@@ -112,7 +108,7 @@ public partial class PluginUI
         }, 0);
     }
 
-    private void RunImportFolderTaskWin32()
+    private void RunImportFolderTaskImGui()
     {
         fileDialogManager.OpenFolderDialog("Open folder", (b, filePath) =>
         {
@@ -139,38 +135,33 @@ public partial class PluginUI
         });
     }
 
-    private void RunImportFolderTaskImGui()
+    private void RunImportFolderTaskWin32()
     {
-        var b = new BrowseFolder((result, filePath) =>
+        FileDialogs.FolderPicker((result, folderPath) =>
         {
-            if (result == true)
-            {
-                Task.Run(async () =>
-                {
-                    if (Directory.Exists(filePath))
-                    {
-                        try
-                        {
-                            var files = Directory.GetFiles(filePath, "*.mid", SearchOption.AllDirectories);
-                            await PlaylistManager.AddAsync(files);
-                        }
-                        finally
-                        {
-                            IsImportRunning = false;
-                        }
-                    }
-                });
-            }
-            else
-            {
-                IsImportRunning = false;
-            }
+	        if (result == true)
+	        {
+		        Task.Run(async () =>
+		        {
+			        if (Directory.Exists(folderPath))
+			        {
+				        try
+				        {
+					        var files = Directory.GetFiles(folderPath, "*.mid", SearchOption.AllDirectories);
+					        await PlaylistManager.AddAsync(files);
+				        }
+				        finally
+				        {
+					        IsImportRunning = false;
+				        }
+			        }
+		        });
+	        }
+	        else
+	        {
+		        IsImportRunning = false;
+	        }
         });
-
-        var t = new Thread(b.Browse);
-        t.IsBackground = true;
-        t.SetApartmentState(ApartmentState.STA);
-        t.Start();
     }
     
     public bool IsImportRunning { get; private set; }

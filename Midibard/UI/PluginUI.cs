@@ -34,6 +34,7 @@ using MidiBard.IPC;
 using MidiBard.Managers;
 using MidiBard.Managers.Ipc;
 using MidiBard.Resources;
+using MidiBard.UI.Win32;
 using MidiBard.Util;
 using Newtonsoft.Json;
 using static ImGuiNET.ImGui;
@@ -93,6 +94,7 @@ public partial class PluginUI
 			DrawEnsembleControl();
 		}
 	}
+	
 
 	private void DrawMainPluginWindow()
 	{

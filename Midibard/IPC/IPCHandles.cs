@@ -66,36 +66,36 @@ static class IPCHandles
 	public static void SyncPlaylist()
 	{
 		var ipcEnvelope = IPCEnvelope.Create(MessageTypeCode.SyncPlaylist);
-		ipcEnvelope.PlaylistContainer = PlaylistContainerManager.Container;
+		ipcEnvelope.PlaylistContainer = PlaylistManager.CurrentContainer;
 		ipcEnvelope.BroadCast();
 	}
 
 	[IPCHandle(MessageTypeCode.SyncPlaylist)]
 	private static void HandleSyncPlaylist(IPCEnvelope message)
 	{
-		PlaylistContainerManager.Container = message.PlaylistContainer;
+		PlaylistManager.SetContainerPrivate(message.PlaylistContainer);
 	}
 
-	public static void SyncPlayStatus(bool loadPlayback)
-	{
-		var status = (PlaylistContainerManager.CurrentPlaylistIndex, PlaylistManager.CurrentSongIndex, loadPlayback);
-		var ipcEnvelope = IPCEnvelope.Create(MessageTypeCode.SyncPlayStatus, status);
-		ipcEnvelope.BroadCast();
-	}
+	//public static void SyncPlayStatus(bool loadPlayback)
+	//{
+	//	var status = (PlaylistContainerManager.CurrentPlaylistIndex, PlaylistManager.CurrentSongIndex, loadPlayback);
+	//	var ipcEnvelope = IPCEnvelope.Create(MessageTypeCode.SyncPlayStatus, status);
+	//	ipcEnvelope.BroadCast();
+	//}
 
-	[IPCHandle(MessageTypeCode.SyncPlayStatus)]
-	private static void HandleSyncPlayStatus(IPCEnvelope message)
-	{
-		var (playlistIndex, songIndex, loadPlayback) = message.DataStruct<(int,int,bool)>();
-		var container = PlaylistContainerManager.Container;
-		container.CurrentListIndex = playlistIndex;
-		container.CurrentPlaylist.CurrentSongIndex = songIndex;
+	//[IPCHandle(MessageTypeCode.SyncPlayStatus)]
+	//private static void HandleSyncPlayStatus(IPCEnvelope message)
+	//{
+	//	var (playlistIndex, songIndex, loadPlayback) = message.DataStruct<(int,int,bool)>();
+	//	var container = PlaylistContainerManager.Container;
+	//	container.CurrentListIndex = playlistIndex;
+	//	container.CurrentPlaylist.CurrentSongIndex = songIndex;
 
-		if (loadPlayback)
-		{
-			PlaylistManager.LoadPlayback(null, false, false);
-		}
-	}
+	//	if (loadPlayback)
+	//	{
+	//		PlaylistManager.LoadPlayback(null, false, false);
+	//	}
+	//}
 
 	public static void RemoveTrackIndex(int playlistIndex, int index)
 	{
@@ -136,16 +136,19 @@ static class IPCHandles
 		}
 	}
 
-	//public static void LoadPlayback(int index)
-	//{
-	//	if (!api.PartyList.IsPartyLeader()) return;
-	//	IPCEnvelope.Create(MessageTypeCode.LoadPlaybackIndex, index).BroadCast();
-	//}
-	//[IPCHandle(MessageTypeCode.LoadPlaybackIndex)]
-	//private static void HandleLoadPlayback(IPCEnvelope message)
-	//{
-	//	FilePlayback.LoadPlayback(message.DataStruct<int>(), false, false);
-	//}
+	public static void LoadPlayback(int index)
+	{
+		IPCEnvelope.Create(MessageTypeCode.LoadPlaybackIndex, index).BroadCast();
+	}
+
+	[IPCHandle(MessageTypeCode.LoadPlaybackIndex)]
+	private static void HandleLoadPlayback(IPCEnvelope message)
+	{
+		var index = message.DataStruct<int>();
+		PlaylistManager.CurrentContainer.CurrentSongIndex = index;
+
+		PlaylistManager.LoadPlayback(null, false, false);
+	}
 
 	public static void UpdateInstrument(bool takeout)
 	{

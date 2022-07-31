@@ -223,24 +223,6 @@ namespace MidiBard.Resources {
         }
         
         /// <summary>
-        ///   查找类似 Clone current playlist 的本地化字符串。
-        /// </summary>
-        internal static string icon_button_tooltip_clone_current_playlist {
-            get {
-                return ResourceManager.GetString("icon button tooltip clone current playlist", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Double click to delete current playlist 的本地化字符串。
-        /// </summary>
-        internal static string icon_button_tooltip_delete_current_playlist {
-            get {
-                return ResourceManager.GetString("icon button tooltip delete current playlist", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 Ensemble panel 的本地化字符串。
         /// </summary>
         internal static string icon_button_tooltip_ensemble_panel {
@@ -271,7 +253,7 @@ namespace MidiBard.Resources {
         /// <summary>
         ///   查找类似 Import folder
         ///Imports all midi files in selected folder and it&apos;s all subfolders.
-        ///This may take a while when you select a folder that contains multiple layers of folders. 的本地化字符串。
+        ///This may take a while when you select a folder that contains multiple layers of subfolders. 的本地化字符串。
         /// </summary>
         internal static string icon_button_tooltip_import_folder {
             get {
@@ -298,29 +280,11 @@ namespace MidiBard.Resources {
         }
         
         /// <summary>
-        ///   查找类似 New playlist 的本地化字符串。
+        ///   查找类似 Show playlist menu 的本地化字符串。
         /// </summary>
-        internal static string icon_button_tooltip_new_playlist {
+        internal static string icon_button_tooltip_playlist_menu {
             get {
-                return ResourceManager.GetString("icon button tooltip new playlist", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Save and sync 的本地化字符串。
-        /// </summary>
-        internal static string icon_button_tooltip_save_and_sync_playlist {
-            get {
-                return ResourceManager.GetString("icon button tooltip save and sync playlist", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Save current search result as new playlist 的本地化字符串。
-        /// </summary>
-        internal static string icon_button_tooltip_save_search_as_playlist {
-            get {
-                return ResourceManager.GetString("icon button tooltip save search as playlist", resourceCulture);
+                return ResourceManager.GetString("icon button tooltip playlist menu", resourceCulture);
             }
         }
         
@@ -339,15 +303,6 @@ namespace MidiBard.Resources {
         internal static string icon_button_tooltip_settings_panel {
             get {
                 return ResourceManager.GetString("icon button tooltip settings panel", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Show playlist selector 的本地化字符串。
-        /// </summary>
-        internal static string icon_button_tooltip_show_playlist_selector {
-            get {
-                return ResourceManager.GetString("icon button tooltip show playlist selector", resourceCulture);
             }
         }
         
@@ -385,6 +340,150 @@ namespace MidiBard.Resources {
         internal static string imgui_file_dialog {
             get {
                 return ResourceManager.GetString("imgui file dialog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Chinese Simplified 的本地化字符串。
+        /// </summary>
+        internal static string language_chs {
+            get {
+                return ResourceManager.GetString("language chs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Chinese Traditional 的本地化字符串。
+        /// </summary>
+        internal static string language_cht {
+            get {
+                return ResourceManager.GetString("language cht", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 English 的本地化字符串。
+        /// </summary>
+        internal static string language_english {
+            get {
+                return ResourceManager.GetString("language english", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 German 的本地化字符串。
+        /// </summary>
+        internal static string language_german {
+            get {
+                return ResourceManager.GetString("language german", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Japanese 的本地化字符串。
+        /// </summary>
+        internal static string language_japanese {
+            get {
+                return ResourceManager.GetString("language japanese", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Load 的本地化字符串。
+        /// </summary>
+        internal static string menu_item_load_playlist {
+            get {
+                return ResourceManager.GetString("menu item load playlist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Open in file explorer 的本地化字符串。
+        /// </summary>
+        internal static string menu_item_open_in_file_explorer {
+            get {
+                return ResourceManager.GetString("menu item open in file explorer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Open in text editor 的本地化字符串。
+        /// </summary>
+        internal static string menu_item_open_in_text_editor {
+            get {
+                return ResourceManager.GetString("menu item open in text editor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Remove from recent list 的本地化字符串。
+        /// </summary>
+        internal static string menu_item_remove_from_recent_list {
+            get {
+                return ResourceManager.GetString("menu item remove from recent list", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Save current playlist as... 的本地化字符串。
+        /// </summary>
+        internal static string menu_label_clone_current_playlist {
+            get {
+                return ResourceManager.GetString("menu label clone current playlist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Create a new playlist 的本地化字符串。
+        /// </summary>
+        internal static string menu_label_new_playlist {
+            get {
+                return ResourceManager.GetString("menu label new playlist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Open playlist 的本地化字符串。
+        /// </summary>
+        internal static string menu_label_open_playlist {
+            get {
+                return ResourceManager.GetString("menu label open playlist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Save playlist 的本地化字符串。
+        /// </summary>
+        internal static string menu_label_save_playlist {
+            get {
+                return ResourceManager.GetString("menu label save playlist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Save playlist search results as... 的本地化字符串。
+        /// </summary>
+        internal static string menu_label_save_search_as_playlist {
+            get {
+                return ResourceManager.GetString("menu label save search as playlist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Sync playlist between clients 的本地化字符串。
+        /// </summary>
+        internal static string menu_label_sync_playlist {
+            get {
+                return ResourceManager.GetString("menu label sync playlist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Recent playlists 的本地化字符串。
+        /// </summary>
+        internal static string menu_text_recent_playlist {
+            get {
+                return ResourceManager.GetString("menu text recent playlist", resourceCulture);
             }
         }
         
@@ -866,6 +965,15 @@ namespace MidiBard.Resources {
         }
         
         /// <summary>
+        ///   查找类似 (Copy) 的本地化字符串。
+        /// </summary>
+        internal static string text_file_copy {
+            get {
+                return ResourceManager.GetString("text file copy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Import in progress... 的本地化字符串。
         /// </summary>
         internal static string text_Import_in_progress {
@@ -880,6 +988,24 @@ namespace MidiBard.Resources {
         internal static string text_listening_midi_device {
             get {
                 return ResourceManager.GetString("text listening midi device", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Midibard playlist 的本地化字符串。
+        /// </summary>
+        internal static string text_midibard_playlist {
+            get {
+                return ResourceManager.GetString("text midibard playlist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 New playlist 的本地化字符串。
+        /// </summary>
+        internal static string text_new_playlist {
+            get {
+                return ResourceManager.GetString("text new playlist", resourceCulture);
             }
         }
         
@@ -997,6 +1123,15 @@ namespace MidiBard.Resources {
         internal static string w32_file_dialog {
             get {
                 return ResourceManager.GetString("w32 file dialog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Choose new playlist save location 的本地化字符串。
+        /// </summary>
+        internal static string window_title_choose_new_playlist_save_location {
+            get {
+                return ResourceManager.GetString("window title choose new playlist save location", resourceCulture);
             }
         }
         

@@ -309,18 +309,6 @@ MIDIBARD只会演奏被选中的音轨
   <data name="play mode single repeat" xml:space="preserve">
     <value>单曲循环</value>
   </data>
-  <data name="icon button tooltip delete current playlist" xml:space="preserve">
-    <value>双击删除当前播放列表</value>
-  </data>
-  <data name="icon button tooltip save and sync playlist" xml:space="preserve">
-    <value>保存并同步播放列表状态</value>
-  </data>
-  <data name="icon button tooltip save search as playlist" xml:space="preserve">
-    <value>保存当前播放列表搜索结果为新的播放列表</value>
-  </data>
-  <data name="icon button tooltip clone current playlist" xml:space="preserve">
-    <value>克隆当前播放列表</value>
-  </data>
   <data name="text Import in progress" xml:space="preserve">
     <value>正在导入...</value>
   </data>
@@ -373,11 +361,8 @@ MIDIBARD只会演奏被选中的音轨
   <data name="window title standalone playlist" xml:space="preserve">
     <value>MidiBard 播放列表</value>
   </data>
-  <data name="icon button tooltip show playlist selector" xml:space="preserve">
-    <value>显示播放列表选择窗口</value>
-  </data>
-  <data name="icon button tooltip new playlist" xml:space="preserve">
-    <value>新建播放列表</value>
+  <data name="icon button tooltip playlist menu" xml:space="preserve">
+    <value>显示播放列表菜单</value>
   </data>
   <data name="setting label standalone playlist window" xml:space="preserve">
     <value>独立播放列表窗口</value>
@@ -450,5 +435,65 @@ MIDIBARD只会演奏被选中的音轨
   </data>
   <data name="setting tooltip sync clients" xml:space="preserve">
     <value>允许MIDIBARD在这台电脑上正在运行的FFXIV客户端间同步数据</value>
+  </data>
+  <data name="language english" xml:space="preserve">
+    <value>英語</value>
+  </data>
+  <data name="language chs" xml:space="preserve">
+    <value>简体中文</value>
+  </data>
+  <data name="language cht" xml:space="preserve">
+    <value>繁体中文</value>
+  </data>
+  <data name="language japanese" xml:space="preserve">
+    <value>日语</value>
+  </data>
+  <data name="language german" xml:space="preserve">
+    <value>德语</value>
+  </data>
+  <data name="menu label sync playlist" xml:space="preserve">
+    <value>同步播放列表</value>
+  </data>
+  <data name="menu label save search as playlist" xml:space="preserve">
+    <value>保存播放列表搜索结果为…</value>
+  </data>
+  <data name="menu label new playlist" xml:space="preserve">
+    <value>新建播放列表</value>
+  </data>
+  <data name="menu label clone current playlist" xml:space="preserve">
+    <value>将当前播放列表另存为…</value>
+  </data>
+  <data name="menu label open playlist" xml:space="preserve">
+    <value>打开播放列表</value>
+  </data>
+  <data name="menu label save playlist" xml:space="preserve">
+    <value>保存播放列表</value>
+  </data>
+  <data name="menu text recent playlist" xml:space="preserve">
+    <value>最近使用的播放列表</value>
+  </data>
+  <data name="text file copy" xml:space="preserve">
+    <value>(副本)</value>
+  </data>
+  <data name="text midibard playlist" xml:space="preserve">
+    <value>Midibard 播放列表</value>
+  </data>
+  <data name="window title choose new playlist save location" xml:space="preserve">
+    <value>选择新播放列表保存位置</value>
+  </data>
+  <data name="text new playlist" xml:space="preserve">
+    <value>新建播放列表</value>
+  </data>
+  <data name="menu item load playlist" xml:space="preserve">
+    <value>加载</value>
+  </data>
+  <data name="menu item open in file explorer" xml:space="preserve">
+    <value>在文件资源管理器中打开</value>
+  </data>
+  <data name="menu item open in text editor" xml:space="preserve">
+    <value>在文本编辑器中打开</value>
+  </data>
+  <data name="menu item remove from recent list" xml:space="preserve">
+    <value>从最近使用中移除</value>
   </data>
 </root>
