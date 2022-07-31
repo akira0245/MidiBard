@@ -1,0 +1,468 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="language english" xml:space="preserve">
+    <value>Englisch</value>
+  </data>
+  <data name="language chs" xml:space="preserve">
+    <value>Chinesisch (Vereinfacht)</value>
+  </data>
+  <data name="language cht" xml:space="preserve">
+    <value>Chinesisch (Traditionell)</value>
+  </data>
+  <data name="language japanese" xml:space="preserve">
+    <value>Japanisch</value>
+  </data>
+  <data name="language german" xml:space="preserve">
+    <value>Deutsch</value>
+  </data>
+  <data name="menu label sync playlist" xml:space="preserve">
+    <value>Speichern und synchronisieren</value>
+  </data>
+  <data name="menu label save search as playlist" xml:space="preserve">
+    <value>Aktuelles Suchergebnis als neue Wiedergabeliste speichern</value>
+  </data>
+  <data name="menu label new playlist" xml:space="preserve">
+    <value>Neue Playlist</value>
+  </data>
+  <data name="menu label clone current playlist" xml:space="preserve">
+    <value>Aktuelle Wiedergabeliste klonen</value>
+  </data>
+  <data name="icon button tooltip import file" xml:space="preserve">
+    <value>Midi-Datei importieren
+Klicken Sie mit der rechten Maustaste, um den Dateidialogtyp auszuwählen</value>
+  </data>
+  <data name="icon button tooltip import folder" xml:space="preserve">
+    <value>Ordner importieren
+Importiert alle Midi-Dateien in den ausgewählten Ordner und es sind alle Unterordner.
+Dies kann eine Weile dauern, wenn Sie einen Ordner auswählen, der mehrere Ebenen von Unterordnern enthält.</value>
+  </data>
+  <data name="icon button tooltip clear playlist" xml:space="preserve">
+    <value>Wiedergabeliste löschen</value>
+  </data>
+  <data name="setting label select ui language" xml:space="preserve">
+    <value>Sprache</value>
+  </data>
+  <data name="setting tooltip language" xml:space="preserve">
+    <value>Ändern der Midibar-Benutzeroberflächensprache</value>
+  </data>
+  <data name="icon button tooltip help" xml:space="preserve">
+    <value>Hilfe</value>
+  </data>
+  <data name="text ensemble mode running" xml:space="preserve">
+    <value>Laufender Ensemble-Modus</value>
+  </data>
+  <data name="text playlist is empty" xml:space="preserve">
+    <value>Importieren Sie Midi-Dateien, um mit der Leistung zu beginnen!</value>
+  </data>
+  <data name="text tracks in playlist" xml:space="preserve">
+    <value>{0} Tracks in der aktuellen Playlist.</value>
+  </data>
+  <data name="text current playing" xml:space="preserve">
+    <value>Spielen:</value>
+  </data>
+  <data name="play mode random" xml:space="preserve">
+    <value>Zufällig</value>
+  </data>
+  <data name="play mode list ordered" xml:space="preserve">
+    <value>Liste geordnet</value>
+  </data>
+  <data name="play mode list repeat" xml:space="preserve">
+    <value>Liste wiederholen</value>
+  </data>
+  <data name="play mode single repeat" xml:space="preserve">
+    <value>Einzelne Wiederholung</value>
+  </data>
+  <data name="text select playmode" xml:space="preserve">
+    <value>Spielmodus:</value>
+  </data>
+  <data name="play mode single" xml:space="preserve">
+    <value>Ledig</value>
+  </data>
+  <data name="icon button tooltip music control panel" xml:space="preserve">
+    <value>Musik-Bedienfeld</value>
+  </data>
+  <data name="icon button tooltip settings panel" xml:space="preserve">
+    <value>Bedienfeld "Einstellungen"</value>
+  </data>
+  <data name="icon button tooltip mini player" xml:space="preserve">
+    <value>Mini-Player</value>
+  </data>
+  <data name="window tooltip track selection" xml:space="preserve">
+    <value>Track-Auswahl
+MidiBard führt nur aktivierte Tracks durch
+Linksklick, um einen Track zu aktivieren/deaktivieren, Rechtsklick, um ihn solo zu schalten</value>
+  </data>
+  <data name="setting label transpose all" xml:space="preserve">
+    <value>Transponieren</value>
+  </data>
+  <data name="setting label auto adapt notes" xml:space="preserve">
+    <value>Notizen automatisch anpassen</value>
+  </data>
+  <data name="setting tooltip auto adapt notes" xml:space="preserve">
+    <value>Passen Sie hohe / tiefe Noten, wenn sie außerhalb des Bereichs liegen, in 3 Oktaven an, die wir spielen können</value>
+  </data>
+  <data name="setting label set progress" xml:space="preserve">
+    <value>Fortschritt</value>
+  </data>
+  <data name="setting label set play speed" xml:space="preserve">
+    <value>Spielgeschwindigkeit</value>
+  </data>
+  <data name="setting label monitor ensemble" xml:space="preserve">
+    <value>Monitor-Ensemble</value>
+  </data>
+  <data name="setting tooltip monitor ensemble" xml:space="preserve">
+    <value>Automatischer Start des Ensembles beim Wechsel in den Party-Ensemble-Modus im Spiel</value>
+  </data>
+  <data name="setting label auto open MidiBard" xml:space="preserve">
+    <value>MidiBard automatisch öffnen</value>
+  </data>
+  <data name="setting tooltip auto open MidiBardTooltip" xml:space="preserve">
+    <value>Automatisches Öffnen oder Schließen des MidiBard-Fensters beim Wechseln/Beenden des Leistungsmodus</value>
+  </data>
+  <data name="text Import in progress" xml:space="preserve">
+    <value>Import in Bearbeitung...</value>
+  </data>
+  <data name="setting label select instrument" xml:space="preserve">
+    <value>Instrument</value>
+  </data>
+  <data name="setting label auto switch instrument by file name" xml:space="preserve">
+    <value>Auto-Switch-Instrument (Dateiname)</value>
+  </data>
+  <data name="setting label auto transpose by file name" xml:space="preserve">
+    <value>Automatische Transponierung (Dateiname)</value>
+  </data>
+  <data name="setting tooltip label auto switch instrument by file name" xml:space="preserve">
+    <value>Auto-Switch-Instrument auf Anfrage. Wenn Sie dies benötigen, 
+Bitte fügen Sie #instrument Name# vor Dateiname hinzu. 
+Z.B. #harp#demo.mid</value>
+  </data>
+  <data name="setting tooltip auto transpose by file name" xml:space="preserve">
+    <value>Automatische Umsetzung von Notizen bei Bedarf. Wenn Sie dies benötigen, 
+Bitte fügen Sie #transpose Zahl# vor dem Dateinamen hinzu. 
+Z.B. #-12#demo.mid</value>
+  </data>
+  <data name="setting tooltip transpose all" xml:space="preserve">
+    <value>Transponieren, gemessen am Halbton. 
+Klicken Sie mit der rechten Maustaste, um sie zurückzusetzen.</value>
+  </data>
+  <data name="setting tooltip set speed" xml:space="preserve">
+    <value>Festlegen der Geschwindigkeit der Wiedergabe von Ereignissen</value>
+  </data>
+  <data name="setting tooltip set progress" xml:space="preserve">
+    <value>Legen Sie den Spielfortschritt fest 
+Klicken Sie mit der rechten Maustaste, um die aktuelle Wiedergabe neu zu starten</value>
+  </data>
+  <data name="setting tooltip select instrument" xml:space="preserve">
+    <value>Aktuelles Instrument auswählen 
+Klicken Sie mit der rechten Maustaste, um den Leistungsmodus zu beenden</value>
+  </data>
+  <data name="text listening midi device" xml:space="preserve">
+    <value>Abhör-Eingabegerät:</value>
+  </data>
+  <data name="setting label midi input device" xml:space="preserve">
+    <value>MIDI-Eingang</value>
+  </data>
+  <data name="setting tooltip select input device" xml:space="preserve">
+    <value>Wählen Sie externes MIDI-Eingabegerät. Klicken Sie mit der rechten Maustaste, um sie zurückzusetzen.</value>
+  </data>
+  <data name="icon button tooltip clearplaylist tootltip" xml:space="preserve">
+    <value>Doppelklicken Sie, um die Wiedergabeliste zu löschen</value>
+  </data>
+  <data name="icon button tooltip search playlist" xml:space="preserve">
+    <value>Wiedergabeliste durchsuchen</value>
+  </data>
+  <data name="setting label theme color" xml:space="preserve">
+    <value>Farbe der Benutzeroberfläche</value>
+  </data>
+  <data name="hint search textbox" xml:space="preserve">
+    <value>Zur Suche eingeben</value>
+  </data>
+  <data name="setting label song delay" xml:space="preserve">
+    <value>Verzögerung</value>
+  </data>
+  <data name="setting tooltip song delay" xml:space="preserve">
+    <value>Verzögern Sie die Zeit, bevor Sie den nächsten Track abspielen.</value>
+  </data>
+  <data name="setting label transpose by track" xml:space="preserve">
+    <value>Transponieren pro Spur</value>
+  </data>
+  <data name="setting tooltip transpose by track" xml:space="preserve">
+    <value>Transponieren pro Track, klicken Sie mit der rechten Maustaste, um den Transponierungs-Offset aller Tracks auf Null zurückzusetzen.</value>
+  </data>
+  <data name="setting label auto restart listening" xml:space="preserve">
+    <value>Automatischer Neustart der Überwachung</value>
+  </data>
+  <data name="setting tooltip auto restart listening" xml:space="preserve">
+    <value>Versuchen Sie, das zuletzt verwendete Midi-Gerät automatisch neu zu starten</value>
+  </data>
+  <data name="icon button tooltip visualization" xml:space="preserve">
+    <value>Verfolgt das Visualisierungsfenster
+Klicken Sie mit der rechten Maustaste, um die Position des Visualizer-Fensters zurückzusetzen</value>
+  </data>
+  <data name="icon button tooltip visualizer follow playback tooltip" xml:space="preserve">
+    <value>Aktueller Wiedergabefortschritt</value>
+  </data>
+  <data name="w32 file dialog" xml:space="preserve">
+    <value>Win32-Dateidialogfeld</value>
+  </data>
+  <data name="imgui file dialog" xml:space="preserve">
+    <value>ImGui-Datei-Dialog</value>
+  </data>
+  <data name="setting label tone mode" xml:space="preserve">
+    <value>Ton-Modus</value>
+  </data>
+  <data name="setting tooltip tone mode" xml:space="preserve">
+    <value>Wählen Sie, wie MidiBard MIDI-Kanäle und ProgramChange-Ereignisse behandelt (aktuell wirkt sich nur auf die Änderung des Gitarrenklangs aus)</value>
+  </data>
+  <data name="tone mode off" xml:space="preserve">
+    <value>Aus</value>
+  </data>
+  <data name="tone mode standard" xml:space="preserve">
+    <value>Norm</value>
+  </data>
+  <data name="tone mode simple" xml:space="preserve">
+    <value>Einfach</value>
+  </data>
+  <data name="tone mode override" xml:space="preserve">
+    <value>Überschreiben</value>
+  </data>
+  <data name="tone mode off tooltip" xml:space="preserve">
+    <value>Off: Übernimmt nicht die Steuerung des Gitarrentons des Spiels.</value>
+  </data>
+  <data name="tone mode standard tooltip" xml:space="preserve">
+    <value>Standard: Standardmäßige Midi-Kanal- und ProgramChange-Behandlung, jeder Kanal behält seinen Programmstatus separat bei.</value>
+  </data>
+  <data name="tone mode simple tooltip" xml:space="preserve">
+    <value>Einfach: Einfache ProgramChange-Behandlung, ProgramChange-Ereignis auf jedem Kanal ändert den Programmstatus aller Kanäle. (Dies ist das Standardverhalten von BardMusicPlayer.)</value>
+  </data>
+  <data name="tone mode override tooltip" xml:space="preserve">
+    <value>Nach Spur überschreiben: Weisen Sie jedem Track manuell den Gitarrenton zu und ignorieren Sie ProgramChange-Ereignisse.</value>
+  </data>
+  <data name="setting label auto switch instrument bmp" xml:space="preserve">
+    <value>Auto-Switch-Instrument (Midi-Track-Name)</value>
+  </data>
+  <data name="setting tooltip auto switch transpose instrument bmp trackname" xml:space="preserve">
+    <value>Transponieren/Schalten des Instruments basierend auf dem zuerst aktivierten Midi-Track-Namen (BMP-Regeln)</value>
+  </data>
+  <data name="text start event listening" xml:space="preserve">
+    <value>Starten der Ereignisüberwachung auf</value>
+  </data>
+  <data name="notice midi device error" xml:space="preserve">
+    <value>"{0}" ist derzeit nicht verfügbar.
+Bitte überprüfen Sie das Protokoll auf weitere Fehlerinformationen.</value>
+  </data>
+  <data name="notice midi device stop listening" xml:space="preserve">
+    <value>Beenden der Ereignisabhörung</value>
+  </data>
+  <data name="icon button tooltip ensemble panel" xml:space="preserve">
+    <value>Ensemble-Panel</value>
+  </data>
+  <data name="setting label low latency mode" xml:space="preserve">
+    <value>Modus mit niedriger Latenz</value>
+  </data>
+  <data name="setting tooltip low latency mode" xml:space="preserve">
+    <value>Verwenden Sie eine alternative Noteneingabemethode, die die Eingabelatenz möglicherweise leicht reduziert, sich jedoch auf die Genauigkeit der Klangumschaltung der Gitarre auswirkt. 
+Nur empfohlen bei Verwendung der Midi-Tastatur.</value>
+  </data>
+  <data name="setting label auto set background frame limit" xml:space="preserve">
+    <value>Automatisches Festlegen des Hintergrund-Frame-Limits</value>
+  </data>
+  <data name="setting tooltip auto set background frame limit" xml:space="preserve">
+    <value>Automatisches Deaktivieren des Hintergrundframe-Limits beim Wechseln in den Leistungsmodus und erneutes Aktivieren beim Beenden der Leistung</value>
+  </data>
+  <data name="window title standalone playlist" xml:space="preserve">
+    <value>MidiBard-Wiedergabeliste</value>
+  </data>
+  <data name="icon button tooltip playlist menu" xml:space="preserve">
+    <value>Wiedergabelistenauswahl anzeigen</value>
+  </data>
+  <data name="setting label standalone playlist window" xml:space="preserve">
+    <value>Eigenständiges Wiedergabelistenfenster</value>
+  </data>
+  <data name="window title ensemble panel" xml:space="preserve">
+    <value>MidiBard lokale Ensemble-Kontrolle</value>
+  </data>
+  <data name="ensemble stop ensemble" xml:space="preserve">
+    <value>Stop-Ensemble</value>
+  </data>
+  <data name="ensemble begin ensemble ready check" xml:space="preserve">
+    <value>Beginnen Sie mit der Prüfung der Ensemblebereitschaft</value>
+  </data>
+  <data name="ensemble update instruments" xml:space="preserve">
+    <value>Instrumente aktualisieren, Rechtsklick zum Zurückziehen des Instruments</value>
+  </data>
+  <data name="ensemble open midi config directory" xml:space="preserve">
+    <value>Aktuelles midi-Konfigurationsdateiverzeichnis öffnen</value>
+  </data>
+  <data name="ensemble open midi config file" xml:space="preserve">
+    <value>Aktuelle Midi-Konfigurationsdatei öffnen</value>
+  </data>
+  <data name="ensemble Delete and reset current file config" xml:space="preserve">
+    <value>Löschen und Zurücksetzen der aktuellen Dateikonfiguration</value>
+  </data>
+  <data name="ensemble unmute other clients" xml:space="preserve">
+    <value>Aufheben der Stummschaltung anderer Clients</value>
+  </data>
+  <data name="ensemble mute other clients" xml:space="preserve">
+    <value>Andere Clients stummschalten</value>
+  </data>
+  <data name="ensemble Minimize other clients" xml:space="preserve">
+    <value>Minimieren Sie andere Clients, klicken Sie mit der rechten Maustaste, um sie wiederherzustellen.</value>
+  </data>
+  <data name="icon button tooltip sync settings" xml:space="preserve">
+    <value>Alle Midibar-Einstellungen auf diesem PC synchronisieren</value>
+  </data>
+  <data name="ensemble Save default performers" xml:space="preserve">
+    <value>Speichern von Standardausführenden</value>
+  </data>
+  <data name="ensemble Select a song from playlist" xml:space="preserve">
+    <value>Wählen Sie einen Titel aus der Wiedergabeliste aus</value>
+  </data>
+  <data name="ensemble combo tooltip assign track character" xml:space="preserve">
+    <value>Weisen Sie einem Charakter eine Spur zu. Klicken Sie mit der rechten Maustaste, um das zugewiesene Zeichen zurückzusetzen</value>
+  </data>
+  <data name="ensemble config Draw ensemble progress indicator on visualizer" xml:space="preserve">
+    <value>Fortschrittsanzeige für das Zeichnen des Ensembles auf dem Visualizer</value>
+  </data>
+  <data name="ensemble config Ensemble indicator delay" xml:space="preserve">
+    <value>Verzögerung der Ensembleanzeige</value>
+  </data>
+  <data name="ensemble config Update instrument when begin ensemble" xml:space="preserve">
+    <value>Instrument aktualisieren, wenn das Ensemble beginnt</value>
+  </data>
+  <data name="window title visualizor" xml:space="preserve">
+    <value>MidiBard Track Visualizer</value>
+  </data>
+  <data name="setting group label ensemble settings" xml:space="preserve">
+    <value>Ensemble-Vertonungen</value>
+  </data>
+  <data name="setting group label general settings" xml:space="preserve">
+    <value>Allgemeine Einstellungen</value>
+  </data>
+  <data name="setting group label performance settings" xml:space="preserve">
+    <value>Leistungseinstellungen</value>
+  </data>
+  <data name="setting label sync clients" xml:space="preserve">
+    <value>Aktivieren der Synchronisierung lokaler Clients</value>
+  </data>
+  <data name="setting tooltip sync clients" xml:space="preserve">
+    <value>Automatische Synchronisierung der Midibar-Einstellungen und Midi-Dateieinstellungen zwischen allen Midibar-Instanzen auf diesem PC zulassen</value>
+  </data>
+</root>

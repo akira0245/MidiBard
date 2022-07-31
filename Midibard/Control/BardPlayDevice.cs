@@ -23,7 +23,6 @@ internal class BardPlayDevice : IOutputDevice
 	public record MidiDeviceMetaData : MidiEventMetaData;
 	public record RemoteMetadata(bool overrideTone, int tone) : MidiEventMetaData;
 	public record MidiPlaybackMetaData(int TrackIndex, long time, int eventValue) : MidiEventMetaData;
-
 	public static BardPlayDevice Instance { get; } = new();
 	private BardPlayDevice()
 	{
@@ -65,40 +64,6 @@ internal class BardPlayDevice : IOutputDevice
 
 	public unsafe bool SendEventWithMetadata(MidiEvent midiEvent, object metadata)
 	{
-		if (MidiBard.BroadcastNotes)
-		{
-			if (metadata is MidiPlaybackMetaData playbackMetaData)
-			{
-				//switch (midiEvent)
-				//{
-				//    case NoteOnEvent noteOn:
-				//    {
-				//        MidiBard.IpcManager.IPCBroadCast(MessageTypeCode.MidiEvent,
-				//            new IpcMidiEvent()
-				//            {
-				//                MidiEventType = noteOn.EventType,
-				//                SevenBitNumber = new SevenBitNumber((SevenBitNumber)GetNoteNumberTranslatedPerTrack(noteOn.NoteNumber, playbackMetaData.TrackIndex, out _)),
-				//                UseTone = MidiBard.config.GuitarToneMode == GuitarToneMode.OverrideByTrack,
-				//                Tone = MidiBard.config.TrackStatus[playbackMetaData.TrackIndex].Tone
-				//            });
-				//        break;
-				//    };
-
-				//    case NoteOffEvent noteOff:
-				//    {
-				//        MidiBard.IpcManager.IPCBroadCast(MessageTypeCode.MidiEvent,
-				//            new IpcMidiEvent()
-				//            {
-				//                MidiEventType = noteOff.EventType,
-				//                SevenBitNumber = new SevenBitNumber((SevenBitNumber)GetNoteNumberTranslatedPerTrack(noteOff.NoteNumber, playbackMetaData.TrackIndex, out _)),
-				//            });
-				//        break;
-				//    };
-				//}
-			}
-		}
-
-
 		if (!MidiBard.AgentPerformance.InPerformanceMode) return false;
 		{
 			if (metadata is MidiPlaybackMetaData midiPlaybackMetaData)
@@ -300,7 +265,7 @@ internal class BardPlayDevice : IOutputDevice
 
 	public static int GetNoteNumberTranslatedPerTrack(int noteNumber, int trackIndex)
 	{
-		noteNumber += MidiBard.config.EnableTransposePerTrack ? MidiBard.config.TrackStatus[trackIndex].Transpose : 0;
+		noteNumber += MidiBard.config.TrackStatus[trackIndex].Transpose;
 		return GetNoteNumberTranslated(noteNumber);
 	}
 

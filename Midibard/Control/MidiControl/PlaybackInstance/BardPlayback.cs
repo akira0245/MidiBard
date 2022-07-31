@@ -20,20 +20,21 @@ internal sealed class BardPlayback : Playback
 	{
 		PreparePlaybackData(file, out var tempoMap, out var trackChunks, out var trackInfos, out var timedEventWithMetadata);
 
-		var midiFileConfig = MidiFileConfigManager.GetConfig(filePath);
+		var midiFileConfig = MidiFileConfigManager.GetMidiConfigFromFile(filePath);
 
 		if (midiFileConfig is null || midiFileConfig.Tracks.Count != trackChunks.Length)
 		{
-			midiFileConfig = MidiFileConfigManager.GetMidiFileConfigFromTrack(trackInfos);
+			midiFileConfig = MidiFileConfigManager.GetMidiConfigFromTrack(trackInfos);
 		}
-		
+
 		return new BardPlayback(timedEventWithMetadata, tempoMap)
 		{
 			MidiFile = file,
 			FilePath = filePath,
 			TrackChunks = trackChunks,
 			TrackInfos = trackInfos,
-			MidiFileConfig = midiFileConfig
+			MidiFileConfig = midiFileConfig,
+			DisplayName = $"{PlaylistManager.CurrentSongIndex + 1:000} {Path.GetFileNameWithoutExtension(filePath)}"
 		};
 	}
 
@@ -56,6 +57,8 @@ internal sealed class BardPlayback : Playback
 	internal string FilePath { get; init; }
 	internal TrackChunk[] TrackChunks { get; init; }
 	internal TrackInfo[] TrackInfos { get; init; }
+
+	internal string DisplayName { get; init; }
 
 	private static void PreparePlaybackData(MidiFile file, out TempoMap tempoMap, out TrackChunk[] trackChunks, out TrackInfo[] trackInfos, out TimedEventWithMetadata[] timedEventWithMetadata)
 	{
@@ -149,7 +152,7 @@ internal sealed class BardPlayback : Playback
 	{
 		var timedEvents = tracks
 			.SelectMany((track, index) => track.GetTimedEvents()
-					.Where(i => i.Event.EventType is MidiEventType.ProgramChange or MidiEventType.SetTempo or MidiEventType.NoteOn or MidiEventType.NoteOff)
+					.Where(i => i.Event.EventType is not MidiEventType.ControlChange and not MidiEventType.PitchBend and not MidiEventType.UnknownMeta)
 					.Select(timedEvent => new TimedEventWithMetadata(timedEvent.Event, timedEvent.Time, GetMetadataForEvent(timedEvent.Event, timedEvent.Time, index))))
 			.OrderBy(e => e.Time)
 			.ThenBy(i => ((BardPlayDevice.MidiPlaybackMetaData)i.Metadata).eventValue);

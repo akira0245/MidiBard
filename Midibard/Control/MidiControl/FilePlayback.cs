@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,247 +27,127 @@ namespace MidiBard.Control.MidiControl;
 
 public static class FilePlayback
 {
-    private static readonly Regex regex = new Regex(@"^#.*?([-|+][0-9]+).*?#", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+	private static BardPlayback GetPlaybackInstance(MidiFile midifile, string path)
+	{
+		PluginLog.Debug($"[LoadPlayback] -> {path} START");
+		var stopwatch = Stopwatch.StartNew();
+		var playback = BardPlayback.GetBardPlayback(midifile, path);
+		playback.InterruptNotesOnStop = true;
+		playback.TrackNotes = true;
+		playback.TrackProgram = true;
+		playback.Speed = config.PlaySpeed;
+		playback.Finished += Playback_Finished;
+		PluginLog.Debug($"[LoadPlayback] -> {path} OK! in {stopwatch.Elapsed.TotalMilliseconds} ms");
+		return playback;
+	}
 
-    private static BardPlayback GetPlaybackObject(MidiFile midifile, string path)
-    {
-        PluginLog.Debug($"[LoadPlayback] -> {path} START");
-        var stopwatch = Stopwatch.StartNew();
-        var playback = BardPlayback.GetBardPlayback(midifile, path);
-        playback.InterruptNotesOnStop = true;
-        playback.TrackNotes = true;
-        playback.TrackProgram = true;
-        playback.Speed = config.playSpeed;
-        playback.Finished += Playback_Finished;
-        PluginLog.Debug($"[LoadPlayback] -> {path} OK! in {stopwatch.Elapsed.TotalMilliseconds} ms");
-        return playback;
-    }
+	internal static float waitProgress = 0;
+	internal static Status waitStatus = Status.notWaiting;
+	private static void Playback_Finished(object sender, EventArgs e)
+	{
+		Task.Run(() =>
+		{
+			try
+			{
+				if (MidiBard.AgentMetronome.EnsembleModeRunning)
+					return;
+				if (!PlaylistManager.FilePathList.Any())
+					return;
+				if (MidiBard.SlaveMode)
+					return;
 
+				var fromSeconds = TimeSpan.FromSeconds(config.SecondsBetweenTracks);
+				PerformWaiting(fromSeconds, ref waitProgress, ref waitStatus);
+				if (waitStatus == Status.canceled) return;
 
+				switch ((PlayMode)config.PlayMode)
+				{
+					case PlayMode.Single:
+						break;
+					case PlayMode.SingleRepeat:
+						CurrentPlayback.MoveToStart();
+						CurrentPlayback.Start();
+						break;
+					case PlayMode.ListOrdered when PlaylistManager.CurrentSongIndex >= PlaylistManager.FilePathList.Count - 1:
+						break;
+					case PlayMode.ListOrdered:
+					case PlayMode.ListRepeat:
+					case PlayMode.Random:
+						MidiPlayerControl.Next(true);
+						break;
+				}
+			}
+			catch (Exception exception)
+			{
+				PluginLog.Error(exception, "Unexpected exception when Playback finished.");
+			}
+		});
+	}
 
+	internal static async Task<bool> LoadPlayback(string filePath)
+	{
+		MidiFile midiFile = await Task.Run(() => PlaylistManager.LoadMidiFile(filePath));
+		if (midiFile == null)
+		{
+			// delete file if can't be loaded(likely to be deleted locally)
+			//PluginLog.Debug($"[LoadPlayback] removing {index}");
+			//PluginLog.Debug($"[LoadPlayback] removing {PlaylistManager.FilePathList[index].path}");
+			//PlaylistManager.RemoveSync(index);
+			return false;
+		}
+		else
+		{
+			var playback = await Task.Run(() => GetPlaybackInstance(midiFile, filePath));
+			CurrentPlayback?.Dispose();
+			CurrentPlayback = playback;
 
+			Ui.RefreshPlotData();
+			BardPlayDevice.Instance.ResetChannelStates();
 
+			try
+			{
+				await SwitchInstrument.WaitSwitchInstrumentForSong(Path.GetFileNameWithoutExtension(filePath));
+			}
+			catch (Exception e)
+			{
+				PluginLog.Warning(e.ToString());
+			}
 
-    public static DateTime? waitUntil { get; set; } = null;
-    public static DateTime? waitStart { get; set; } = null;
-    public static bool isWaiting => waitUntil != null && DateTime.Now < waitUntil;
+			return true;
+		}
+	}
+	public static bool IsWaiting => waitStatus == Status.waiting;
+	public static float GetWaitWaitProgress => waitProgress;
+	internal static void CancelWaiting() => waitStatus = Status.canceled;
+	internal static void SkipWaiting() => waitStatus = Status.skipped;
 
-    public static float waitProgress
-    {
-        get
-        {
-            float valueTotalMilliseconds = 1;
-            if (isWaiting)
-            {
-                try
-                {
-                    if (waitUntil != null)
-                        if (waitStart != null)
-                            valueTotalMilliseconds = 1 -
-                                                     (float)((waitUntil - DateTime.Now).Value.TotalMilliseconds /
-                                                             (waitUntil - waitStart).Value.TotalMilliseconds);
-                }
-                catch (Exception e)
-                {
-                    PluginLog.Error(e, "error when get current wait progress");
-                }
-            }
+	internal enum Status
+	{
+		notWaiting,
+		waiting,
+		skipped,
+		canceled,
+	}
+	internal static void PerformWaiting(TimeSpan waitTime, ref float progress, ref Status status)
+	{
+		status = Status.waiting;
+		progress = 0;
+		var end = DateTime.UtcNow + waitTime;
+		try
+		{
+			while (status == Status.waiting && progress < 1)
+			{
+				var remain = end - DateTime.UtcNow;
+				progress = (float)(1 - remain / waitTime);
+				Thread.Sleep(25);
+				if (status != Status.waiting) return;
+			}
+		}
+		finally
+		{
+			progress = 0;
+		}
 
-            return valueTotalMilliseconds;
-        }
-    }
-
-    private static void Playback_Finished(object sender, EventArgs e)
-    {
-        Task.Run(async () =>
-        {
-            try
-            {
-                if (MidiBard.AgentMetronome.EnsembleModeRunning)
-                    return;
-                if (!PlaylistManager.FilePathList.Any())
-                    return;
-                if (MidiBard.SlaveMode)
-                    return;
-
-                PerformWaiting(config.secondsBetweenTracks);
-                if (needToCancel)
-                {
-                    needToCancel = false;
-                    return;
-                }
-
-                switch ((PlayMode)config.PlayMode)
-                {
-                    case PlayMode.Single:
-                        break;
-
-                    case PlayMode.SingleRepeat:
-                        CurrentPlayback.MoveToStart();
-                        CurrentPlayback.Start();
-                        break;
-
-                    case PlayMode.ListOrdered:
-                        if (PlaylistManager.CurrentPlaying + 1 < PlaylistManager.FilePathList.Count)
-                        {
-                            if (await LoadPlayback(PlaylistManager.CurrentPlaying + 1, true))
-                            {
-                            }
-                        }
-
-                        break;
-
-                    case PlayMode.ListRepeat:
-                        if (PlaylistManager.CurrentPlaying + 1 < PlaylistManager.FilePathList.Count)
-                        {
-                            if (await LoadPlayback(PlaylistManager.CurrentPlaying + 1, true))
-                            {
-                            }
-                        }
-                        else
-                        {
-                            if (await LoadPlayback(0, true))
-                            {
-                            }
-                        }
-
-                        break;
-
-                    case PlayMode.Random:
-
-                        if (PlaylistManager.FilePathList.Count == 1)
-                        {
-                            CurrentPlayback.MoveToStart();
-                            break;
-                        }
-
-                        try
-                        {
-                            var r = new Random();
-                            int nexttrack;
-                            do
-                            {
-                                nexttrack = r.Next(0, PlaylistManager.FilePathList.Count);
-                            } while (nexttrack == PlaylistManager.CurrentPlaying);
-
-                            if (await LoadPlayback(nexttrack, true))
-                            {
-                            }
-                        }
-                        catch (Exception exception)
-                        {
-                            PluginLog.Error(exception, "error when random next");
-                        }
-
-                        break;
-
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            }
-            catch (Exception exception)
-            {
-                PluginLog.Error(exception, "Unexpected exception when Playback finished.");
-            }
-        });
-    }
-
-    //internal static async Task<bool> LoadPlayback(string path, bool startPlaying = false, bool switchInstrument = true)
-    //{
-    //    MidiFile midiFile = await PlaylistManager.LoadMidiFile(path);
-    //    if (midiFile == null)
-    //    {
-    //        ImGuiUtil.AddNotification(NotificationType.Error, "Error when reading Midi file");
-    //        return false;
-    //    }
-    //    else
-    //    {
-    //        CurrentPlayback = await Task.Run(() =>
-    //        {
-    //            CurrentPlayback?.Dispose();
-    //            CurrentPlayback = null;
-
-    //            return GetPlaybackObject(midiFile, Path.GetFileNameWithoutExtension(path));
-    //        });
-    //        Ui.RefreshPlotData();
-    //        PlaylistManager.CurrentPlaying = -1;
-    //        BardPlayDevice.Instance.ResetChannelStates();
-    //        return true;
-    //    }
-    //}
-
-
-    internal static async Task<bool> LoadPlayback(int index, bool startPlaying = false, bool switchInstrument = true)
-    {
-        RPC.LoadPlayback(index);
-
-        var wasPlaying = IsPlaying;
-        MidiFile midiFile = await PlaylistManager.LoadMidiFile(index);
-        if (midiFile == null)
-        {
-            // delete file if can't be loaded(likely to be deleted locally)
-            PluginLog.Debug($"[LoadPlayback] removing {index}");
-            //PluginLog.Debug($"[LoadPlayback] removing {PlaylistManager.FilePathList[index].path}");
-            PlaylistManager.FilePathList.RemoveAt(index);
-            return false;
-        }
-        else
-        {
-            CurrentPlayback = await Task.Run(() =>
-                {
-                    CurrentPlayback?.Dispose();
-                    CurrentPlayback = null;
-                    return GetPlaybackObject(midiFile, PlaylistManager.FilePathList[index].path);
-                });
-            Ui.RefreshPlotData();
-            PlaylistManager.CurrentPlaying = index;
-            BardPlayDevice.Instance.ResetChannelStates();
-
-            if (switchInstrument)
-            {
-                try
-                {
-                    var songName = PlaylistManager.FilePathList[index].fileName;
-                    await SwitchInstrument.WaitSwitchInstrumentForSong(songName);
-                }
-                catch (Exception e)
-                {
-                    PluginLog.Warning(e.ToString());
-                }
-            }
-
-            if (switchInstrument && (wasPlaying || startPlaying))
-                CurrentPlayback?.Start();
-
-            return true;
-        }
-    }
-
-    private static bool needToCancel { get; set; } = false;
-
-    internal static void PerformWaiting(float seconds)
-    {
-        waitStart = DateTime.Now;
-        waitUntil = DateTime.Now.AddSeconds(seconds);
-        while (DateTime.Now < waitUntil)
-        {
-            Thread.Sleep(10);
-        }
-
-        waitStart = null;
-        waitUntil = null;
-    }
-
-    internal static void CancelWaiting()
-    {
-        waitStart = null;
-        waitUntil = null;
-        needToCancel = true;
-    }
-
-    internal static void StopWaiting()
-    {
-        waitStart = null;
-        waitUntil = null;
-    }
+		status = Status.notWaiting;
+	}
 }

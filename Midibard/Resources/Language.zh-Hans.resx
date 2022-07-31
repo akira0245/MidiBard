@@ -1,0 +1,499 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="text tracks in playlist" xml:space="preserve">
+    <value>当前播放列表中有 {0} 首乐曲</value>
+  </data>
+  <data name="imgui file dialog" xml:space="preserve">
+    <value>使用 ImGui 文件对话框（国服6.1前不可用）</value>
+  </data>
+  <data name="w32 file dialog" xml:space="preserve">
+    <value>使用 Win32 文件对话框</value>
+  </data>
+  <data name="tone mode standard" xml:space="preserve">
+    <value>标准</value>
+  </data>
+  <data name="tone mode standard tooltip" xml:space="preserve">
+    <value>标准：标准MIDI通道和音色转换事件处理，每个MIDI通道会分别保持其音色，直到同通道的另一个音色转换事件改写其音色状态。</value>
+  </data>
+  <data name="text select playmode" xml:space="preserve">
+    <value>播放模式：</value>
+  </data>
+  <data name="setting tooltip auto restart listening" xml:space="preserve">
+    <value>尝试自动恢复监听最后使用过的MIDI输入设备</value>
+  </data>
+  <data name="play mode single" xml:space="preserve">
+    <value>单曲播放（单曲结束后停止）</value>
+  </data>
+  <data name="icon button tooltip import file" xml:space="preserve">
+    <value>导入MIDI文件
+右键点击选择导入文件对话框类型</value>
+  </data>
+  <data name="icon button tooltip import folder" xml:space="preserve">
+    <value>导入文件夹
+导入选中的文件夹和其所有子文件夹中的MIDI乐曲
+当文件夹包含多层子文件夹时，导入过程可能会多花费一些时间</value>
+  </data>
+  <data name="text playlist is empty" xml:space="preserve">
+    <value>导入一些MIDI文件来开始演奏！</value>
+  </data>
+  <data name="setting tooltip auto adapt notes" xml:space="preserve">
+    <value>对超出演奏范围的音符自动升/降八度直至其可以被演奏</value>
+  </data>
+  <data name="setting label transpose by track" xml:space="preserve">
+    <value>分音轨移调</value>
+  </data>
+  <data name="setting tooltip transpose by track" xml:space="preserve">
+    <value>分音轨移调，右键单击将全部音轨的移调重置回0</value>
+  </data>
+  <data name="tone mode override" xml:space="preserve">
+    <value>分音轨重写</value>
+  </data>
+  <data name="tone mode override tooltip" xml:space="preserve">
+    <value>分音轨重写：为每个音轨手动指定电吉他音色，无视其音色转换事件。</value>
+  </data>
+  <data name="setting tooltip auto switch transpose instrument bmp trackname" xml:space="preserve">
+    <value>根据首个被启用的MIDI音轨的音轨名自动切换乐器和移调。</value>
+  </data>
+  <data name="setting tooltip label auto switch instrument by file name" xml:space="preserve">
+    <value>根据文件名自动切换乐器
+如果需要自动切换乐器，请在文件开头添加 #乐器名#
+例如：#鲁特琴#demo.mid</value>
+  </data>
+  <data name="setting tooltip auto transpose by file name" xml:space="preserve">
+    <value>根据文件名自动移调
+如果需要自动移调，请在文件开头添加 #要移调的半音数量#
+例如：#-12#demo.mid</value>
+  </data>
+  <data name="setting label auto switch instrument bmp" xml:space="preserve">
+    <value>根据MIDI音轨名自动切换乐器</value>
+  </data>
+  <data name="tone mode off" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="tone mode off tooltip" xml:space="preserve">
+    <value>关闭：不使用自动吉他音色控制。</value>
+  </data>
+  <data name="icon button tooltip help" xml:space="preserve">
+    <value>关于MidiBard</value>
+  </data>
+  <data name="text ensemble mode running" xml:space="preserve">
+    <value>合奏模式运行中</value>
+  </data>
+  <data name="setting label song delay" xml:space="preserve">
+    <value>间隔时间</value>
+  </data>
+  <data name="setting label monitor ensemble" xml:space="preserve">
+    <value>监控合奏</value>
+  </data>
+  <data name="tone mode simple" xml:space="preserve">
+    <value>简单</value>
+  </data>
+  <data name="tone mode simple tooltip" xml:space="preserve">
+    <value>简单：简单的音色转换事件处理方式，任一通道上的音色转换事件会改写所有MIDI通道的音色状态。（这是BardMusicPlayer的默认处理方式）</value>
+  </data>
+  <data name="setting label select ui language" xml:space="preserve">
+    <value>界面语言</value>
+  </data>
+  <data name="setting label select instrument" xml:space="preserve">
+    <value>乐器选择</value>
+  </data>
+  <data name="setting tooltip set progress" xml:space="preserve">
+    <value>乐曲播放进度，右键单击回到乐曲开头</value>
+  </data>
+  <data name="icon button tooltip mini player" xml:space="preserve">
+    <value>切换迷你播放器</value>
+  </data>
+  <data name="icon button tooltip clear playlist" xml:space="preserve">
+    <value>清空播放列表</value>
+  </data>
+  <data name="setting label transpose all" xml:space="preserve">
+    <value>全音轨移调</value>
+  </data>
+  <data name="setting tooltip set speed" xml:space="preserve">
+    <value>设置Midi事件的播放速度倍数</value>
+  </data>
+  <data name="setting tooltip select instrument" xml:space="preserve">
+    <value>设置和切换当前乐器，右键单击退出演奏模式</value>
+  </data>
+  <data name="icon button tooltip settings panel" xml:space="preserve">
+    <value>设置面板</value>
+  </data>
+  <data name="setting label midi input device" xml:space="preserve">
+    <value>输入设备</value>
+  </data>
+  <data name="hint search textbox" xml:space="preserve">
+    <value>输入要搜索的字符串</value>
+  </data>
+  <data name="icon button tooltip clearplaylist tootltip" xml:space="preserve">
+    <value>双击清空播放列表</value>
+  </data>
+  <data name="icon button tooltip search playlist" xml:space="preserve">
+    <value>搜索播放列表</value>
+  </data>
+  <data name="icon button tooltip visualizer follow playback tooltip" xml:space="preserve">
+    <value>可视化窗口时间轴跟随当前播放进度</value>
+  </data>
+  <data name="setting tooltip tone mode" xml:space="preserve">
+    <value>选择MIDIBARD如何处理MIDI Channel和ProgramChange事件（当前只用于吉他音色控制）</value>
+  </data>
+  <data name="setting tooltip select input device" xml:space="preserve">
+    <value>选择当前的外部MIDI输入设备，例如虚拟midi接口或midi键盘
+右键单击停止使用外部输入</value>
+  </data>
+  <data name="setting tooltip language" xml:space="preserve">
+    <value>选择界面语言</value>
+  </data>
+  <data name="setting label set progress" xml:space="preserve">
+    <value>播放进度</value>
+  </data>
+  <data name="icon button tooltip music control panel" xml:space="preserve">
+    <value>演奏控制面板</value>
+  </data>
+  <data name="setting label set play speed" xml:space="preserve">
+    <value>演奏速度</value>
+  </data>
+  <data name="setting tooltip transpose all" xml:space="preserve">
+    <value>移调，以半音数计算
+点击+或-键升高或降低一个八度，右键单击将它重置为0</value>
+  </data>
+  <data name="icon button tooltip visualization" xml:space="preserve">
+    <value>音轨可视化（国服6.1前不可用）
+右键单击重置可视化窗口位置</value>
+  </data>
+  <data name="window tooltip track selection" xml:space="preserve">
+    <value>音轨选择
+MIDIBARD只会演奏被选中的音轨
+左键单击选择/取消选择该音轨，右键单击只演奏该音轨</value>
+  </data>
+  <data name="setting label tone mode" xml:space="preserve">
+    <value>吉他音色模式</value>
+  </data>
+  <data name="setting tooltip auto open MidiBardTooltip" xml:space="preserve">
+    <value>在进入或退出演奏模式时自动打开或关闭MIDIBARD窗口</value>
+  </data>
+  <data name="setting tooltip song delay" xml:space="preserve">
+    <value>在连续播放时每首乐曲播放结束后的等待时间</value>
+  </data>
+  <data name="setting tooltip monitor ensemble" xml:space="preserve">
+    <value>在游戏内的合奏助手运行时自动开始同步合奏</value>
+  </data>
+  <data name="text current playing" xml:space="preserve">
+    <value>正在播放：</value>
+  </data>
+  <data name="play mode random" xml:space="preserve">
+    <value>随机播放</value>
+  </data>
+  <data name="play mode list ordered" xml:space="preserve">
+    <value>列表顺序（列表结束后停止）</value>
+  </data>
+  <data name="play mode list repeat" xml:space="preserve">
+    <value>列表循环</value>
+  </data>
+  <data name="play mode single repeat" xml:space="preserve">
+    <value>单曲循环</value>
+  </data>
+  <data name="text Import in progress" xml:space="preserve">
+    <value>正在导入...</value>
+  </data>
+  <data name="text listening midi device" xml:space="preserve">
+    <value>正在监听MIDI输入：</value>
+  </data>
+  <data name="setting label theme color" xml:space="preserve">
+    <value>主题颜色</value>
+  </data>
+  <data name="setting label auto open MidiBard" xml:space="preserve">
+    <value>自动打开MIDIBARD</value>
+  </data>
+  <data name="setting label auto restart listening" xml:space="preserve">
+    <value>自动恢复监听</value>
+  </data>
+  <data name="setting label auto switch instrument by file name" xml:space="preserve">
+    <value>根据文件名自动切换乐器</value>
+  </data>
+  <data name="setting label auto transpose by file name" xml:space="preserve">
+    <value>根据文件名自动移调</value>
+  </data>
+  <data name="setting label auto adapt notes" xml:space="preserve">
+    <value>自适应移调</value>
+  </data>
+  <data name="text start event listening" xml:space="preserve">
+    <value>开始监听设备</value>
+  </data>
+  <data name="notice midi device error" xml:space="preserve">
+    <value>设备 {0} 当前不可用</value>
+  </data>
+  <data name="notice midi device stop listening" xml:space="preserve">
+    <value>停止监听设备</value>
+  </data>
+  <data name="icon button tooltip ensemble panel" xml:space="preserve">
+    <value>本地合奏控制面板</value>
+  </data>
+  <data name="setting label low latency mode" xml:space="preserve">
+    <value>低延迟模式</value>
+  </data>
+  <data name="setting tooltip low latency mode" xml:space="preserve">
+    <value>使用备选的音符输入方式，可能会稍微降低输入延迟，但将影响吉他音色切换的准确性。
+仅推荐在连接MIDI键盘演奏时使用。</value>
+  </data>
+  <data name="setting label auto set background frame limit" xml:space="preserve">
+    <value>自动设置后台帧率</value>
+  </data>
+  <data name="setting tooltip auto set background frame limit" xml:space="preserve">
+    <value>在进入演奏模式时自动关闭“当游戏处于非激活状态时限制帧率”的选项，并在退出演奏模式时重新打开它</value>
+  </data>
+  <data name="window title standalone playlist" xml:space="preserve">
+    <value>MidiBard 播放列表</value>
+  </data>
+  <data name="icon button tooltip playlist menu" xml:space="preserve">
+    <value>显示播放列表菜单</value>
+  </data>
+  <data name="setting label standalone playlist window" xml:space="preserve">
+    <value>独立播放列表窗口</value>
+  </data>
+  <data name="window title ensemble panel" xml:space="preserve">
+    <value>MidiBard 本地合奏控制</value>
+  </data>
+  <data name="ensemble stop ensemble" xml:space="preserve">
+    <value>停止合奏</value>
+  </data>
+  <data name="ensemble begin ensemble ready check" xml:space="preserve">
+    <value>开始合奏准备确认</value>
+  </data>
+  <data name="ensemble update instruments" xml:space="preserve">
+    <value>更新所有队员的使用的乐器，右键单击收回乐器</value>
+  </data>
+  <data name="ensemble open midi config directory" xml:space="preserve">
+    <value>打开当前MIDI设置文件夹</value>
+  </data>
+  <data name="ensemble open midi config file" xml:space="preserve">
+    <value>打开当前MIDI设置文件</value>
+  </data>
+  <data name="ensemble Delete and reset current file config" xml:space="preserve">
+    <value>删除并重置当前MIDI设置文件</value>
+  </data>
+  <data name="ensemble unmute other clients" xml:space="preserve">
+    <value>取消静音其他客户端</value>
+  </data>
+  <data name="ensemble mute other clients" xml:space="preserve">
+    <value>静音其他客户端</value>
+  </data>
+  <data name="ensemble Minimize other clients" xml:space="preserve">
+    <value>最小化其他客户端窗口，右键点击还原它们</value>
+  </data>
+  <data name="icon button tooltip sync settings" xml:space="preserve">
+    <value>立即同步所有客户端的MIDIBARD设置</value>
+  </data>
+  <data name="ensemble Save default performers" xml:space="preserve">
+    <value>保存默认演奏者配置</value>
+  </data>
+  <data name="ensemble Select a song from playlist" xml:space="preserve">
+    <value>从播放列表中选择一首乐曲</value>
+  </data>
+  <data name="ensemble combo tooltip assign track character" xml:space="preserve">
+    <value>为音轨指定演奏者，右键点击清除已设定的演奏者</value>
+  </data>
+  <data name="ensemble config Draw ensemble progress indicator on visualizer" xml:space="preserve">
+    <value>在可视化窗口中显示合奏进度指示器</value>
+  </data>
+  <data name="ensemble config Ensemble indicator delay" xml:space="preserve">
+    <value>合奏进度指示器延迟</value>
+  </data>
+  <data name="ensemble config Update instrument when begin ensemble" xml:space="preserve">
+    <value>点击开始合奏时切换乐器</value>
+  </data>
+  <data name="window title visualizor" xml:space="preserve">
+    <value>MidiBard 音轨可视化</value>
+  </data>
+  <data name="setting group label ensemble settings" xml:space="preserve">
+    <value>合奏设置</value>
+  </data>
+  <data name="setting group label general settings" xml:space="preserve">
+    <value>通用设置</value>
+  </data>
+  <data name="setting group label performance settings" xml:space="preserve">
+    <value>演奏设置</value>
+  </data>
+  <data name="setting label sync clients" xml:space="preserve">
+    <value>启用本机客户端同步</value>
+  </data>
+  <data name="setting tooltip sync clients" xml:space="preserve">
+    <value>允许MIDIBARD在这台电脑上正在运行的FFXIV客户端间同步数据</value>
+  </data>
+  <data name="language english" xml:space="preserve">
+    <value>英語</value>
+  </data>
+  <data name="language chs" xml:space="preserve">
+    <value>简体中文</value>
+  </data>
+  <data name="language cht" xml:space="preserve">
+    <value>繁体中文</value>
+  </data>
+  <data name="language japanese" xml:space="preserve">
+    <value>日语</value>
+  </data>
+  <data name="language german" xml:space="preserve">
+    <value>德语</value>
+  </data>
+  <data name="menu label sync playlist" xml:space="preserve">
+    <value>同步播放列表</value>
+  </data>
+  <data name="menu label save search as playlist" xml:space="preserve">
+    <value>保存播放列表搜索结果为…</value>
+  </data>
+  <data name="menu label new playlist" xml:space="preserve">
+    <value>新建播放列表</value>
+  </data>
+  <data name="menu label clone current playlist" xml:space="preserve">
+    <value>将当前播放列表另存为…</value>
+  </data>
+  <data name="menu label open playlist" xml:space="preserve">
+    <value>打开播放列表</value>
+  </data>
+  <data name="menu label save playlist" xml:space="preserve">
+    <value>保存播放列表</value>
+  </data>
+  <data name="menu text recent playlist" xml:space="preserve">
+    <value>最近使用的播放列表</value>
+  </data>
+  <data name="text file copy" xml:space="preserve">
+    <value>(副本)</value>
+  </data>
+  <data name="text midibard playlist" xml:space="preserve">
+    <value>Midibard 播放列表</value>
+  </data>
+  <data name="window title choose new playlist save location" xml:space="preserve">
+    <value>选择新播放列表保存位置</value>
+  </data>
+  <data name="text new playlist" xml:space="preserve">
+    <value>新建播放列表</value>
+  </data>
+  <data name="menu item load playlist" xml:space="preserve">
+    <value>加载</value>
+  </data>
+  <data name="menu item open in file explorer" xml:space="preserve">
+    <value>在文件资源管理器中打开</value>
+  </data>
+  <data name="menu item open in text editor" xml:space="preserve">
+    <value>在文本编辑器中打开</value>
+  </data>
+  <data name="menu item remove from recent list" xml:space="preserve">
+    <value>从最近使用中移除</value>
+  </data>
+</root>

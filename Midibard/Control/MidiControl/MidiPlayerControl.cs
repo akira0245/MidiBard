@@ -5,229 +5,141 @@ using Dalamud.Logging;
 using Melanchall.DryWetMidi.Interaction;
 using MidiBard.Control.CharacterControl;
 using MidiBard.Control.MidiControl.PlaybackInstance;
-using static MidiBard.MidiBard;
+using MidiBard.Managers;
+using MidiBard.Util;
 
 namespace MidiBard.Control.MidiControl;
 
 internal static class MidiPlayerControl
 {
-    internal static void Play()
-    {
-        if (CurrentPlayback == null)
-        {
-            if (!PlaylistManager.FilePathList.Any())
-            {
-                PluginLog.Information("empty playlist");
-                return;
-            }
+	internal static void Play()
+	{
+		if (MidiBard.CurrentPlayback == null)
+		{
+			if (!PlaylistManager.FilePathList.Any())
+			{
+				PluginLog.Information("empty playlist");
+				return;
+			}
 
-            if (PlaylistManager.CurrentPlaying < 0)
-            {
-                SwitchSong(0, true);
-            }
-            else
-            {
-                SwitchSong(PlaylistManager.CurrentPlaying, true);
-            }
-        }
-        else
-        {
-            try
-            {
-                if (CurrentPlayback.GetCurrentTime<MidiTimeSpan>() == CurrentPlayback.GetDuration<MidiTimeSpan>())
-                {
-                    CurrentPlayback.MoveToStart();
-                }
+			if (PlaylistManager.CurrentSongIndex < 0)
+			{
+				PlaylistManager.LoadPlayback(0, true);
+			}
+			else
+			{
+				PlaylistManager.LoadPlayback(null, true);
+			}
+		}
+		else
+		{
+			try
+			{
+				if (MidiBard.CurrentPlayback.GetCurrentTime<MidiTimeSpan>() == MidiBard.CurrentPlayback.GetDuration<MidiTimeSpan>())
+				{
+					MidiBard.CurrentPlayback.MoveToStart();
+				}
 
-                CurrentPlayback.Start();
-            }
-            catch (Exception e)
-            {
-                PluginLog.Error(e, "error when try to start playing, maybe the playback has been disposed?");
-            }
-        }
-    }
+				MidiBard.CurrentPlayback.Start();
+			}
+			catch (Exception e)
+			{
+				PluginLog.Error(e, "error when try to start playing, maybe the playback has been disposed?");
+			}
+		}
+	}
 
-    internal static void Pause()
-    {
-        CurrentPlayback?.Stop();
-    }
+	internal static void Pause()
+	{
+		MidiBard.CurrentPlayback?.Stop();
+	}
 
 
-    internal static void PlayPause()
-    {
-        if (FilePlayback.isWaiting)
-        {
-            FilePlayback.StopWaiting();
-        }
-        else
-        {
-            if (IsPlaying)
-            {
-                Pause();
-            }
-            else
-            {
-                Play();
-            }
-        }
-    }
+	internal static void PlayPause()
+	{
+		if (FilePlayback.IsWaiting)
+		{
+			FilePlayback.SkipWaiting();
+		}
+		else
+		{
+			if (MidiBard.IsPlaying)
+			{
+				Pause();
+			}
+			else
+			{
+				Play();
+			}
+		}
+	}
 
-    internal static void Stop()
-    {
-        try
-        {
-            if (CurrentPlayback == null)
-            {
-                //MidiBard.CurrentPlayback?.TrackInfos.Clear();
-            }
-            else
-            {
-                CurrentPlayback?.Stop();
-                CurrentPlayback?.MoveToTime(new MidiTimeSpan(0));
-            }
-        }
-        catch (Exception e)
-        {
-            PluginLog.Warning("Already stopped!");
-        }
-        finally
-        {
-            CurrentPlayback?.Dispose();
-            CurrentPlayback = null;
-        }
-    }
+	internal static void Stop()
+	{
+		MidiBard.EnsembleManager.StopEnsemble();
+		MidiBard.CurrentPlayback?.Dispose();
+		MidiBard.CurrentPlayback = null;
+	}
 
-    internal static void Next()
-    {
-        if (CurrentPlayback != null)
-        {
-            try
-            {
-                var playing = IsPlaying;
-                CurrentPlayback?.Dispose();
-                CurrentPlayback = null;
-                int next = PlaylistManager.CurrentPlaying;
+	internal static void Next(bool startPlaying = false)
+	{
+		var songIndex = GetSongIndex(PlaylistManager.CurrentSongIndex, true);
+		PlaylistManager.LoadPlayback(songIndex, MidiBard.IsPlaying || startPlaying);
+	}
 
-                switch ((PlayMode)config.PlayMode)
-                {
-                    case PlayMode.Single:
-                    case PlayMode.SingleRepeat:
-                    case PlayMode.ListOrdered:
-                        next += 1;
-                        break;
-                    case PlayMode.ListRepeat:
-                        next = (next + 1) % PlaylistManager.FilePathList.Count;
-                        break;
-                    case PlayMode.Random:
-                        if (PlaylistManager.FilePathList.Count > 1)
-                        {
-                            var r = new Random();
-                            do
-                            {
-                                next = r.Next(0, PlaylistManager.FilePathList.Count);
-                            } while (next == PlaylistManager.CurrentPlaying);
-                        }
-                        break;
-                }
+	internal static void Prev()
+	{
+		var songIndex = GetSongIndex(PlaylistManager.CurrentSongIndex, false);
+		PlaylistManager.LoadPlayback(songIndex, MidiBard.IsPlaying);
 
-                SwitchSong(next, playing);
-            }
-            catch (Exception e)
-            {
-                CurrentPlayback = null;
-                PlaylistManager.CurrentPlaying = -1;
-            }
-        }
-        else
-        {
-            PlaylistManager.CurrentPlaying += 1;
-        }
-    }
+	}
 
-    internal static void Prev()
-    {
-        if (CurrentPlayback != null)
-        {
-            try
-            {
-                var playing = IsPlaying;
-                CurrentPlayback?.Dispose();
-                CurrentPlayback = null;
-                int prev = PlaylistManager.CurrentPlaying;
+	private static int GetSongIndex(int songIndex, bool next)
+	{
+		var playMode = (PlayMode)MidiBard.config.PlayMode;
+		switch (playMode)
+		{
+			case PlayMode.Single:
+			case PlayMode.SingleRepeat:
+			case PlayMode.ListOrdered:
+			case PlayMode.ListRepeat:
+				songIndex += next ? 1 : -1;
+				break;
+		}
 
-                switch ((PlayMode)config.PlayMode)
-                {
-                    case PlayMode.Single:
-                    case PlayMode.SingleRepeat:
-                    case PlayMode.ListOrdered:
-                        prev -= 1;
-                        break;
-                    case PlayMode.ListRepeat:
-                        if (PlaylistManager.CurrentPlaying == 0)
-                        {
-                            prev = PlaylistManager.FilePathList.Count - 1;
-                        }
-                        else
-                        {
-                            prev -= 1;
-                        }
-                        break;
-                    case PlayMode.Random:
-                        if (PlaylistManager.FilePathList.Count > 1)
-                        {
-                            var r = new Random();
-                            do
-                            {
-                                prev = r.Next(0, PlaylistManager.FilePathList.Count);
-                            } while (prev == PlaylistManager.CurrentPlaying);
-                        }
-                        break;
-                }
+		if (playMode == PlayMode.ListRepeat)
+		{
+			songIndex = songIndex.Cycle(0, PlaylistManager.FilePathList.Count - 1);
+		}
+		else if (playMode == PlayMode.Random)
+		{
+			if (PlaylistManager.FilePathList.Count > 1)
+			{
+				var r = new Random();
+				do
+				{
+					songIndex = r.Next(0, PlaylistManager.FilePathList.Count);
+				} while (songIndex == PlaylistManager.CurrentSongIndex);
+			}
+		}
 
-                SwitchSong(prev, playing);
-            }
-            catch (Exception e)
-            {
-                CurrentPlayback = null;
-                PlaylistManager.CurrentPlaying = -1;
-            }
-        }
-        else
-        {
-            PlaylistManager.CurrentPlaying -= 1;
-        }
-    }
+		return songIndex;
+	}
 
-    internal static void MoveTime(double timeInSeconds)
-    {
-        try
-        {
-            var metricTimeSpan = CurrentPlayback.GetCurrentTime<MetricTimeSpan>();
-            var dura = CurrentPlayback.GetDuration<MetricTimeSpan>();
-            var totalMicroseconds = metricTimeSpan.TotalMicroseconds + (long)(timeInSeconds * 1_000_000);
-            if (totalMicroseconds < 0) totalMicroseconds = 0;
-            if (totalMicroseconds > dura.TotalMicroseconds) totalMicroseconds = dura.TotalMicroseconds;
-            CurrentPlayback.MoveToTime(new MetricTimeSpan(totalMicroseconds));
-        }
-        catch (Exception e)
-        {
-            PluginLog.Warning(e.ToString(), "error when try setting current playback time");
-        }
-    }
-
-    public static void SwitchSong(int index, bool startPlaying = false)
-    {
-        if (index < 0 || index >= PlaylistManager.FilePathList.Count)
-        {
-            PluginLog.Error($"SwitchSong: invalid playlist index {index}");
-            return;
-        }
-
-        PlaylistManager.CurrentPlaying = index;
-        Task.Run(async () =>
-        {
-            await FilePlayback.LoadPlayback(PlaylistManager.CurrentPlaying, startPlaying);
-        });
-    }
+	internal static void MoveTime(double timeInSeconds)
+	{
+		try
+		{
+			var metricTimeSpan = MidiBard.CurrentPlayback.GetCurrentTime<MetricTimeSpan>();
+			var dura = MidiBard.CurrentPlayback.GetDuration<MetricTimeSpan>();
+			var totalMicroseconds = metricTimeSpan.TotalMicroseconds + (long)(timeInSeconds * 1_000_000);
+			if (totalMicroseconds < 0) totalMicroseconds = 0;
+			if (totalMicroseconds > dura.TotalMicroseconds) totalMicroseconds = dura.TotalMicroseconds;
+			MidiBard.CurrentPlayback.MoveToTime(new MetricTimeSpan(totalMicroseconds));
+		}
+		catch (Exception e)
+		{
+			PluginLog.Warning(e.ToString(), "error when try setting current playback time");
+		}
+	}
 }

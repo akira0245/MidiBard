@@ -159,8 +159,8 @@ namespace MidiBard
 					}
 
 					Separator();
-					TextUnformatted($"currentPlaying: {PlaylistManager.CurrentPlaying}");
-					TextUnformatted($"currentSelected: {PlaylistManager.CurrentSelected}");
+					TextUnformatted($"currentPlaying: {PlaylistManager.CurrentSongIndex}");
+					TextUnformatted($"currentSelected: {PlaylistManager.CurrentListIndex}");
 					TextUnformatted($"FilelistCount: {PlaylistManager.FilePathList.Count}");
 					TextUnformatted($"currentUILanguage: {api.PluginInterface.UiLanguage}");
 
@@ -427,12 +427,12 @@ namespace MidiBard
 					//	//UIcurrentInstrument = Plugin.CurrentInstrument;
 					//	//if (ImGui.ListBox("##instrumentSwitch", ref UIcurrentInstrument, InstrumentSheet.Select(i => i.Instrument.ToString()).ToArray(), (int)InstrumentSheet.RowCount, (int)InstrumentSheet.RowCount))
 					//	//{
-					//	//	Task.Run(() => SwitchInstrument.SwitchTo((uint)UIcurrentInstrument));
+					//	//	Task.Run(() => SwitchInstrument.SwitchToAsync((uint)UIcurrentInstrument));
 					//	//}
 
 					//	//if (ImGui.Button("Quit"))
 					//	//{
-					//	//	Task.Run(() => SwitchInstrument.SwitchTo(0));
+					//	//	Task.Run(() => SwitchInstrument.SwitchToAsync(0));
 					//	//}
 
 					//	ImGui.EndChild();

@@ -1,166 +1,100 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Dalamud.Logging;
-using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using Melanchall.DryWetMidi.Common;
 using Melanchall.DryWetMidi.Core;
 using MidiBard;
 using MidiBard.Control;
-using MidiBard.Control.CharacterControl;
-using MidiBard.Control.MidiControl;
 using MidiBard.DalamudApi;
 using MidiBard.IPC;
-using MidiBard.Managers;
-using MidiBard.Managers.Agents;
 using MidiBard.Managers.Ipc;
 using MidiBard.Util;
 using Newtonsoft.Json;
+using TinyIpc.IO;
 using TinyIpc.Messaging;
 
 namespace MidiBard.IPC;
 
-static class RPC
-{
-	public static void SyncPlaylist()
-	{
-		if (!MidiBard.config.SyncClients) return;
-		MidiBard.IpcManager.BroadCast(IPCEnvelope.Create(MessageTypeCode.SyncPlaylist, 0, MidiBard.config.Playlist.ToArray()).Serialize());
-	}
-	public static void HandleSyncPlaylist(IPCEnvelope message)
-	{
-		var paths = message.StringData;
-		Task.Run(() => PlaylistManager.AddAsync(paths, true, true));
-	}
-
-	public static void RemoveTrackIndex(int index)
-	{
-		if (!MidiBard.config.SyncClients) return;
-		MidiBard.IpcManager.BroadCast(IPCEnvelope.Create(MessageTypeCode.RemoveTrackIndex, index).Serialize());
-	}
-	public static void HandleRemoveTrackIndex(IPCEnvelope message)
-	{
-		PlaylistManager.RemoveLocal(message.DataStruct<int>());
-	}
-
-	public static void UpdateMidiFileConfig(MidiFileConfig config)
-	{
-		MidiBard.IpcManager.BroadCast(IPCEnvelope.Create(MessageTypeCode.UpdateMidiFileConfig, 0, config.JsonSerialize()).Serialize(), true);
-	}
-	public static void HandleUpdateMidiFileConfig(IPCEnvelope message)
-	{
-		var midiFileConfig = message.StringData[0].JsonDeserialize<MidiFileConfig>();
-		MidiBard.CurrentPlayback.MidiFileConfig = midiFileConfig;
-		var dbTracks = midiFileConfig.Tracks;
-		var trackStatus = MidiBard.config.TrackStatus;
-		for (var i = 0; i < dbTracks.Count; i++)
-		{
-			try
-			{
-				trackStatus[i].Enabled = dbTracks[i].Enabled && dbTracks[i].PlayerCid == (long)api.ClientState.LocalContentId;
-				trackStatus[i].Transpose = dbTracks[i].Transpose;
-				trackStatus[i].Tone = InstrumentHelper.GetGuitarTone(dbTracks[i].Instrument);
-			}
-			catch (Exception e)
-			{
-				PluginLog.Error(e, $"error when updating track {i}");
-			}
-		}
-
-		MidiBard.config.EnableTransposePerTrack = true;
-
-		//var UpdateTrackStatus = message.DataStruct<IpcUpdateTrackStatus>();
-		//for (var i = 0; i < MidiBard.config.TrackStatus.Length; i++)
-		//{
-		//    MidiBard.config.TrackStatus[i] = UpdateTrackStatus.TrackStatus[i];
-		//}
-	}
-	//public static void UpdateEnsembleMember()
-	//{
-	//    MidiBard.IpcManager.BroadCast(IPCEnvelope.Create(MessageTypeCode.UpdateEnsembleMember, 0, new string[] { JsonConvert.SerializeObject(BardsManager.BardsProfile) }).Serialize());
-	//}
-	//public static void HandleUpdateEnsembleMember(IPCEnvelope message)
-	//{
-	//    var UpdateTrackStatus = message.StringData[0].JsonDeserialize<Dictionary<long, BardsManager.EnsembleMemberProfile>>();
-	//    foreach (var (key, value) in UpdateTrackStatus)
-	//    {
-	//        BardsManager.BardsProfile[key] = value;
-	//    }
-	//}
-
-	public static void LoadPlayback(int index)
-	{
-		if (!MidiBard.config.SyncClients) return;
-		if (!api.PartyList.IsPartyLeader()) return;
-		IPCEnvelope.Create(MessageTypeCode.LoadPlaybackIndex, index).BroadCast();
-	}
-	public static void HandleLoadPlayback(IPCEnvelope message)
-	{
-		FilePlayback.LoadPlayback(message.DataStruct<int>(), false, false);
-	}
-
-	public static void UpdateInstrument(bool takeout)
-	{
-		IPCEnvelope.Create(MessageTypeCode.SetInstrument, takeout).BroadCast(true);
-	}
-	public static void HandleSetInstrument(IPCEnvelope message)
-	{
-		var takeout = message.DataStruct<bool>();
-		if (!takeout)
-		{
-			SwitchInstrument.SwitchToContinue(0);
-			return;
-		}
-		var instrument = MidiBard.CurrentPlayback.MidiFileConfig.Tracks
-			.FirstOrDefault(i => i.Enabled && i.PlayerCid == (long)api.ClientState.LocalContentId)?.Instrument;
-		if (instrument != null)
-			SwitchInstrument.SwitchToContinue((uint)instrument);
-	}
-
-	public static void DoMacro(string[] lines, bool includeSelf = false)
-	{
-		MidiBard.IpcManager.BroadCast(IPCEnvelope.Create(MessageTypeCode.Macro, 0, lines).Serialize(), includeSelf);
-	}
-	public static void HandleDoMacro(IPCEnvelope message)
-	{
-		ChatCommands.DoMacro(message.StringData);
-	}
-
-	public static void SetOption(ConfigOption option, int value, bool includeSelf)
-	{
-		IPCEnvelope.Create(MessageTypeCode.SetOption, (option, value)).BroadCast(includeSelf);
-	}
-	public static void HandleSetOption(IPCEnvelope message)
-	{
-		var dataStruct = message.DataStruct<(ConfigOption, int)>();
-		AgentConfigSystem.SetOptionValue(dataStruct.Item1, dataStruct.Item2);
-	}
-
-	public static void Minimize(IPCEnvelope message)
-	{
-
-	}
-}
-
-
-
 internal class IPCManager : IDisposable
 {
 	private readonly bool initFailed;
-	private TinyMessageBus MessageBus { get; }
+	private bool _messagesQueueRunning = true;
+	private readonly TinyMessageBus MessageBus;
+	private readonly ConcurrentQueue<(byte[] serialized, bool includeSelf)> messageQueue = new();
+	private readonly AutoResetEvent _autoResetEvent = new(false);
+	private readonly Dictionary<MessageTypeCode, Action<IPCEnvelope>> _methodInfos;
 	internal IPCManager()
 	{
 		try
 		{
-			MessageBus = new TinyMessageBus("Midibard.IPC");
+			const long maxFileSize = 1 << 24;
+			MessageBus = new TinyMessageBus(new TinyMemoryMappedFile("Midibard.IPC", maxFileSize), true);
 			MessageBus.MessageReceived += MessageBus_MessageReceived;
+
+			_methodInfos = typeof(IPCHandles)
+				.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
+				.Select(i => (i.GetCustomAttribute<IPCHandleAttribute>()?.TypeCode, methodInfo: i))
+				.Where(i => i.TypeCode != null)
+				.ToDictionary(i => (MessageTypeCode)i.TypeCode,
+					i => i.methodInfo.CreateDelegate<Action<IPCEnvelope>>(null));
+
+			var thread = new Thread(() =>
+			{
+				PluginLog.Information($"IPC message queue worker thread started");
+				while (_messagesQueueRunning)
+				{
+					PluginLog.Verbose($"Try dequeue message");
+					while (messageQueue.TryDequeue(out var dequeue))
+					{
+						try
+						{
+							var message = dequeue.serialized;
+							var messageLength = message.Length;
+							PluginLog.Verbose($"Dequeue serialized. length: {Dalamud.Utility.Util.FormatBytes(messageLength)}");
+							if (messageLength > maxFileSize)
+							{
+								throw new InvalidOperationException($"Message size is too large! TinyIpc will crash when handling this, not gonna let it through. maxFileSize: {Dalamud.Utility.Util.FormatBytes(maxFileSize)}");
+							}
+
+							if (MessageBus.PublishAsync(message).Wait(5000))
+							{
+								PluginLog.Verbose($"Message published.");
+								if (dequeue.includeSelf) MessageBus_MessageReceived(null, new TinyMessageReceivedEventArgs(message));
+							}
+							else
+							{
+								throw new TimeoutException("IPC didn't published in 5000 ms, what happened?");
+							}
+						}
+						catch (Exception e)
+						{
+							PluginLog.Warning(e, $"Error when try publishing ipc");
+						}
+					}
+
+					_autoResetEvent.WaitOne();
+				}
+				PluginLog.Information($"IPC message queue worker thread ended");
+			});
+			thread.IsBackground = true;
+			thread.Start();
+		}
+		catch (PlatformNotSupportedException e)
+		{
+			PluginLog.Error(e, $"TinyIpc init failed. Unfortunately TinyIpc is not available on Linux. local ensemble sync will not function properly.");
+			initFailed = true;
 		}
 		catch (Exception e)
 		{
-			PluginLog.Error(e, $"TinyIpc init failed. Unfortunately TinyIpc is not available on Linux. local ensemble sync will not function properly.");
+			PluginLog.Error(e, $"TinyIpc init failed. local ensemble sync will not function properly.");
 			initFailed = true;
 		}
 	}
@@ -170,71 +104,40 @@ internal class IPCManager : IDisposable
 		if (initFailed) return;
 		try
 		{
-			var message = IPCEnvelope.Deserialize(e.Message);
+			var sw = Stopwatch.StartNew();
+			PluginLog.Verbose($"message received");
+			var bytes = e.Message.Decompress();
+			PluginLog.Verbose($"message decompressed in {sw.Elapsed.TotalMilliseconds}ms");
+			var message = bytes.ProtoDeserialize<IPCEnvelope>();
+			PluginLog.Verbose($"proto deserialized in {sw.Elapsed.TotalMilliseconds}ms");
 			PluginLog.Debug(message.ToString());
 			ProcessMessage(message);
 		}
 		catch (Exception exception)
 		{
-			PluginLog.Error(exception, "error when DeserializeObject");
+			PluginLog.Error(exception, "error when processing received message");
 		}
 	}
 
-	private static void ProcessMessage(IPCEnvelope message)
+	private void ProcessMessage(IPCEnvelope message)
 	{
-		switch (message.MessageType)
-		{
-			case MessageTypeCode.Hello:
-				PluginLog.Warning($"{message.BroadcasterId:X} {api.PartyList.GetPartyMemberFromCID(message.BroadcasterId)?.Name} say Hello!");
-				break;
-			case MessageTypeCode.Bye:
-				PluginLog.Warning($"{message.BroadcasterId:X} {api.PartyList.GetPartyMemberFromCID(message.BroadcasterId)?.Name} say GoodBye!");
-				break;
-			case MessageTypeCode.Acknowledge:
-				break;
-			case MessageTypeCode.UpdateMidiFileConfig:
-				RPC.HandleUpdateMidiFileConfig(message);
-				break;
-			case MessageTypeCode.SetInstrument:
-				RPC.HandleSetInstrument(message);
-				break;
-			case MessageTypeCode.MidiEvent:
-				break;
-			case MessageTypeCode.Chat:
-				break;
-			case MessageTypeCode.EnsembleStartTime:
-				break;
-			case MessageTypeCode.SyncPlaylist:
-				RPC.HandleSyncPlaylist(message);
-				break;
-			case MessageTypeCode.RemoveTrackIndex:
-				RPC.HandleRemoveTrackIndex(message);
-				break;
-			case MessageTypeCode.LoadPlaybackIndex:
-				RPC.HandleLoadPlayback(message);
-				break;
-			case MessageTypeCode.Macro:
-				RPC.HandleDoMacro(message);
-				break;
-
-			case MessageTypeCode.SetOption:
-				RPC.HandleSetOption(message);
-				break;
-		}
+		if (!MidiBard.config.SyncClients) return;
+		_methodInfos[message.MessageType](message);
 	}
 
 	public void BroadCast(byte[] serialized, bool includeSelf = false)
 	{
 		if (initFailed) return;
-		PluginLog.Debug($"message published. length: {Dalamud.Utility.Util.FormatBytes(serialized.Length)}");
+		if (!MidiBard.config.SyncClients) return;
 		try
 		{
-			MessageBus.PublishAsync(serialized);
-			if (includeSelf) MessageBus_MessageReceived(null, new TinyMessageReceivedEventArgs(serialized));
+			PluginLog.Verbose($"queuing message. length: {Dalamud.Utility.Util.FormatBytes(serialized.Length)}" + (includeSelf ? " includeSelf" : null));
+			messageQueue.Enqueue(new(serialized, includeSelf));
+			_autoResetEvent.Set();
 		}
 		catch (Exception e)
 		{
-			PluginLog.Error(e, "error when public message, tiny ipc internal exception.");
+			PluginLog.Warning(e, "error when queuing message");
 		}
 	}
 
@@ -242,8 +145,10 @@ internal class IPCManager : IDisposable
 	{
 		try
 		{
-			if (initFailed) return;
+			_messagesQueueRunning = false;
 			MessageBus.MessageReceived -= MessageBus_MessageReceived;
+			_autoResetEvent?.Set();
+			_autoResetEvent?.Dispose();
 		}
 		finally
 		{

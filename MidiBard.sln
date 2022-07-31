@@ -5,7 +5,7 @@ VisualStudioVersion = 17.1.31911.260
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MidiBard", "Midibard\MidiBard.csproj", "{07727526-FA4F-435C-85BF-2DE96BD41470}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "playlib", "playlib\playlib.csproj", "{D47D6214-86F4-4B4D-B0F2-5EBAFF56EB0F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "playlib", "playlib\playlib.csproj", "{D47D6214-86F4-4B4D-B0F2-5EBAFF56EB0F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -22,8 +22,8 @@ Global
 		{07727526-FA4F-435C-85BF-2DE96BD41470}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D47D6214-86F4-4B4D-B0F2-5EBAFF56EB0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D47D6214-86F4-4B4D-B0F2-5EBAFF56EB0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D47D6214-86F4-4B4D-B0F2-5EBAFF56EB0F}.DEBUG2|Any CPU.ActiveCfg = Debug|Any CPU
-		{D47D6214-86F4-4B4D-B0F2-5EBAFF56EB0F}.DEBUG2|Any CPU.Build.0 = Debug|Any CPU
+		{D47D6214-86F4-4B4D-B0F2-5EBAFF56EB0F}.DEBUG2|Any CPU.ActiveCfg = Release|Any CPU
+		{D47D6214-86F4-4B4D-B0F2-5EBAFF56EB0F}.DEBUG2|Any CPU.Build.0 = Release|Any CPU
 		{D47D6214-86F4-4B4D-B0F2-5EBAFF56EB0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D47D6214-86F4-4B4D-B0F2-5EBAFF56EB0F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
@@ -31,6 +31,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
+		RESX_NeutralResourcesLanguage = en-US
 		SolutionGuid = {5A46B208-8464-4CDA-BF03-714B4070FE9E}
 	EndGlobalSection
 EndGlobal
