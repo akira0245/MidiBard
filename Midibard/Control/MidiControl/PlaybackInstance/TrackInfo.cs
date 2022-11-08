@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Melanchall.DryWetMidi.Common;
 using Melanchall.DryWetMidi.Core;
@@ -11,8 +12,8 @@ namespace MidiBard;
 
 public record TrackInfo
 {
-    //var (programTrackChunk, programTrackInfo) =
-    //    CurrentTracks.FirstOrDefault(i => Regex.IsMatch(i.trackInfo.TrackName, @"^Program:.+$", RegexOptions.Compiled | RegexOptions.IgnoreCase));
+    //  var (programTrackChunk, programTrackInfo) =
+    //  CurrentTracks.FirstOrDefault(i => Regex.IsMatch(i.trackInfo.TrackName, @"^Program:.+$", RegexOptions.Compiled | RegexOptions.IgnoreCase));
 
     public string[] TrackNameEventsText { get; init; }
     public string[] ProgramChangeEventsText { get; init; }
@@ -27,9 +28,54 @@ public record TrackInfo
 
     public ref bool IsEnabled => ref MidiBard.config.TrackStatus[Index].Enabled;
     public bool IsPlaying => MidiBard.config.SoloedTrack is int t ? t == Index : IsEnabled;
+
     public int TransposeFromTrackName => GetTransposeByName(TrackName);
     public uint? InstrumentIDFromTrackName => GetInstrumentIDByName(TrackName);
     public uint? GuitarToneFromTrackName => GetInstrumentIDByName(TrackName) - 24;
+
+    private static readonly Dictionary<string, uint?> instrumentIdMap = new() {
+        { "harp", 1 },
+        { "piano", 2 },
+        { "lute", 3 },
+        { "fiddle", 4 },
+        { "flute", 5 },
+        { "oboe", 6 },
+        { "clarinet", 7 },
+        { "fife", 8 },
+        { "panpipes", 9 },
+        { "timpani", 10 },
+        { "bongo", 11 },
+        { "bassdrum", 12 },
+        { "snaredrum", 13 },
+        { "cymbal", 14 },
+        { "trumpet", 15 },
+        { "trombone", 16 },
+        { "tuba", 17 },
+        { "horn", 18 },
+
+        { "saxophone", 19 },
+        // alias
+        { "sax", 19 },
+
+        { "violin", 20 },
+        { "viola", 21 },
+        { "cello", 22 },
+
+        { "doublebass", 23 },
+        // alias
+        { "contrabass", 23 },
+
+        { "electricguitaroverdriven", 24 },
+        // alias
+        { "programelectricguitar", 24 },
+        { "program", 24 },
+        { "electricguitar", 24 },
+
+        { "electricguitarclean", 25 },
+        { "electricguitarmuted", 26 },
+        { "electricguitarpowerchords", 27 },
+        { "electricguitarspecial", 28 }
+    };
 
     public override string ToString()
     {
@@ -41,135 +87,42 @@ public record TrackInfo
         return $"Track name:\n　{TrackName} \nNote count: \n　{NoteCount} notes \nRange:\n　{LowestNote}-{HighestNote} \n ProgramChange events: \n　{string.Join("\n　", ProgramChangeEventsText.Distinct())} \nDuration: \n　{DurationMetric}";
     }
 
-    public static uint? GetInstrumentIDByName(string name)
+    public static uint? GetInstrumentIDByName(string trackName)
     {
-        if (name.Contains("+"))
-        {
-            string[] split = name.Split('+');
-            if (split.Length > 0)
-            {
-                name = split[0];
-            }
-        }
-        else if (name.Contains("-"))
-        {
-            string[] split = name.Split('-');
-            if (split.Length > 0)
-            {
-                name = split[0];
-            }
-        }
+        RegexOptions regexOptions = RegexOptions.IgnoreCase | RegexOptions.Multiline;
+        string sanitizedTrackName = Regex.Replace(trackName, @"(\s+|:)", "", regexOptions).ToLowerInvariant();
+        
+        string[] instrumentsKeys = instrumentIdMap.Keys.ToArray();
+        string instrumentsPattern = String.Join("|", instrumentsKeys);
+        string trackNamePattern = $@"({instrumentsPattern})";
+        Regex expression = new Regex(trackNamePattern, regexOptions);
+	  	Match match = expression.Match(sanitizedTrackName);
+	  
+ 		uint? instrumentId = null;
 
-        name = name.Replace(" ", "").Replace(":", "").ToLowerInvariant();
-
-
-        return InstrumentIdEquals(name) ?? InsturmentContains(name);
-
-        uint? InstrumentIdEquals(string s)
-        {
-            return s switch
-            {
-                // below are to be compatible with BMP-ready MIDI files.
-                "harp" => 1,
-                "piano" => 2,
-                "lute" => 3,
-                "fiddle" => 4,
-                "flute" => 5,
-                "oboe" => 6,
-                "clarinet" => 7,
-                "fife" => 8,
-                "panpipes" => 9,
-                "timpani" => 10,
-                "bongo" => 11,
-                "bassdrum" => 12,
-                "snaredrum" => 13,
-                "cymbal" => 14,
-                "trumpet" => 15,
-                "trombone" => 16,
-                "tuba" => 17,
-                "horn" => 18,
-                "saxophone" or "sax" => 19,
-                "violin" => 20,
-                "viola" => 21,
-                "cello" => 22,
-                "doublebass" or "contrabass" => 23,
-                "electricguitaroverdriven" => 24,
-                "electricguitarclean" => 25,
-                "electricguitarmuted" => 26,
-                "electricguitarpowerchords" => 27,
-                "electricguitarspecial" => 28,
-                "programelectricguitar" => 24,
-                _ => null
-            };
-        }
-
-
-        uint? InsturmentContains(string s)
-        {
-            var instrumetId = instrumentIdMap.Find(i => s.Contains(i.name, StringComparison.InvariantCultureIgnoreCase)).instrumetID;
-
-            return instrumetId == 0 ? null : instrumetId;
-        }
+	  	string instrumentName = match.Success ? match.Value.ToString() : "";
+	  	instrumentIdMap.TryGetValue(instrumentName, out instrumentId);
+	  	return instrumentId;
     }
 
-    private static readonly List<(string name, uint instrumetID)> instrumentIdMap = new()
+    public static int GetTransposeByName(string trackName)
     {
-        ("harp", 1),
-        ("piano", 2),
-        ("fiddle", 4),
-        ("flute", 5),
-        ("lute", 3),
-        ("oboe", 6),
-        ("clarinet", 7),
-        ("fife", 8),
-        ("panpipes", 9),
-        ("timpani", 10),
-        ("bongo", 11),
-        ("bassdrum", 12),
-        ("snaredrum", 13),
-        ("cymbal", 14),
-        ("trumpet", 15),
-        ("trombone", 16),
-        ("tuba", 17),
-        ("horn", 18),
-        ("saxophone", 19),
-        ("sax", 19),
-        ("violin", 20),
-        ("viola", 21),
-        ("cello", 22),
-        ("doublebass", 23),
-        ("contrabass", 23),
-        ("overdriven", 24),
-        ("clean", 25),
-        ("muted", 26),
-        ("powerchords", 27),
-        ("special", 28),
-        ("program", 24),
-        ("electricguitar", 24),
-    };
+        RegexOptions options = RegexOptions.IgnoreCase | RegexOptions.Multiline;
+        string sanitizedTrackName = Regex.Replace(trackName, @"(\s+|:)", "", options).ToLowerInvariant();
+        string octavePattern = $@"(?:(\+|-)(?:\s+)?(\d))";
+        Regex expression = new Regex(octavePattern, options);
+        var matches = expression.Matches(sanitizedTrackName);
 
-    public static int GetTransposeByName(string name)
-    {
         int octave = 0;
-        if (name.Contains("+"))
-        {
-            string[] split = name.Split('+');
-            if (split.Length > 1)
-            {
-                Int32.TryParse(split[1], out octave);
-            }
-        }
-        else if (name.Contains("-"))
-        {
-            string[] split = name.Split('-');
-            if (split.Length > 1)
-            {
-                Int32.TryParse(split[1], out octave);
-                octave = -octave;
-            }
-        }
 
+        foreach (Match match in matches) {
+            GroupCollection groups = match.Groups;
+            string plusMinusSign = groups[1].Value.ToString();
+            bool isParsable = Int32.TryParse(groups[2].Value, out octave);
+            octave = (plusMinusSign == "-" ? -octave : octave) * 12;
+        }
         //PluginLog.LogDebug("Transpose octave: " + octave);
-        return octave * 12;
+
+        return octave;
     }
 }
