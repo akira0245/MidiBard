@@ -287,4 +287,20 @@ internal class BardPlayDevice : IOutputDevice
 
 		return noteNumber;
 	}
+
+    private void ReleaseUnmanagedResources()
+    {
+        // TODO release unmanaged resources here
+    }
+
+    public void Dispose()
+    {
+        ReleaseUnmanagedResources();
+        GC.SuppressFinalize(this);
+    }
+
+    ~BardPlayDevice()
+    {
+        ReleaseUnmanagedResources();
+    }
 }
