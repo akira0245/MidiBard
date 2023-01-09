@@ -27,8 +27,8 @@ public static class Offsets
     [Function("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 0F B6 FA 48 8B D9 84 D2 ")]
     public static IntPtr UpdateMetronome { get; private set; }
 
-    [Function("83 FA 04 77 4E")]
-    public static IntPtr UISetTone { get; private set; }
+    //[Function("83 FA 04 77 4E")]
+    //public static IntPtr UISetTone { get; private set; }
 
     [Function("48 8B C4 56 48 81 EC ?? ?? ?? ?? 48 89 58 10 ")]
     public static IntPtr ApplyGraphicConfigsFunc { get; private set; }
@@ -36,7 +36,8 @@ public static class Offsets
     [Function("48 89 ? ? ? 48 89 ? ? ? 57 48 83 EC ? 8B FA 41 0F ? ? 03 79")]
     public static IntPtr PressNote { get; private set; }
 
-
+    [Function("E9 ? ? ? ? 48 83 C2 10 48 83 C4 20 5B E9 ? ? ? ? 48 83 C2 10 48 83 C4 20 5B E9 ? ? ? ? 41 81 E8 ? ? ? ? ")]
+    public static IntPtr NetworkEnsembleStart { get; private set; }
 #if DEBUG
 
     [Function("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 48 8B DA 8B F9 ")]
