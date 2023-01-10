@@ -6,6 +6,7 @@ using Microsoft.Win32;
 using MidiBard.DalamudApi;
 using MidiBard.Resources;
 using MidiBard.Util;
+using System.IO;
 
 namespace MidiBard.UI.Win32;
 
@@ -28,6 +29,7 @@ static class FileDialogs
 				RestoreDirectory = true,
 				CheckFileExists = true,
 				Multiselect = true,
+				InitialDirectory = MidiBard.config.lastOpenedFolderPath
 			};
 
 			callback(dialog.ShowDialog(), dialog.FileNames);
@@ -46,7 +48,8 @@ static class FileDialogs
 				RestoreDirectory = true,
 				CheckFileExists = true,
 				Multiselect = false,
-			};
+                InitialDirectory = MidiBard.config.lastOpenedFolderPath
+            };
 			callback(dialog.ShowDialog(), dialog.FileName);
 		});
 
@@ -60,7 +63,11 @@ static class FileDialogs
 		var t = new Thread(() =>
 		{
 			var dlg = new FolderPicker();
-			callback(dlg.ShowDialog(api.PluginInterface.UiBuilder.WindowHandlePtr), dlg.ResultPath);
+            if (Directory.Exists(MidiBard.config.lastOpenedFolderPath))
+            {
+                dlg.InputPath = MidiBard.config.lastOpenedFolderPath;
+            }
+            callback(dlg.ShowDialog(api.PluginInterface.UiBuilder.WindowHandlePtr), dlg.ResultPath);
 		});
 		t.IsBackground = true;
 		t.SetApartmentState(ApartmentState.STA);
@@ -78,7 +85,8 @@ static class FileDialogs
 				DefaultExt = ".mpl",
 				OverwritePrompt = true,
 				FileName = filename,
-			};
+                InitialDirectory = MidiBard.config.lastOpenedFolderPath
+            };
 			callback(dialog.ShowDialog(), dialog.FileName);
 		});
 		t.IsBackground = true;
