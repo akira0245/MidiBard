@@ -37,7 +37,7 @@ internal class EnsembleManager : IDisposable
 
         NetworkEnsembleHook = Hook<sub_1410F4EC0>.FromAddress(Offsets.NetworkEnsembleStart, (a1, a2) =>
         {
-            StartEnsemble();
+            if (config.MonitorOnEnsemble) StartEnsemble();
             return NetworkEnsembleHook.Original(a1, a2);
         });
         NetworkEnsembleHook.Enable();

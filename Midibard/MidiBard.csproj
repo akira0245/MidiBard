@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>net6.0-windows</TargetFramework>
-		<LangVersion>11</LangVersion>
-		<AssemblyVersion>1.13.0.0</AssemblyVersion>
+		<TargetFramework>net7.0-windows</TargetFramework>
+		<LangVersion>preview</LangVersion>
+		<AssemblyVersion>1.14.0.0</AssemblyVersion>
 		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 		<Nullable>disable</Nullable>

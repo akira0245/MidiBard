@@ -229,6 +229,6 @@ static class IPCHandles
 	{
 		var characterName = message.StringData[0];
 		PluginLog.LogWarning($"ERR: Playback Null on character: {characterName}");
-		api.ChatGui.PrintError($"[MidiBard 2] Error: Load song failed on character: {characterName}, please try to switch the song again.");
+		api.ChatGui.PrintError($"[MidiBard] Error: Load song failed on character: {characterName}, please try to switch the song again.");
 	}
 }
