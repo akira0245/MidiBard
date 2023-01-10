@@ -108,7 +108,7 @@ public class Configuration : IPluginConfiguration
     public bool lazyNoteRelease = true;
     public string lastUsedMidiDeviceName = "";
     public bool autoRestoreListening = false;
-    public string lastOpenedFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic);
+    public string lastOpenedFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
     //public bool autoStartNewListening = false;
 
     //public float timeBetweenSongs = 0;

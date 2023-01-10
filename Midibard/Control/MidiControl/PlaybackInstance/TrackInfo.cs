@@ -66,15 +66,16 @@ public record TrackInfo
         { "contrabass", 23 },
 
         { "electricguitaroverdriven", 24 },
-        // alias
-        { "programelectricguitar", 24 },
-        { "program", 24 },
-        { "electricguitar", 24 },
-
         { "electricguitarclean", 25 },
         { "electricguitarmuted", 26 },
         { "electricguitarpowerchords", 27 },
-        { "electricguitarspecial", 28 }
+        { "electricguitarspecial", 28 },
+
+        //alias
+        { "programelectricguitar", 24 },
+        { "program", 24 },
+        { "electricguitar", 24 }
+
     };
 
     public override string ToString()
