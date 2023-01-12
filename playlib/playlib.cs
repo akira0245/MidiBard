@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -20,7 +20,7 @@ namespace playlibnamespace
 			{
 				fixed (ulong* u = param)
                 {
-                    AtkUnitBase.fpFireCallback((AtkUnitBase*)ptr, paircount, (AtkValue*)u, (void*)1);
+                    AtkUnitBase.MemberFunctionPointers.FireCallback((AtkUnitBase*)ptr, paircount, (AtkValue*)u, (void*)1);
                 }
 			}
 		}
