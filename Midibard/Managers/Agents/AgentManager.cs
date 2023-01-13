@@ -63,9 +63,9 @@ unsafe class AgentManager
 //	}
 //}
 
-//unsafe class PerformanceAgent : AgentInterface<AgentPerformance>
+//unsafe class AgentPerformance : AgentInterface<AgentPerformance>
 //{
-//	public PerformanceAgent(IntPtr pointer) : base(pointer)
+//	public AgentPerformance(IntPtr pointer) : base(pointer)
 //	{
 
 //	}

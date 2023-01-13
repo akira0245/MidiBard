@@ -7,10 +7,10 @@ namespace MidiBard.Managers;
 public static class Offsets
 {
     [StaticAddress("48 8D 05 ?? ?? ?? ?? 48 89 03 48 8D 4B 40")]
-    public static IntPtr MetronomeAgent { get; private set; }
+    public static IntPtr AgentMetronome { get; private set; }
 
     [StaticAddress("48 8D 05 ?? ?? ?? ?? 48 8B F9 48 89 01 48 8D 05 ?? ?? ?? ?? 48 89 41 28 48 8B 49 48")]
-    public static IntPtr PerformanceAgent { get; private set; }
+    public static IntPtr AgentPerformance { get; private set; }
 
     [StaticAddress("48 8D 05 ?? ?? ?? ?? C7 83 E0 00 00 00 ?? ?? ?? ??")]
     public static IntPtr AgentConfigSystem { get; private set; }
@@ -24,16 +24,13 @@ public static class Offsets
     [Offset("40 88 ?? ?? 66 89 ?? ?? 40 84", +3)]
     public static byte InstrumentOffset { get; private set; }
 
-    [Function("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 0F B6 FA 48 8B D9 84 D2 ")]
-    public static IntPtr UpdateMetronome { get; private set; }
-
-    //[Function("83 FA 04 77 4E")]
-    //public static IntPtr UISetTone { get; private set; }
+    //[Function("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 0F B6 FA 48 8B D9 84 D2 ")]
+    //public static IntPtr UpdateMetronome { get; private set; }
 
     [Function("48 8B C4 56 48 81 EC ?? ?? ?? ?? 48 89 58 10 ")]
     public static IntPtr ApplyGraphicConfigsFunc { get; private set; }
 
-    [Function("E9 ? ? ? ? 48 8B 49 08 48 8B 01 FF 90 ? ? ? ? 48 8B C8 BA ? ? ? ? E8 ? ? ? ? 48 85 C0 74 11 ")]
+    [Function("E9 ? ? ? ? 48 83 C2 10 48 83 C4 20 5B E9 ? ? ? ? 48 83 C2 10 48 83 C4 20 5B E9 ? ? ? ? 41 81 E8 ? ? ? ? ")]
     public static IntPtr NetworkEnsembleStart { get; private set; }
 #if DEBUG
 
@@ -48,9 +45,6 @@ public static class Offsets
 
     [Function("40 55 57 41 56 48 8D AC 24 ?? ?? ?? ?? B8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 2B E0 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 85 ?? ?? ?? ?? 0F B6 79 09 ")]
     public static IntPtr EnsembleSendHandler { get; private set; }
-
-
-
 
     [Function("E8 ?? ?? ?? ?? 48 8B D7 48 8D 4D D8 44 8B E0")]
     public static IntPtr ChangeOctave { get; private set; }
