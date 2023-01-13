@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Dalamud.Logging;
+using MidiBard.DalamudApi;
 using MidiBard.Managers;
 
 namespace MidiBard.Control.CharacterControl;
@@ -16,6 +17,6 @@ static class PerformActions
     public static void DoPerformAction(uint instrumentId)
     {
         PluginLog.Information($"[DoPerformAction] instrumentId: {instrumentId}");
-        doPerformAction(Offsets.PerformanceStructPtr, instrumentId);
+        api.Framework.RunOnTick(() => doPerformAction(Offsets.PerformanceStructPtr, instrumentId));
     }
 }

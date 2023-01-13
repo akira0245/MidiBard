@@ -30,7 +30,7 @@ public static class Offsets
     [Function("48 8B C4 56 48 81 EC ?? ?? ?? ?? 48 89 58 10 ")]
     public static IntPtr ApplyGraphicConfigsFunc { get; private set; }
 
-    [Function("E9 ? ? ? ? 48 83 C2 10 48 83 C4 20 5B E9 ? ? ? ? 48 83 C2 10 48 83 C4 20 5B E9 ? ? ? ? 41 81 E8 ? ? ? ? ")]
+    [Function("40 53 48 83 EC 20 48 8B D9 48 83 C1 78 E8 ? ? ? ? 48 8D 8B ? ? ? ? E8 ? ? ? ? 48 8D 53 20 ")]
     public static IntPtr NetworkEnsembleStart { get; private set; }
 #if DEBUG
 
