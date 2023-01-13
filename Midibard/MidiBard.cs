@@ -28,7 +28,7 @@ using MidiBard.Control;
 using MidiBard.Control.CharacterControl;
 using MidiBard.Control.MidiControl;
 using MidiBard.Control.MidiControl.PlaybackInstance;
-using MidiBard.DalamudApi;
+using Dalamud;
 using MidiBard.IPC;
 using MidiBard.Managers;
 using MidiBard.Managers.Agents;
@@ -406,7 +406,7 @@ public class MidiBard : IDalamudPlugin
 
             TextureManager.Dispose();
             //GuitarTonePatch.Dispose();
-            DalamudApi.api.Dispose();
+            Dalamud.api.Dispose();
         }
         catch (Exception e2)
         {

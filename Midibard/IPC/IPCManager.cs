@@ -13,7 +13,7 @@ using Melanchall.DryWetMidi.Common;
 using Melanchall.DryWetMidi.Core;
 using MidiBard;
 using MidiBard.Control;
-using MidiBard.DalamudApi;
+using Dalamud;
 using MidiBard.IPC;
 using MidiBard.Managers.Ipc;
 using MidiBard.Util;

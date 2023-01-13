@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 using Dalamud.Game.ClientState.Party;
-using MidiBard.DalamudApi;
+using Dalamud;
 
 namespace MidiBard.Managers.Ipc;
 

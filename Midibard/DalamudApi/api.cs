@@ -1,4 +1,5 @@
-﻿using System;
+﻿global using Dalamud;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -26,7 +27,7 @@ using Dalamud.Plugin;
 // ReSharper disable UnusedAutoPropertyAccessor.Local
 // https://github.com/UnknownX7/DalamudRepoBrowser/blob/master/DalamudApi.cs
 
-namespace MidiBard.DalamudApi;
+namespace Dalamud;
 
 public class api
 {

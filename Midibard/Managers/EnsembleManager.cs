@@ -107,7 +107,7 @@ internal class EnsembleManager : IDisposable
             playlibnamespace.playlib.BeginReadyCheck();
             playlibnamespace.playlib.SendAction("SelectYesno", 3, 0);
             ImGuiUtil.AddNotification(NotificationType.Error, "Please load a song before starting ensemble!");
-            IPC.IPCHandles.ErrPlaybackNull(DalamudApi.api.ClientState.LocalPlayer?.Name.ToString());
+            IPC.IPCHandles.ErrPlaybackNull(Dalamud.api.ClientState.LocalPlayer?.Name.ToString());
         }
         else
         {

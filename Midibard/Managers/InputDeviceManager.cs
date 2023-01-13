@@ -10,7 +10,7 @@ using Dalamud.Plugin;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Multimedia;
 using MidiBard.Control;
-using MidiBard.DalamudApi;
+using Dalamud;
 using MidiBard.Resources;
 
 namespace MidiBard;

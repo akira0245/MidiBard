@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dalamud.Logging;
 using Microsoft.Win32;
-using MidiBard.DalamudApi;
+using Dalamud;
 using MidiBard.Resources;
 using MidiBard.Util;
 using System.IO;

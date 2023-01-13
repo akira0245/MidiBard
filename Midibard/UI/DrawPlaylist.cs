@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -10,7 +10,7 @@ using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Logging;
 using ImGuiNET;
 using MidiBard.Control.MidiControl;
-using MidiBard.DalamudApi;
+using Dalamud;
 using MidiBard.IPC;
 using MidiBard.Managers.Ipc;
 using MidiBard.Resources;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Dalamud.Logging;
-using MidiBard.DalamudApi;
+using Dalamud;
 using MidiBard.Managers.Ipc;
 
 namespace MidiBard.Managers;

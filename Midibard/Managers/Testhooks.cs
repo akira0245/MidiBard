@@ -10,7 +10,6 @@ using Dalamud.Logging;
 using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.System.Configuration;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
-using MidiBard.DalamudApi;
 using MidiBard.Managers.Agents;
 
 namespace MidiBard.Managers;

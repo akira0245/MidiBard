@@ -17,7 +17,7 @@ using Melanchall.DryWetMidi.Standards;
 using Melanchall.DryWetMidi.Tools;
 using MidiBard.Control.CharacterControl;
 using MidiBard.Control.MidiControl.PlaybackInstance;
-using MidiBard.DalamudApi;
+using Dalamud;
 using MidiBard.IPC;
 using MidiBard.Managers.Ipc;
 using MidiBard.Util;

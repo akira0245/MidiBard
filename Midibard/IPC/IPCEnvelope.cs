@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 using Dalamud.Logging;
 using Melanchall.DryWetMidi.Common;
 using Melanchall.DryWetMidi.Core;
-using MidiBard.DalamudApi;
+using Dalamud;
 using MidiBard.Util;
 using Newtonsoft.Json;
 using ProtoBuf;

@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Dalamud;
 using Dalamud.Hooking;
 using Dalamud.Logging;
-using MidiBard.DalamudApi;
 
 namespace MidiBard.Managers;
 

@@ -87,7 +87,7 @@ public class Configuration : IPluginConfiguration
 
     public int? SoloedTrack = null;
     //public int? SoloedChannel = null;
-    public int uiLang = DalamudApi.api.PluginInterface.UiLanguage == "zh" ? 1 : 0;
+    public int uiLang = api.PluginInterface.UiLanguage == "zh" ? 1 : 0;
 
     public int playlistSizeY = 10;
     public bool miniPlayer = false;

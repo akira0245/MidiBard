@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -230,7 +230,7 @@ public static class ImGuiUtil
 	public static void AddNotification(NotificationType type, string content, string title = null)
 	{
 		PluginLog.Debug($"[Notification] {type}:{title}:{content}");
-		DalamudApi.api.PluginInterface.UiBuilder.AddNotification(content, string.IsNullOrWhiteSpace(title) ? "Midibard" : "Midibard: " + title, type, 5000);
+		Dalamud.api.PluginInterface.UiBuilder.AddNotification(content, string.IsNullOrWhiteSpace(title) ? "Midibard" : "Midibard: " + title, type, 5000);
 	}
 
 	public static void PushStyleColors(bool pushNew, uint color, params ImGuiCol[] colors)

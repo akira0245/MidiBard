@@ -2,7 +2,7 @@
 using System.IO;
 using System.Linq;
 using Dalamud.Logging;
-using MidiBard.DalamudApi;
+using Dalamud;
 using Newtonsoft.Json;
 
 namespace MidiBard.Managers

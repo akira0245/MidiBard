@@ -11,7 +11,7 @@ using Dalamud.Interface.ImGuiFileDialog;
 using Dalamud.Logging;
 using ImGuiNET;
 using Microsoft.Win32;
-using MidiBard.DalamudApi;
+using Dalamud;
 using MidiBard.Managers.Ipc;
 using MidiBard.Resources;
 using MidiBard.UI.Win32;

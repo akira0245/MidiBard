@@ -7,7 +7,6 @@ using Dalamud;
 using ImGuiScene;
 using Lumina.Data.Files;
 using MidiBard.Control;
-using MidiBard.DalamudApi;
 using MidiBard.Util;
 
 namespace MidiBard.Managers

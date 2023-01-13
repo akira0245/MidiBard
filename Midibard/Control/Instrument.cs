@@ -8,7 +8,6 @@ using ImGuiScene;
 using Lumina.Data.Files;
 using Lumina.Excel.GeneratedSheets;
 using Melanchall.DryWetMidi.Common;
-using MidiBard.DalamudApi;
 using MidiBard.Managers;
 using MidiBard.Util;
 using static MidiBard.MidiBard;

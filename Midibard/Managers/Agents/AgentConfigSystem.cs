@@ -9,7 +9,7 @@ using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using MidiBard.DalamudApi;
+using Dalamud;
 
 namespace MidiBard.Managers.Agents
 {

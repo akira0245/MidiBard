@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Dalamud.Logging;
-using MidiBard.DalamudApi;
+using Dalamud;
 using MidiBard.Managers;
 
 namespace MidiBard.Control.CharacterControl;
