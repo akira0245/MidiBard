@@ -200,7 +200,7 @@ public class MidiBard : IDalamudPlugin
             switch (argStrings[0])
             {
                 case "cancel":
-                    PerformActions.DoPerformAction(0);
+                    PerformActions.DoPerformActionOnTick(0);
                     break;
                 case "perform":
                     try
@@ -208,7 +208,7 @@ public class MidiBard : IDalamudPlugin
                         var instrumentInput = argStrings[1];
                         if (instrumentInput == "cancel")
                         {
-                            PerformActions.DoPerformAction(0);
+                            PerformActions.DoPerformActionOnTick(0);
                         }
                         else if (uint.TryParse(instrumentInput, out var id1) && id1 < InstrumentStrings.Length)
                         {

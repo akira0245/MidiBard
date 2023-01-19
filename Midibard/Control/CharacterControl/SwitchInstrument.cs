@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Logging;
 using Lumina.Excel.GeneratedSheets;
+using MidiBard.Control.MidiControl;
 using MidiBard.Control.MidiControl.PlaybackInstance;
 using MidiBard.Managers;
 using MidiBard.Managers.Agents;
@@ -75,11 +76,11 @@ internal static class SwitchInstrument
 	{
 		if (MidiBard.CurrentInstrument != 0)
 		{
-			PerformActions.DoPerformAction(0);
+			PerformActions.DoPerformActionOnTick(0);
 			await Coroutine.WaitUntil(() => MidiBard.CurrentInstrument == 0, timeOut);
 		}
 
-		PerformActions.DoPerformAction(instrumentId);
+		PerformActions.DoPerformActionOnTick(instrumentId);
 		await Coroutine.WaitUntil(() => MidiBard.CurrentInstrument == instrumentId, timeOut);
 		await Task.Delay(200);
 	}
@@ -88,11 +89,11 @@ internal static class SwitchInstrument
 	{
 		if (MidiBard.CurrentInstrument != 0)
 		{
-			PerformActions.DoPerformAction(0);
+			PerformActions.DoPerformActionOnTick(0);
 			Coroutine.WaitUntilSync(() => MidiBard.CurrentInstrument == 0, timeOut);
 		}
 
-		PerformActions.DoPerformAction(instrumentId);
+		PerformActions.DoPerformActionOnTick(instrumentId);
 		Coroutine.WaitUntilSync(() => MidiBard.CurrentInstrument == instrumentId, timeOut);
 		Thread.Sleep(200);
 	}
